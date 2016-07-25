@@ -62,15 +62,15 @@ export default class extends base{
             });
             connection.on('error', () => {
                 this.close();
-                deferred.reject(err);
+                deferred.reject('DB connection error');
             })
             connection.on('end', () => {
                 this.close();
-                deferred.reject('connection end');
+                deferred.reject('DB connection end');
             })
             this.connection = connection;
             if (this.deferred) {
-                this.deferred.reject(new Error('connection closed'));
+                this.deferred.reject(new Error('DB connection closed'));
             }
             this.deferred = deferred;
             return this.deferred.promise;
@@ -81,7 +81,7 @@ export default class extends base{
         //query timeout
         this.closeTimer = setTimeout(() => {
             this.close();
-            return Promise.reject('time out');
+            return Promise.reject('query time out');
         }, this.config.timeout);
 
         let startTime = Date.now();
@@ -95,7 +95,7 @@ export default class extends base{
             this.config.logSql && ORM.log(sql, 'SQL', startTime);
             return rows;
         }).catch(err => {
-            (this.pool && connection.release) && connection.release();
+            this.close();
             return Promise.reject(err);
         });
     }
