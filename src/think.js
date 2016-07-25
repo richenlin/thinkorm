@@ -16,7 +16,7 @@ export default class {
     }
 
     schema(){
-
+        return this.handel.schema();
     }
 
 
