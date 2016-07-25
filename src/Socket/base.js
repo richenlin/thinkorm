@@ -27,7 +27,8 @@ export default class {
      * @param  {Object} http []
      * @return {}      []
      */
-    init() {
+    init(config = {}) {
+        this.config = config;
         this.pool = null;
         this.connection = null;
     }

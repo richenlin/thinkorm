@@ -7,6 +7,7 @@
  */
 export default class {
     constructor(options = {}) {
+        this.options = options;
         //构建连接池
         this.handel = null;
     }
