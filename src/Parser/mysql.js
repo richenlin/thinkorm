@@ -5,7 +5,6 @@
  * @license    MIT
  * @version    16/7/25
  */
-import {sprintf} from "sprintf-js";
 import base from './base';
 import analyze from '../Util/analyze';
 import sequelizer from '../Util/sequelizer';
@@ -18,77 +17,126 @@ export default class extends base {
 
     /**
      *
-     * @param sql
+     * @param data
      * @param options
      */
-    parseLimit(sql, options){
-
+    parseLimit(data, options){
+        let parseOptions = {};
+        parseOptions['offset'] = options.limit[0] || 0;
+        parseOptions['limit'] = options.limit[1] || 10;
+        return parseOptions;
     }
 
     /**
      *
-     * @param sql
+     * @param data
      * @param options
      */
-    parseOrder(sql, options){
-
+    parseOrder(data, options){
+        let parseOptions = {};
+        parseOptions['orderBy'] = options.order;
+        return parseOptions;
     }
 
     /**
      *
-     * @param sql
+     * @param data
      * @param options
      */
-    parseField(sql, options){
-
+    parseField(data, options){
+        let parseOptions = {};
+        parseOptions['select'] = options.field || '*';
+        return parseOptions;
     }
 
     /**
      *
-     * @param sql
+     * @param data
      * @param options
      */
-    parseWhere(sql, options){
-        if(ORM.isEmpty(options.where)){
-            return sql;
+    parseWhere(data, options){
+        let parseOptions = {};
+        parseOptions['where'] = options.where || 1;
+        return parseOptions;
+    }
+
+    /**
+     *
+     * @param data
+     * @param options
+     * @returns {*}
+     */
+    parseTable(data, options){
+        let parseOptions = {};
+        if(options.method === 'UPDATE'){
+            parseOptions['using'] = options.table;
+        } else if(options.method === 'INSERT'){
+            parseOptions['into'] = options.table;
+        }else {
+            parseOptions['from'] = options.table;
         }
-        let str = '', values = options.where;
-        for(let n in values){
-            let key = n.trim();
-            //or
-            if(key === 'or'){
-                if(ORM.isArray(values[n])){
-                    values[n].forEach(item => {
-                        if(item){
-                            //sql +=
-                        }
-                    });
-                }
+       return parseOptions;
+    }
+
+    /**
+     *
+     * @param data
+     * @param options
+     */
+    parseData(data, options){
+        let parseOptions = {};
+        if(options.method === 'UPDATE'){
+            parseOptions['update'] = data;
+        } else if(options.method === 'INSERT'){
+            parseOptions['insert'] = data;
+        }
+        return parseOptions;
+    }
+
+    /**
+     *
+     * @param data
+     * @param options
+     */
+    parseMethod(data, options){
+        let parseOptions = {};
+        if(options.method === 'DELETE'){
+            parseOptions['del'] = true;
+        }
+        return parseOptions;
+    }
+
+    /**
+     *
+     * @param data
+     * @param options
+     * @returns {string}
+     */
+    parseSql(data, options){
+        let parseOptions = {};
+        for(let n in options){
+            let mt = ORM.ucFirst(n);
+            if(this[`parse${mt}`] && ORM.isFunction(this[`parse${mt}`])){
+                parseOptions = ORM.extend(false, parseOptions, this[`parse${mt}`](data, options));
             }
         }
+        return parseOptions;
     }
 
     /**
      *
-     * @param sql
+     * @param data
      * @param options
+     * @returns {*}
      */
-    parseTable(sql, options){
-       return sprintf(sql.replace(/\__TABLE\__/g, '%s'), options);
-    }
-
-    /**
-     *
-     * @param options
-     */
-    parseSql(options){
-        //for(let n in options){
-        //    let mt = ORM.ucFirst(n);
-        //    if(this[`parse${mt}`] && ORM.isFunction(this[`parse${mt}`])){
-        //        sql = this[`parse${mt}`](sql, options[n]);
-        //    }
-        //}
-        let seqs = analyze(options);
+    buildSql(data, options){
+        if(options === undefined){
+            options = data;
+        } else {
+            options.data = data;
+        }
+        let parseOptions =  this.parseSql(data, options);
+        let seqs = analyze(parseOptions);
         let builder =  sequelizer({
             dialect: 'mysql',
             tree: seqs
@@ -99,7 +147,7 @@ export default class extends base {
             sql = builder.sql;
             if(!ORM.isEmpty(builder.bindings)){
                 builder.bindings.forEach(item => {
-                   sql =  sql.replace(/\?/, `'${item}'`);
+                    sql =  sql.replace(/\?/, ORM.isNumber(item) ? item : `'${item}'`);
                 });
             }
         }
@@ -108,10 +156,20 @@ export default class extends base {
 
     /**
      *
-     * @param options
-     * @returns {Promise.<T>}
+     * @param data
+     * @returns {*}
      */
-    buildSql(options){
-        return this.parseSql(options);
+    bufferToString(data){
+        if (!this.config.buffer_tostring || !ORM.isArray(data)) {
+            return data;
+        }
+        for(let i = 0, length = data.length; i < length; i++){
+            for(let key in data[i]){
+                if(ORM.isBuffer(data[i][key])){
+                    data[i][key] = data[i][key].toString();
+                }
+            }
+        }
+        return data;
     }
 }

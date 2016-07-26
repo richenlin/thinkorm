@@ -13,7 +13,7 @@ export default class extends base {
 
     init(config = {}) {
         super.init(config);
-        this.parser = new parser(config);
+        this.parser = null;
         //此Adapter特有的方法定义,例如mysql中可以使用startTrans,而mongo不行
         this.methods = {
             startTrans: this.startTrans,
@@ -30,6 +30,7 @@ export default class extends base {
             return this.handel;
         }
         this.handel = new socket(this.config);
+        this.parser = new parser(this.config);
         return this.handel;
     }
 
@@ -154,7 +155,7 @@ export default class extends base {
      */
     delete(options) {
         options.method = 'DELETE';
-        return this.parser.buildSql(data, options).then(sql => {
+        return this.parser.buildSql(options).then(sql => {
             return this.execute(sql);
         }).then(data => {
             //

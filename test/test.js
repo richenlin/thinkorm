@@ -37,23 +37,15 @@ var cls = new parser();
 
 console.log(cls.buildSql(
     {
-        select: '*',
-        from: 'users',
+        status: 'archived'
+    },{
+        method: 'SELECT',
+        field: ['archived'],
+        table: 'test',
+        limit: [0, 10],
+        order: [{id: 'asc'}, {name: 'desc'}],
         where: {
-            name: "ccc", id: 1
-        },
-        orderBy: [
-            {id: 'desc'},
-            {name: 'asc'}
-        ],
-        leftJoin: [
-            {
-                from: 'accounts',
-                on: {
-                    users: 'id',
-                    accounts: 'user_id'
-                }
-            }
-        ]
+            publishedDate: { '>': 2000 }
+        }
     }
 ));

@@ -40,23 +40,32 @@ export default class {
         return path.basename(fname, '.js');
     }
 
-    parseLimit(options){
-
+    /**
+     *
+     * @param data
+     * @param options
+     * @returns {string}
+     */
+    parseSql(data, options){
+        return options;
     }
 
-    parseOrder(options){
-
+    /**
+     *
+     * @param data
+     * @param options
+     * @returns {Promise.<T>}
+     */
+    buildSql(data, options){
+        return this.parseSql(data, options);
     }
 
-    parseField(options){
-
-    }
-
-    parseWhere(options){
-
-    }
-
-    buildSql(options){
-        return Promise.resolve();
+    /**
+     *
+     * @param data
+     * @returns {*}
+     */
+    bufferToString(data){
+        return data;
     }
 }

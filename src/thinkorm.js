@@ -297,36 +297,20 @@ export default class {
         if (order === undefined) {
             return this;
         }
-        if (ORM.isObject(order)) {
-            order = ORM.extend(false, {}, order);
-            let _order = {};
-            for (let v in order) {
-                if (ORM.isNumber(order[v])) {
-                    _order[v] = order[v];
-                } else {
-                    if (order[v].toLowerCase() === 'desc') {
-                        _order[v] = 0;
-                    } else if (order[v].toLowerCase() === 'asc') {
-                        _order[v] = 1;
-                    }
-                }
-            }
-            if (!ORM.isEmpty(_order)) {
-                this._options.sort = _order;
-            }
-        } else if (ORM.isString(order)) {
+        let _order = [];
+        if(ORM.isObject(order)){
+            _order.push(order);
+        }else if (ORM.isString(order)) {
             if (order.indexOf(',') > -1) {
                 let strToObj = function (_str) {
                     return _str.replace(/^ +/, '').replace(/ +$/, '')
                         .replace(/( +, +)+|( +,)+|(, +)/, ',')
                         .replace(/ +/g, '-').replace(/,-/g, ',').replace(/-/g, ':')
                         .replace(/^/, '{"').replace(/$/, '"}')
-                        .replace(/:/g, '":"').replace(/,/g, '","')
-                        .replace(/("desc")+|("DESC")/g, 0).replace(/("asc")+|("ASC")/g, 1);
+                        .replace(/:/g, '":"').replace(/,/g, '","');
                 };
                 this._options.order = JSON.parse(strToObj(order));
             } else {
-
                 this._options.order = order;
             }
         }
@@ -335,17 +319,17 @@ export default class {
 
     /**
      * 要查询的字段
-     * @param  {[type]} fields   [description]
+     * @param  {[type]} field   [description]
      * @return {[type]}         [description]
      */
-    field(fields) {
-        if (ORM.isEmpty(fields)) {
+    field(field) {
+        if (ORM.isEmpty(field)) {
             return this;
         }
-        if (ORM.isString(fields)) {
-            fields = fields.replace(/ +/g, '').split(',');
+        if (ORM.isString(field)) {
+            field = field.replace(/ +/g, '').split(',');
         }
-        this._options.fields = fields;
+        this._options.field = field;
         return this;
     }
 
@@ -379,24 +363,7 @@ export default class {
      */
     async add(data, options) {
         try {
-            if (ORM.isEmpty(data)) {
-                return this.error('_DATA_TYPE_INVALID_');
-            }
-            //parse options
-            let parsedOptions = this.parseOptions(options);
-            //copy data
-            this._data = ORM.extend({}, data);
-            this._data = await this._beforeAdd(this._data, parsedOptions);
-            this._data = await this.parseData(this._data, parsedOptions);
-            let result = await this.db().add(this._data, parsedOptions).catch(e => this.error(`${this.modelName}:${e.message}`));
-            this._data[this.pk] = this.db().getLastInsertId();
-            if (!ORM.isEmpty(this.relation)) {
-                await this.__postRelationData(this._data[this.pk], this._data, 'ADD', parsedOptions);
-            }
-            let pk = await this.getPk();
-            this._data[pk] = this._data[pk] ? this._data[pk] : result[pk];
-            await this._afterAdd(this._data, parsedOptions);
-            return this._data[pk];
+
         } catch (e) {
             return this.error(e);
         }
@@ -420,24 +387,7 @@ export default class {
      */
     async addAll(data, options) {
         try {
-            if (!ORM.isArray(data) || !ORM.isObject(data[0])) {
-                return this.error('_DATA_TYPE_INVALID_');
-            }
-            //parse options
-            let parsedOptions = this.parseOptions(options);
-            //copy data
-            this._data = ORM.extend([], data);
 
-            let promisesd = this._data.map(item => {
-                return this._beforeAdd(item, parsedOptions);
-            });
-            this._data = await Promise.all(promisesd);
-            let promiseso = this._data.map(item => {
-                return this.parseData(item, parsedOptions);
-            });
-            this._data = await Promise.all(promiseso);
-            let result = await this.db().addAll(this._data, parsedOptions).catch(e => this.error(`${this.modelName}:${e.message}`));
-            return result;
         } catch (e) {
             return this.error(e);
         }
@@ -449,7 +399,11 @@ export default class {
      * @param options
      */
     thenAdd(data, options){
+        try {
 
+        } catch (e) {
+            return this.error(e);
+        }
     }
 
     /**
@@ -468,13 +422,7 @@ export default class {
      */
     async delete(options) {
         try {
-            //parse options
-            let parsedOptions = this.parseOptions(options);
-            // init model
-            await this._beforeDelete(parsedOptions);
-            let result = await this.db().delete(parsedOptions).catch(e => this.error(`${this.modelName}:${e.message}`));
-            await this._afterDelete(parsedOptions.where || {});
-            return result;
+
         } catch (e) {
             return this.error(e);
         }
@@ -504,36 +452,7 @@ export default class {
      */
     async update(data, options) {
         try {
-            if (ORM.isEmpty(data)) {
-                return this.error('_DATA_TYPE_INVALID_');
-            }
-            //parse options
-            let parsedOptions = this.parseOptions(options);
-            //copy data
-            this._data = ORM.extend({}, data);
 
-            this._data = await this._beforeUpdate(this._data, parsedOptions);
-            this._data = await this.parseData(this._data, parsedOptions, true, 2);
-            let pk = await this.getPk();
-            if (ORM.isEmpty(parsedOptions.where)) {
-                // 如果存在主键数据 则自动作为更新条件
-                if (!ORM.isEmpty(this._data[pk])) {
-                    parsedOptions.where = {[pk]: this._data[pk]};
-                    delete this._data[pk];
-                } else {
-                    return this.error('_OPERATION_WRONG_');
-                }
-            } else {
-                if (!ORM.isEmpty(this._data[pk])) {
-                    delete this._data[pk];
-                }
-            }
-            let result = await this.db().update(parsedOptions, this._data).catch(e => this.error(`${this.modelName}:${e.message}`));
-            if (!ORM.isEmpty(this.relation)) {
-                await this.__postRelationData(result, data, 'UPDATE', parsedOptions);
-            }
-            await this._afterUpdate(this._data, parsedOptions);
-            return result;
         } catch (e) {
             return this.error(e);
         }
@@ -556,15 +475,7 @@ export default class {
      */
     async count(field, options) {
         try {
-            let pk = await this.getPk();
-            field = field || pk;
-            this._options.field = `count('${field}') AS Count`;
-            //parse options
-            let parsedOptions = this.parseOptions(options);
-            let result = await this.db().select(parsedOptions);
-            //Formatting Data
-            result = await this.parseData(result, parsedOptions, false);
-            return result[0].Count || 0;
+
         } catch (e) {
             return this.error(e);
         }
@@ -578,15 +489,7 @@ export default class {
      */
     async sum(field, options) {
         try {
-            let pk = await this.getPk();
-            field = field || pk;
-            this._options.field = 'SUM(`' + field + '`) AS Sum';
-            //parse options
-            let parsedOptions = this.parseOptions(options);
-            let result = await this.db().select(parsedOptions);
-            //Formatting Data
-            result = await this.parseData(result, parsedOptions, false);
-            return result[0].Sum || 0;
+
         } catch (e) {
             return this.error(e);
         }
@@ -598,14 +501,7 @@ export default class {
      */
     async find(options) {
         try{
-            options = await this.parseOptions(options, {limit: 1});
-            options = await this._beforeFind(options);
-            let result = await this.db().select(options);
-            if (options.rel && !ORM.isEmpty(result)) {//查询关联关系
-                await this.__getRelationData(result[0], options);
-            }
-            result = await this.parseData(result || {}, options, false);
-            return this._afterFind(result[0], options);
+
         } catch(e) {
 
             return this.error(e);
@@ -626,14 +522,7 @@ export default class {
      */
     async select(options) {
         try{
-            options = await this.parseOptions(options);
-            options = await this._beforeSelect(options);
-            let result = await this.db().select(options);
-            if (options.rel && !ORM.isEmpty(result)) {//查询关联关系
-                await this.__getRelationData(result, options);
-            }
-            result = await this.parseData(result, options, false);
-            return this._afterSelect(result, options);
+
         } catch(e) {
             return this.error(e);
         }
@@ -657,32 +546,7 @@ export default class {
      */
     async countSelect(options, pageFlag) {
         try {
-            if (ORM.isBoolean(options)) {
-                pageFlag = options;
-                options = {};
-            }
-            //parse options
-            let parsedOptions = this.parseOptions(options);
 
-            let count = await this.count(parsedOptions);
-            let pageOptions = this.parsePage(parsedOptions);
-            let totalPage = Math.ceil(count / pageOptions.num);
-            if (ORM.isBoolean(pageFlag)) {
-                if (pageOptions.page > totalPage) {
-                    pageOptions.page = pageFlag === true ? 1 : totalPage;
-                }
-                parsedOptions.page = pageOptions.page + ',' + pageOptions.num;
-            }
-            //传入分页参数
-            this.limit((pageOptions.page - 1) < 0 ? 0 : (pageOptions.page - 1) * pageOptions.num, pageOptions.num);
-            let result = ORM.extend(false, {count: count, total: totalPage}, pageOptions);
-            if (!parsedOptions.page) {
-                parsedOptions.page = pageOptions.page;
-            }
-            result.data = await this.select(parsedOptions);
-            //Formatting Data
-            result = await this.parseData(result, parsedOptions, false);
-            return result;
         } catch (e) {
             return this.error(e);
         }
