@@ -5,57 +5,40 @@
  * @license    MIT
  * @version    16/7/25
  */
-import path from 'path';
-
-/**
- * Base Class
- * @param  {Object} http
- * @return {Class}
- */
 export default class {
-    /**
-     * constructor
-     * @param  {Object} http []
-     * @return {}      []
-     */
-    constructor(...args) {
-        this.init(...args);
-    }
-
-    /**
-     * init
-     * @param  {Object} http []
-     * @return {}      []
-     */
-    init(config = {}) {
-        this.config = config;
+    constructor(options = {}) {
+        this.options = options;
+        //构建连接池
         this.handel = null;
     }
 
-    /**
-     * get current class filename
-     * @return {} []
-     */
-    filename() {
-        let fname = this.__filename || __filename;
-        return path.basename(fname, '.js');
-    }
-
-
-    connect(){
+    db(){
         return this.handel;
     }
 
     schema(){
-
+        return this.handel.schema();
     }
 
-    log(){
+    /**
+     * 错误封装
+     * @param err
+     */
+    error(err) {
+        let msg = err || '';
+        if (!ORM.isError(msg)) {
+            if (!ORM.isString(msg)) {
+                msg = JSON.stringify(msg);
+            }
+            msg = new Error(msg);
+        }
 
-    }
-
-    error(){
-
+        let stack = msg.message;
+        // connection error
+        if (~stack.indexOf('connect') || ~stack.indexOf('ECONNREFUSED')) {
+            this.handel && this.handel.close && this.handel.close();
+        }
+        return Promise.reject(msg);
     }
 
     /**
@@ -182,4 +165,6 @@ export default class {
     countSelect(){
 
     }
+
+
 }
