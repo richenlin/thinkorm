@@ -22,8 +22,11 @@ export default class extends base {
      */
     parseLimit(data, options){
         let parseOptions = {};
-        parseOptions['offset'] = options.limit[0] || 0;
-        parseOptions['limit'] = options.limit[1] || 10;
+        if(options.method === 'SELECT'){
+            parseOptions['offset'] = options.limit[0] || 0;
+            parseOptions['limit'] = options.limit[1] || 10;
+        }
+
         return parseOptions;
     }
 
@@ -34,7 +37,9 @@ export default class extends base {
      */
     parseOrder(data, options){
         let parseOptions = {};
-        parseOptions['orderBy'] = options.order;
+        if(options.method === 'SELECT'){
+            parseOptions['orderBy'] = options.order;
+        }
         return parseOptions;
     }
 
@@ -45,7 +50,9 @@ export default class extends base {
      */
     parseField(data, options){
         let parseOptions = {};
-        parseOptions['select'] = options.field || '*';
+        if(options.method === 'SELECT'){
+            parseOptions['select'] = options.field || '*';
+        }
         return parseOptions;
     }
 

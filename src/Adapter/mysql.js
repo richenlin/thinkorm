@@ -185,6 +185,7 @@ export default class extends base {
     count(options) {
         options.method = 'SELECT';
         options.count = options.field || '*';
+        options.limit = [0, 1];
         return this.parser.buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -201,6 +202,7 @@ export default class extends base {
     sum(options) {
         options.method = 'SELECT';
         options.sum = options.field || '*';
+        options.limit = [0, 1];
         return this.parser.buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -215,7 +217,7 @@ export default class extends base {
      */
     find(options) {
         options.method = 'SELECT';
-        options.limit = 1;
+        options.limit = [0, 1];
         return this.parser.buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {

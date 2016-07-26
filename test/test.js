@@ -39,11 +39,11 @@ console.log(cls.buildSql(
     {
         status: 'archived'
     },{
-        method: 'SELECT',
+        method: 'UPDATE',
         field: ['archived'],
         table: 'test',
         limit: [0, 10],
-        order: [{id: 'asc'}, {name: 'desc'}],
+        order: [{id: 'asc', name: 'desc'}],
         where: {
             publishedDate: { '>': 2000 }
         }

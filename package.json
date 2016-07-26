@@ -42,14 +42,14 @@
     "eslint": "3.1.1",
     "istanbul": "0.4.4",
     "mocha": "2.5.3",
-    "muk": "0.5.2",
-    "sprintf-js": "^1.0.3"
+    "muk": "0.5.2"
   },
   "dependencies": {
     "babel-runtime": "6.9.2",
     "bluebird": "3.4.1",
     "knex": "^0.11.9",
     "lodash": "^4.14.0",
+    "sprintf-js": "^1.0.3",
     "mysql2": "^1.0.0-rc.7"
   }
 }
