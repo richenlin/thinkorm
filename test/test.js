@@ -35,7 +35,25 @@ function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: o
 var parser = requireDefault(require('../lib/Parser/mysql.js')).default;
 var cls = new parser();
 
-console.log(cls.buildSql({
-    method: 'INSERT',
-    table: 'think_test'
-}));
+console.log(cls.buildSql(
+    {
+        select: '*',
+        from: 'users',
+        where: {
+            name: "ccc", id: 1
+        },
+        orderBy: [
+            {id: 'desc'},
+            {name: 'asc'}
+        ],
+        leftJoin: [
+            {
+                from: 'accounts',
+                on: {
+                    users: 'id',
+                    accounts: 'user_id'
+                }
+            }
+        ]
+    }
+));

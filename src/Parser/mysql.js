@@ -88,19 +88,7 @@ export default class extends base {
         //        sql = this[`parse${mt}`](sql, options[n]);
         //    }
         //}
-        let seqs = analyze(
-            {
-                select: '*',
-                from: 'users',
-                where: {
-                    name: "ccc", id: 1
-                },
-                orderBy: [
-                    {id: 'desc'},
-                    {name: 'asc'}
-                ]
-            }
-        );
+        let seqs = analyze(options);
         let builder =  sequelizer({
             dialect: 'mysql',
             tree: seqs
