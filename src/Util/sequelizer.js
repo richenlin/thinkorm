@@ -1,50 +1,10 @@
-'use strict';
-
-module.exports = {
-
-  friendlyName: 'Sequelizer',
-
-  description: 'Uses Knex to generate sequel for the tree',
-
-  cacheable: true,
-
-  sync: true,
-
-  inputs: {
-
-    dialect: {
-      description: 'The SQL dialect to use when generating the query',
-      example: 'postgresql',
-      defaultsTo: 'postgresql'
-    },
-
-    tree: {
-      description: 'A tokenized tree representing the query values.',
-      example: [[]],
-      required: true
-    }
-
-  },
-
-  exits: {
-
-    success: {
-      variableName: 'result',
-      description: 'A SQL string generated from the tree.',
-      example: {
-        sql: 'select * from "books"',
-        bindings: ['===']
-      }
-    }
-
-  },
-
-  fn: function sequelizer(inputs, exits) {
+ module.exports = function (inputs) {
     var _ = require('lodash');
     var knex = require('knex')({
       dialect: inputs.dialect,
       useNullAsDefault: true
     });
+
 
     //  ███████╗███████╗ ██████╗ ██╗   ██╗███████╗██╗     ██╗███████╗███████╗██████╗
     //  ██╔════╝██╔════╝██╔═══██╗██║   ██║██╔════╝██║     ██║╚══███╔╝██╔════╝██╔══██╗
@@ -70,6 +30,7 @@ module.exports = {
 
       query[fn].apply(query, expression);
     };
+
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ╔═╗╔═╗╦═╗  ╔╦╗╔═╗╔╦╗╦╔═╗╦╔═╗╦═╗╔═╗
     //  ║  ╠═╣║╣ ║  ╠╩╗  ╠╣ ║ ║╠╦╝  ║║║║ ║ ║║║╠╣ ║║╣ ╠╦╝╚═╗
@@ -126,6 +87,7 @@ module.exports = {
         modifier: modifiers
       };
     };
+
 
     //  ╔╗ ╦ ╦╦╦  ╔╦╗  ╦╔═╔╗╔╔═╗═╗ ╦
     //  ╠╩╗║ ║║║   ║║  ╠╩╗║║║║╣ ╔╩╦╝
@@ -258,6 +220,7 @@ module.exports = {
       });
     };
 
+
     //  ╦ ╦╦ ╦╔═╗╦═╗╔═╗  ╔═╗═╗ ╦╔═╗╦═╗╔═╗╔═╗╔═╗╦╔═╗╔╗╔  ╔╗ ╦ ╦╦╦  ╔╦╗╔═╗╦═╗
     //  ║║║╠═╣║╣ ╠╦╝║╣   ║╣ ╔╩╦╝╠═╝╠╦╝║╣ ╚═╗╚═╗║║ ║║║║  ╠╩╗║ ║║║   ║║║╣ ╠╦╝
     //  ╚╩╝╩ ╩╚═╝╩╚═╚═╝  ╚═╝╩ ╚═╩  ╩╚═╚═╝╚═╝╚═╝╩╚═╝╝╚╝  ╚═╝╚═╝╩╩═╝═╩╝╚═╝╩╚═
@@ -286,6 +249,7 @@ module.exports = {
         return expression;
       }
     };
+
 
     //  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ╔═╗╔═╗╔╗╔╔╦╗╦╔╦╗╦╔═╗╔╗╔╔═╗╦
     //  ╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  ║  ║ ║║║║ ║║║ ║ ║║ ║║║║╠═╣║
@@ -382,6 +346,7 @@ module.exports = {
       return expressionGroup;
     };
 
+
     //  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ╔═╗╔═╗╔╗╔╔╦╗╦╔╦╗╦╔═╗╔╗╔╔═╗╦
     //  ╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  ║  ║ ║║║║ ║║║ ║ ║║ ║║║║╠═╣║
     //  ╩  ╩╚═╚═╝╚═╝╚═╝╚═╝╚═╝  ╚═╝╚═╝╝╚╝═╩╝╩ ╩ ╩╚═╝╝╚╝╩ ╩╩═╝
@@ -452,6 +417,7 @@ module.exports = {
       buildKnexGroupingFn(expressionGroup, modifier, query);
     };
 
+
     //  ╔╦╗╔═╗╔╦╗╔═╗╦═╗╔╦╗╦╔╗╔╔═╗   ╦╔═╗╦╔╗╔
     //   ║║║╣  ║ ║╣ ╠╦╝║║║║║║║║╣    ║║ ║║║║║
     //  ═╩╝╚═╝ ╩ ╚═╝╩╚═╩ ╩╩╝╚╝╚═╝  ╚╝╚═╝╩╝╚╝
@@ -495,6 +461,7 @@ module.exports = {
       return fn;
     };
 
+
     //  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ╔═╗╦  ╔═╗╔╦╗   ╦╔═╗╦╔╗╔
     //  ╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  ╠╣ ║  ╠═╣ ║    ║║ ║║║║║
     //  ╩  ╩╚═╚═╝╚═╝╚═╝╚═╝╚═╝  ╚  ╩═╝╩ ╩ ╩   ╚╝╚═╝╩╝╚╝
@@ -529,6 +496,7 @@ module.exports = {
 
       buildQueryPiece(fn, joinExpr, query);
     };
+
 
     //  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ╔═╗╦═╗╔═╗╦ ╦╔═╗╔═╗╔╦╗   ╦╔═╗╦╔╗╔
     //  ╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  ║ ╦╠╦╝║ ║║ ║╠═╝║╣  ║║   ║║ ║║║║║
@@ -605,6 +573,7 @@ module.exports = {
       buildQueryPiece(joinFn, [JOIN_TABLE, groupFn], query);
     };
 
+
     //  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗   ╦╔═╗╦╔╗╔╔═╗
     //  ╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗   ║║ ║║║║║╚═╗
     //  ╩  ╩╚═╚═╝╚═╝╚═╝╚═╝╚═╝  ╚╝╚═╝╩╝╚╝╚═╝
@@ -623,6 +592,7 @@ module.exports = {
       // Otherwise process the grouped join
       processGroupedJoin(tokens, joinType, query);
     };
+
 
     //  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ╦ ╦╔╗╔╦╔═╗╔╗╔╔═╗
     //  ╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  ║ ║║║║║║ ║║║║╚═╗
@@ -644,6 +614,7 @@ module.exports = {
         buildQueryPiece(fn, [subQueryBuilder, true], query);
       });
     };
+
 
     //  ╔═╗╦═╗╔╦╗╔═╗╦═╗  ╔╗ ╦ ╦  ╔╗ ╦ ╦╦╦  ╔╦╗╔═╗╦═╗
     //  ║ ║╠╦╝ ║║║╣ ╠╦╝  ╠╩╗╚╦╝  ╠╩╗║ ║║║   ║║║╣ ╠╦╝
@@ -670,6 +641,7 @@ module.exports = {
       }
     };
 
+
     //  ╦╔╗╔╔═╗╔═╗╦═╗╔╦╗  ╔╗ ╦ ╦╦╦  ╔╦╗╔═╗╦═╗
     //  ║║║║╚═╗║╣ ╠╦╝ ║   ╠╩╗║ ║║║   ║║║╣ ╠╦╝
     //  ╩╝╚╝╚═╝╚═╝╩╚═ ╩   ╚═╝╚═╝╩╩═╝═╩╝╚═╝╩╚═
@@ -695,6 +667,7 @@ module.exports = {
       }
     };
 
+
     //  ╦ ╦╔═╗╔╦╗╔═╗╔╦╗╔═╗  ╔╗ ╦ ╦╦╦  ╔╦╗╔═╗╦═╗
     //  ║ ║╠═╝ ║║╠═╣ ║ ║╣   ╠╩╗║ ║║║   ║║║╣ ╠╦╝
     //  ╚═╝╩  ═╩╝╩ ╩ ╩ ╚═╝  ╚═╝╚═╝╩╩═╝═╩╝╚═╝╩╚═
@@ -719,6 +692,7 @@ module.exports = {
         return expression;
       }
     };
+
 
     //  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ╦  ╦╔═╗╦  ╦ ╦╔═╗
     //  ╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  ╚╗╔╝╠═╣║  ║ ║║╣
@@ -863,6 +837,7 @@ module.exports = {
       }
     };
 
+
     //  ╔═╗═╗ ╦╔═╗╦═╗╔═╗╔═╗╔═╗╦╔═╗╔╗╔  ╔═╗╔═╗╦═╗╔═╗╔═╗╦═╗
     //  ║╣ ╔╩╦╝╠═╝╠╦╝║╣ ╚═╗╚═╗║║ ║║║║  ╠═╝╠═╣╠╦╝╚═╗║╣ ╠╦╝
     //  ╚═╝╩ ╚═╩  ╩╚═╚═╝╚═╝╚═╝╩╚═╝╝╚╝  ╩  ╩ ╩╩╚═╚═╝╚═╝╩╚═
@@ -955,7 +930,17 @@ module.exports = {
       // If the expression is an array then the values should be grouped. Unless
       // they are describing join logic.
       if (_.isArray(expr)) {
-        var joinTypes = ['JOIN', 'INNERJOIN', 'OUTERJOIN', 'CROSSJOIN', 'LEFTJOIN', 'LEFTOUTERJOIN', 'RIGHTJOIN', 'RIGHTOUTERJOIN', 'FULLOUTERJOIN'];
+        var joinTypes = [
+          'JOIN',
+          'INNERJOIN',
+          'OUTERJOIN',
+          'CROSSJOIN',
+          'LEFTJOIN',
+          'LEFTOUTERJOIN',
+          'RIGHTJOIN',
+          'RIGHTOUTERJOIN',
+          'FULLOUTERJOIN'
+        ];
 
         // If the expression is an array of UNION subqueries, process each
         // one and toggle the UNION flag.
@@ -1027,6 +1012,7 @@ module.exports = {
       });
     };
 
+
     //  ████████╗ ██████╗ ██╗  ██╗███████╗███╗   ██╗    ██████╗  █████╗ ██████╗ ███████╗███████╗██████╗
     //  ╚══██╔══╝██╔═══██╗██║ ██╔╝██╔════╝████╗  ██║    ██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝██╔══██╗
     //     ██║   ██║   ██║█████╔╝ █████╗  ██╔██╗ ██║    ██████╔╝███████║██████╔╝███████╗█████╗  ██████╔╝
@@ -1042,11 +1028,11 @@ module.exports = {
     };
 
     // Run the token parser
-    var knexQuery = function parseTree(tree) {
+    var knexQuery = (function parseTree(tree) {
       var query = knex.queryBuilder();
       tokenParser(query, tree);
       return query;
-    }(inputs.tree);
+    })(inputs.tree);
 
     // Build up the actual SQL string
     var _SQL = knexQuery.toSQL();
@@ -1058,6 +1044,5 @@ module.exports = {
     }
 
     return { sql: text, bindings: _SQL.bindings };
-  }
 
 };

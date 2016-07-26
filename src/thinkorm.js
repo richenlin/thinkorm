@@ -5,7 +5,7 @@
  * @license    MIT
  * @version    16/7/25
  */
-import vaild from './valid';
+import vaild from './Util/valid';
 
 export default class {
     /**

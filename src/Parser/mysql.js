@@ -5,17 +5,15 @@
  * @license    MIT
  * @version    16/7/25
  */
-import lodash from 'lodash';
+import {sprintf} from "sprintf-js";
 import base from './base';
+import analyze from '../Util/analyze';
+import sequelizer from '../Util/sequelizer';
 
 export default class extends base {
 
     init(config = {}) {
         this.config = config;
-    }
-
-    sequelizer(sql){
-
     }
 
     /**
@@ -81,14 +79,40 @@ export default class extends base {
 
     /**
      *
-     * @param sql
      * @param options
      */
-    parseSql(sql, options){
-        for(let n in options){
-            let mt = ORM.ucFirst(n);
-            if(this[`parse${mt}`] && ORM.isFunction(this[`parse${mt}`])){
-                sql = this[`parse${mt}`](sql, options[n]);
+    parseSql(options){
+        //for(let n in options){
+        //    let mt = ORM.ucFirst(n);
+        //    if(this[`parse${mt}`] && ORM.isFunction(this[`parse${mt}`])){
+        //        sql = this[`parse${mt}`](sql, options[n]);
+        //    }
+        //}
+        let seqs = analyze(
+            {
+                select: '*',
+                from: 'users',
+                where: {
+                    name: "ccc", id: 1
+                },
+                orderBy: [
+                    {id: 'desc'},
+                    {name: 'asc'}
+                ]
+            }
+        );
+        let builder =  sequelizer({
+            dialect: 'mysql',
+            tree: seqs
+        });
+
+        let sql = '';
+        if(!ORM.isEmpty(builder.sql)){
+            sql = builder.sql;
+            if(!ORM.isEmpty(builder.bindings)){
+                builder.bindings.forEach(item => {
+                   sql =  sql.replace(/\?/, `'${item}'`);
+                });
             }
         }
         return sql;
@@ -100,6 +124,6 @@ export default class extends base {
      * @returns {Promise.<T>}
      */
     buildSql(options){
-        return this.parseSql(this.methodCase[options.method] || '', options);
+        return this.parseSql(options);
     }
 }
