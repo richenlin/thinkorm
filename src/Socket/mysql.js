@@ -18,8 +18,8 @@ export default class extends base{
             port: config.db_port || 3306,
             charset: config.db_charset || 'utf8',
             timeout: config.db_timeout || 30,
-            logSql: config.db_log_sql || false,
-            connectionLimit: config.db_pool_size || 10
+            logSql: config.db_ext_config.db_log_sql || false,
+            connectionLimit: config.db_ext_config.db_pool_size || 10
         }
         //node-mysql2 not support utf8 or utf-8
         let charset = (this.config.charset || '').toLowerCase();
@@ -82,7 +82,7 @@ export default class extends base{
         this.closeTimer = setTimeout(() => {
             this.close();
             return Promise.reject('query time out');
-        }, this.config.timeout);
+        }, this.config.timeout * 1000);
 
         let startTime = Date.now();
         let connection;
@@ -93,6 +93,7 @@ export default class extends base{
         }).then((rows = []) => {
             (this.pool && connection.release) && connection.release();
             this.config.logSql && ORM.log(sql, 'MYSQL', startTime);
+            clearTimeout(this.closeTimer);
             return rows;
         }).catch(err => {
             this.close();

@@ -39,4 +39,24 @@ export default class {
         let fname = this.__filename || __filename;
         return path.basename(fname, '.js');
     }
+
+    parseLimit(options){
+
+    }
+
+    parseOrder(options){
+
+    }
+
+    parseField(options){
+
+    }
+
+    parseWhere(options){
+
+    }
+
+    buildSql(options){
+        return Promise.resolve();
+    }
 }

@@ -6,6 +6,7 @@
  * @version    16/7/26
  */
 var fs = require('fs');
+var util = require('util');
 function _interopSafeRequire (obj) {return (obj && obj.__esModule && obj.default) ? obj.default : obj;}
 
 if(!Date.prototype.Format){
@@ -145,6 +146,15 @@ ORM.isRegexp = function (obj) {
     return util.isRegExp(obj);
 };
 /**
+ * 是否是个标量
+ * @param  {[type]}  obj [description]
+ * @return {Boolean}     [description]
+ */
+ORM.isScalar = function (obj) {
+    'use strict';
+    return ORM.isBoolean(obj) || ORM.isNumber(obj) || ORM.isString(obj);
+};
+/**
  * 是否是个文件
  * @param  {[type]}  p [description]
  * @return {Boolean}   [description]
@@ -221,9 +231,33 @@ ORM.promisify = function (fn, receiver) {
  * @param  {Function} callback []
  * @return {Promise}            []
  */
-var _ormAwaitInstance = new (_interopSafeRequire(require('./lib/await.js')))();
+var _ormAwaitInstance = new (_interopSafeRequire(require('./await.js')))();
 ORM.await = function (key, callback) {
     return _ormAwaitInstance.run(key, callback);
+};
+/**
+ * 安全方式加载文件
+ * @param  {[type]} file [description]
+ * @return {[type]}      [description]
+ */
+ORM.safeRequire = function (file) {
+    'use strict';
+    try {
+        var obj = require(file);
+        return _interopSafeRequire(obj);
+    } catch (err) {
+        return null;
+    }
+};
+/**
+ * 大写首字符
+ * @param  {[type]} name [description]
+ * @return {[type]}      [description]
+ */
+ORM.ucFirst = function (name) {
+    'use strict';
+    name = (name || '') + '';
+    return name.substr(0, 1).toUpperCase() + name.substr(1).toLowerCase();
 };
 /**
  * 字符串或文件hash,比md5效率高,但是有很低的概率重复
@@ -292,4 +326,54 @@ ORM.log = function (msg, type, showTime) {
     }
     console.log(`${dateTime}[${type}] ${message}`);
     return;
+};
+/**
+ * extend, from jquery，具有深度复制功能
+ * @return {[type]} [description]
+ */
+ORM.extend = function () {
+    'use strict';
+    let args = [].slice.call(arguments);
+    let deep = true;
+    let target;
+    if (ORM.isBoolean(args[0])) {
+        deep = args.shift();
+    }
+    if (deep) {
+        target = ORM.isArray(args[0]) ? [] : {};
+    } else {
+        target = args.shift();
+    }
+    target = target || {};
+    var i = 0,
+        length = args.length,
+        options = undefined,
+        name = undefined,
+        src = undefined,
+        copy = undefined;
+    for (; i < length; i++) {
+        options = args[i];
+        if (!options) {
+            continue;
+        }
+        for (name in options) {
+            src = target[name];
+            copy = options[name];
+            if (src && src === copy) {
+                continue;
+            }
+            if (deep) {
+                if (ORM.isObject(copy)) {
+                    target[name] = ORM.extend(src && ORM.isObject(src) ? src : {}, copy);
+                } else if (ORM.isArray(copy)) {
+                    target[name] = ORM.extend([], copy);
+                } else {
+                    target[name] = copy;
+                }
+            } else {
+                target[name] = copy;
+            }
+        }
+    }
+    return target;
 };

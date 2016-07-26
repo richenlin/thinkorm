@@ -42,144 +42,32 @@ export default class {
     }
 
 
-    connect(){
-        return this.handel;
+    connect() {
+        return Promise.resolve();
     }
 
-    schema(){
-
+    schema() {
+        //自动创建表\更新表\迁移数据
+        return Promise.resolve();
     }
 
-    log(){
-
-    }
-
-    error(){
-
+    close() {
+        return Promise.resolve();
     }
 
     /**
-     * 数据插入之前操作，可以返回一个promise
-     * @param  {[type]} data    [description]
-     * @param  {[type]} options [description]
-     * @return {[type]}         [description]
+     *
+     * @param sql
      */
-    _beforeAdd(data, options) {
-        return Promise.resolve(data);
-    }
-
-    add(){
-
+    query(sql) {
+        return Promise.resolve();
     }
 
     /**
-     * 数据插入之后操作，可以返回一个promise
-     * @param  {[type]} data    [description]
-     * @param  {[type]} options [description]
-     * @return {[type]}         [description]
+     *
+     * @param sql
      */
-    _afterAdd(data, options) {
-        return Promise.resolve(data);
-    }
-
-    addMany(){
-
-    }
-
-    /**
-     * 数据删除之前操作，可以返回一个promise
-     * @param  {[type]} data    [description]
-     * @param  {[type]} options [description]
-     * @return {[type]}         [description]
-     */
-    _beforeDelete(options) {
-        return Promise.resolve(options);
-    }
-
-    delete(){
-
-    }
-
-    /**
-     * 删除后续操作
-     * @return {[type]} [description]
-     */
-    _afterDelete(options) {
-        return Promise.resolve(options);
-    }
-
-    /**
-     * 更新前置操作
-     * @param  {[type]} data    [description]
-     * @param  {[type]} options [description]
-     * @return {[type]}         [description]
-     */
-    _beforeUpdate(data, options) {
-        return Promise.resolve(data);
-    }
-
-    update(){
-
-    }
-
-    /**
-     * 更新后置操作
-     * @param  {[type]} data    [description]
-     * @param  {[type]} options [description]
-     * @return {[type]}         [description]
-     */
-    _afterUpdate(data, options) {
-        return Promise.resolve(data);
-    }
-
-    count(){
-
-    }
-
-    sum(){
-
-    }
-
-    max(){
-
-    }
-
-    min(){
-
-    }
-
-    avg(){
-
-    }
-
-    find(){
-
-    }
-
-    /**
-     * find查询后置操作
-     * @return {[type]} [description]
-     */
-    _afterFind(result, options) {
-        return Promise.resolve(result);
-    }
-
-
-    select(){
-
-    }
-
-    /**
-     * 查询后置操作
-     * @param  {[type]} result  [description]
-     * @param  {[type]} options [description]
-     * @return {[type]}         [description]
-     */
-    _afterSelect(result, options) {
-        return Promise.resolve(result);
-    }
-
-    countSelect(){
-
+    execute(sql) {
+        return Promise.resolve();
     }
 }
