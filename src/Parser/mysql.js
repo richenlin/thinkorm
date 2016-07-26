@@ -136,15 +136,15 @@ export default class extends base {
      * @param options
      * @returns {*}
      */
-    buildSql(data, options){
+    async buildSql(data, options){
         if(options === undefined){
             options = data;
         } else {
             options.data = data;
         }
         let parseOptions =  this.parseSql(data, options);
-        let seqs = analyze(parseOptions);
-        let builder =  sequelizer({
+        let seqs = await analyze(parseOptions);
+        let builder =  await sequelizer({
             dialect: 'mysql',
             tree: seqs
         });

@@ -35,11 +35,11 @@ function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: o
 var parser = requireDefault(require('../lib/Parser/mysql.js')).default;
 var cls = new parser();
 
-console.log(cls.buildSql(
+cls.buildSql(
     {
         status: 'archived'
     },{
-        method: 'UPDATE',
+        method: 'SELECT',
         field: ['archived'],
         table: 'test',
         limit: [0, 10],
@@ -48,4 +48,7 @@ console.log(cls.buildSql(
             publishedDate: { '>': 2000 }
         }
     }
-));
+).then(result => {
+    "use strict";
+    console.log(result);
+});
