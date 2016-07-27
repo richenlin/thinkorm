@@ -21,16 +21,63 @@ export default class extends base {
 
     }
 
+    async query(sql) {
+        console.log(sql);
+    }
+
+    async count(options) {
+        this.knex = this.knexClient.count(options.count);
+        this.queryBuilder(options);
+        this.query(this.knex.toString());
+    }
+
+    async min(options) {
+        this.knex = this.knexClient.min(options.min);
+        this.queryBuilder(options);
+        this.query(this.knex.toString());
+    }
+
+    async max(options) {
+        this.knex = this.knexClient.max(options.max);
+        this.queryBuilder(options);
+        this.query(this.knex.toString());
+    }
+
+    async avg(options) {
+        this.knex = this.knexClient.avg(options.avg);
+        this.queryBuilder(options);
+        this.query(this.knex.toString());
+    }
+
+    async avgDistinct(options) {
+        this.knex = this.knexClient.avgDistinct(options.avgDistinct);
+        this.queryBuilder(options);
+        this.query(this.knex.toString());
+    }
+
+    /**
+     * 字段自增
+     * @param options
+     */
+    async increment(options) {
+        this.knex = this.knexClient.increment(options.increment[0], options.increment[1]);
+        this.queryBuilder(options);
+        this.query(this.knex.toString());
+    }
+
+    /**
+     * 字段自增
+     * @param options
+     */
+    async decrement(options) {
+        this.knex = this.knexClient.decrement(options.decrement[0], options.decrement[1]);
+        this.queryBuilder(options);
+        this.query(this.knex.toString());
+    }
+
     async find(options) {
-        try {
-            //this.knex = this.knexClient.from('lihao1');
-            //this.knex = this.knex.where({id:1})
-            //console.log(this.knex.select().toString())
-            this.queryBuilder(options);
-            console.log(this.knex.toString())
-        } catch (e) {
-            console.log(e)
-        }
+        this.knex = this.knexClient.select();
+        this.query(options);
     }
 
 
@@ -45,6 +92,7 @@ export default class extends base {
         this.builderLimit(options.limit);
         this.builderOrder(options.order);
         this.builderGroup(options.group);
+        this.builderJoin(options.join);
     }
 
     /**
@@ -52,7 +100,7 @@ export default class extends base {
      * @param optionTable
      */
     builderTable(optionTable) {
-        this.knex = this.knexClient.from(optionTable);
+        this.knex.from(optionTable);
     }
 
     /**
@@ -79,7 +127,9 @@ export default class extends base {
      */
     builderOrder(optionOrder) {
         if (!optionOrder || optionOrder.length < 1) return;
-        this.knex.orderBy(optionOrder[0], optionOrder[1]);
+        for (let order of optionOrder) {
+            this.knex.orderBy(order[0], order[1])
+        }
     }
 
     builderGroup(optionGroup) {
@@ -87,11 +137,42 @@ export default class extends base {
         this.knex.groupBy(optionGroup);
     }
 
+
+    /**
+     * 解析join条件
+     * join:{
+     *  innerJoin,leftJoin,leftOuterJoin,rightJoin,rightOuterJoin,outerJoin,fullOuterJoin,crossJoin,
+     * }
+     * @param optionJoin
+     */
+    builderJoin(optionJoin) {
+        if (!optionJoin) return;
+        for (let join of optionJoin) {
+            if (join.or) {
+                this.knex[`${join.type}Join`](join.or[0], function () {
+                    //or:[{a:'id',b:'a_id'},{a:'name',b:'a_name'}]
+                    this.on(join.or[1][0], '=', join.or[1][1]);
+                    //删除带个元素
+                    join.or.shift();
+                    join.or.shift();
+                    for (let or of join.or) {
+
+                        this.orOn(or[0], '=', or[1]);
+                    }
+                })
+            } else {
+                this.knex[`${join.type}Join`](join.on[0], join.on[1], join.on[2]);
+            }
+        }
+        //if (optionJoin.innerJoin) this.knex.innerJoin(optionJoin.innerJoin);
+
+    }
+
     /**
      * 解析where条件
-     * where:[
+     * where:{
      *  where,whereNot,whereNotIn,whereNull,whereNotNull,whereExists,whereNotExists,whereBetween,whereNotBetween,
-     * ]
+     * }
      * @param optionWhere
      */
     builderWhere(optionWhere) {

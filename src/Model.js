@@ -80,17 +80,40 @@ export default class extends base {
             return this;
         }
         //TODO进一步解析
+        this._options.order = [];
         //如果是字符串id desc
         if (typeof order === 'string') {
-            if (order.indexOf(' desc') > -1 || order.indexOf(' DESC') > -1) {
-                order = [[order.substring(0, order.length - 5)], 'desc']
-            } else if (order.indexOf(' aes') > -1 || order.indexOf(' AES') > -1) {
-                order = [[order.substring(0, order.length - 5)], 'aes']
+            //'id desc,name aes'
+            if (order.indexOf(',') > -1) {
+                let orderarr = order.split(',');
+                for (let o of orderarr) {
+                    if (o.indexOf(' desc') > -1 || o.indexOf(' DESC') > -1) {
+                        this._options.order.push([[o.substring(0, o.length - 5)], 'desc']);
+                    } else if (o.indexOf(' aes') > -1 || order.indexOf(' AES') > -1) {
+                        this._options.order.push([[o.substring(0, o.length - 5)], 'aes']);
+                    } else {
+                        this._options.order.push([o, 'aes']);
+                    }
+                }
             } else {
-                order = [order, 'aes']
+                //'id desc'
+                if (order.indexOf(' desc') > -1 || order.indexOf(' DESC') > -1) {
+                    this._options.order.push([[order.substring(0, order.length - 5)], 'desc']);
+                } else if (order.indexOf(' aes') > -1 || order.indexOf(' AES') > -1) {
+                    this._options.order.push([[order.substring(0, order.length - 5)], 'aes']);
+                } else {
+                    this._options.order.push([order, 'aes'])
+                }
+            }
+
+        } else if (Array.isArray(order)) {
+            //[{id: 'asc', name: 'desc'}],
+            for (let o of order) {
+                for (let k in o) {
+                    this._options.order.push([k, o[k]]);
+                }
             }
         }
-        this._options.order = order;
         return this;
     }
 
@@ -101,6 +124,111 @@ export default class extends base {
     group(value) {
         this._options.group = value;
         return this;
+    }
+
+    /**
+     * 关联
+     * [{type:'left',from:'user',on:Object||Array}]
+     * @param join
+     */
+    join(join) {
+        if (!join) return this;
+        let type, onCondition, from, joinArr = [], on, or, orArr;
+        for (let j of join) {
+            type = j.type || 'left';
+            from = j.from;
+            onCondition = j.on;
+            if (Object.prototype.toString(onCondition) == '[object Object]') {
+                //or:[{a:'id',b:'a_id'},{a:'name',b:'a_name'}]
+                if (onCondition.or != undefined) {
+                    orArr = [from];
+                    for (let o of onCondition.or) {
+                        or = [];
+                        for (let k in o) {
+                            or.push(`${k}.${o[k]}`)
+                        }
+                        orArr.push(or);
+                    }
+                    //console.log(orArr)
+                    //or:['user',[[user.id,info.user_id],[user.name,info.user_name]]]
+                    joinArr.push({type: type, from: from, or: orArr})
+                } else {
+                    //or:{a:'id',b:'a_id'}
+                    on = [from];
+                    for (let k in onCondition) {
+                        on.push(`${k}.${onCondition[k]}`);
+                    }
+                    joinArr.push({type: type, from: from, on: on})
+                }
+            }
+        }
+        this._options.join = joinArr;
+        //console.log(this._options.join)
+        return this;
+    }
+
+    async count(field) {
+        if (!options) options = {};
+        //TODO options继承this._options
+        if (field) this._options.count = field;
+        let options = await this.parseOption(this._options);
+        let result = await this.adapter().count(options);
+    }
+
+    async min(field) {
+        if (!options) options = {};
+        //TODO options继承this._options
+        if (field) this._options.min = field;
+        let options = await this.parseOption(this._options);
+        let result = await this.adapter().min(options);
+    }
+
+    async max(field) {
+        if (!options) options = {};
+        //TODO options继承this._options
+        if (field) this._options.max = field;
+        let options = await this.parseOption(this._options);
+        let result = await this.adapter().max(options);
+    }
+
+    async avg(field) {
+        if (!options) options = {};
+        //TODO options继承this._options
+        if (field) this._options.avg = field;
+        let options = await this.parseOption(this._options);
+        let result = await this.adapter().avg(options);
+    }
+
+    async avgDistinct(field) {
+        if (!options) options = {};
+        //TODO options继承this._options
+        if (field) this._options.avgDistinct = field;
+        let options = await this.parseOption(this._options);
+        let result = await this.adapter().avgDistinct(options);
+    }
+
+    /**
+     * 字段自增
+     * @param field
+     */
+    async increment(field, inc) {
+        if (!options) options = {};
+        //TODO options继承this._options
+        if (field) this._options.increment = [field, inc || 1];
+        let options = await this.parseOption(this._options);
+        let result = await this.adapter().increment(options);
+    }
+
+    /**
+     * 字段自减
+     * @param field
+     */
+    async decrement(field, dec) {
+        if (!options) options = {};
+        //TODO options继承this._options
+        if (field) this._options.decrement = [field, dec || 1];
+        let options = await this.parseOption(this._options);
+        let result = await this.adapter().decrement(options);
     }
 
 
