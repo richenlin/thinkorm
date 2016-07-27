@@ -246,6 +246,7 @@ ORM.safeRequire = function (file) {
         var obj = require(file);
         return _interopSafeRequire(obj);
     } catch (err) {
+        console.log(err)
         return null;
     }
 };

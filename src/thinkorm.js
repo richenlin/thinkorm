@@ -102,30 +102,31 @@ export default class {
         this.instances = null;
     }
 
+    /**
+     * 获取数据库连接实例
+     * @returns {*}
+     */
     db() {
         let adapterList = {
-            mysql: './Adapter/mysql.js',
-            postgresql: './Adapter/postgresql.js',
-            mongo: './Adapter/mongo.js'
+            mysql: __dirname + '/Adapter/mysql.js',
+            postgresql: __dirname + '/Adapter/postgresql.js',
+            mongo: __dirname + '/Adapter/mongo.js'
         };
         if (!this.config.db_type.toLowerCase() in adapterList) {
-            return this.error(`Adapter ${this.config.db_type} is not support.`)
+            return this.error('_ADAPTER_IS_NOT_SUPPORT_');
         }
         let instances = ORM.DB[this.adapterKey];
         if (!instances) {
             instances = new (ORM.safeRequire(adapterList[this.config.db_type]))(this.config);
-            //挂载adapter特有方法
-            if(!ORM.isEmpty(instances.methods)){
-                for(let n in instances.methods){
-                    this[n] = instances.methods[n];
-                }
-            }
-            ORM.DB[this.adapterKey] = instances;
         }
         this.instances = instances;
         return this.instances;
     }
 
+    /**
+     * 模型构建
+     * @returns {*}
+     */
     schema() {
         //自动创建表\更新表\迁移数据
         return this.instances.schema();
@@ -170,7 +171,7 @@ export default class {
                     return '_' + a.toLowerCase();
                 });
             };
-            tableName += this.tableName || this.parseName(this.getModelName());
+            tableName += this.tableName || parseName(this.getModelName());
             this.trueTableName = tableName.toLowerCase();
         }
         return this.trueTableName;
@@ -363,9 +364,21 @@ export default class {
      */
     async add(data, options) {
         try {
-
+            if(ORM.isEmpty(data)){
+                return this.error('_DATA_TYPE_INVALID_')
+            }
+            let parsedOptions = await this.parseOptions(options);
+            //copy data
+            this._data = ORM.extend({}, data);
+            this._data = await this._beforeAdd(this._data, parsedOptions);
+            this._data = await this.parseData(this._data, parsedOptions);
+            let result = await this.db().add(this._data, parsedOptions);
+            let pk = await this.getPk();
+            this._data[pk] = this._data[pk] ? this._data[pk] : result;
+            await this._afterAdd(this._data, parsedOptions);
+            return this._data[pk];
         } catch (e) {
-            return this.error(e);
+            return this.error(`${this.modelName}:${e.message}`);
         }
     }
 
@@ -376,6 +389,7 @@ export default class {
      * @return {[type]}         [description]
      */
     _afterAdd(data, options) {
+        console.log(data)
         return Promise.resolve(data);
     }
 
@@ -387,9 +401,35 @@ export default class {
      */
     async addAll(data, options) {
         try {
-
+            if (!ORM.isArray(data) || !ORM.isObject(data[0])) {
+                return this.error('_DATA_TYPE_INVALID_');
+            }
+            let parsedOptions = await this.parseOptions(options);
+            //copy data
+            this._data = ORM.extend([], data);
+            let promisesd = this._data.map(item => {
+                return this._beforeAdd(item, parsedOptions);
+            });
+            this._data = await Promise.all(promisesd);
+            let promiseso = this._data.map(item => {
+                return this.parseData(item, parsedOptions);
+            });
+            this._data = await Promise.all(promiseso);
+            let result = await this.db().addAll(this._data, parsedOptions);
+            if (!ORM.isEmpty(result) && ORM.isArray(result)) {
+                let pk = await this.getPk(), resData = [];
+                result.forEach((v, k) => {
+                    this._data[k][pk] = v;
+                    resData.push(this._afterAdd(this._data[k], parsedOptions).then( () => {
+                        return v;
+                    }));
+                });
+                return Promise.all(resData);
+            } else {
+                return [];
+            }
         } catch (e) {
-            return this.error(e);
+            return this.error(`${this.modelName}:${e.message}`);
         }
     }
 
@@ -402,7 +442,7 @@ export default class {
         try {
 
         } catch (e) {
-            return this.error(e);
+            return this.error(`${this.modelName}:${e.message}`);
         }
     }
 
@@ -424,7 +464,7 @@ export default class {
         try {
 
         } catch (e) {
-            return this.error(e);
+            return this.error(`${this.modelName}:${e.message}`);
         }
     }
 
@@ -454,7 +494,7 @@ export default class {
         try {
 
         } catch (e) {
-            return this.error(e);
+            return this.error(`${this.modelName}:${e.message}`);
         }
     }
 
@@ -477,7 +517,7 @@ export default class {
         try {
 
         } catch (e) {
-            return this.error(e);
+            return this.error(`${this.modelName}:${e.message}`);
         }
     }
 
@@ -491,7 +531,7 @@ export default class {
         try {
 
         } catch (e) {
-            return this.error(e);
+            return this.error(`${this.modelName}:${e.message}`);
         }
     }
 
@@ -501,10 +541,12 @@ export default class {
      */
     async find(options) {
         try{
-
+            let parsedOptions = await this.parseOptions(options);
+            let result = await this.db().find(parsedOptions);
+            result = await this.parseData(result || [], parsedOptions, false);
+            return this._afterFind(ORM.isArray(result) ? result[0] : result, options);
         } catch(e) {
-
-            return this.error(e);
+            return this.error(`${this.modelName}:${e.message}`);
         }
     }
 
@@ -522,9 +564,12 @@ export default class {
      */
     async select(options) {
         try{
-
+            let parsedOptions = await this.parseOptions(options);
+            let result = await this.db().select(parsedOptions);
+            result = await this.parseData(result || [], parsedOptions, false);
+            return this._afterSelect(result, options);
         } catch(e) {
-            return this.error(e);
+            return this.error(`${this.modelName}:${e.message}`);
         }
     }
 
@@ -548,7 +593,7 @@ export default class {
         try {
 
         } catch (e) {
-            return this.error(e);
+            return this.error(`${this.modelName}:${e.message}`);
         }
     }
 

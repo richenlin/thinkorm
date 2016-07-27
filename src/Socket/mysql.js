@@ -8,6 +8,7 @@
 import base from './base';
 
 export default class extends base{
+
     init(config = {}){
         super.init(config);
         this.config = {
@@ -78,12 +79,6 @@ export default class extends base{
     }
 
     query(sql){
-        //query timeout
-        this.closeTimer = setTimeout(() => {
-            this.close();
-            return Promise.reject('query time out');
-        }, this.config.timeout * 1000);
-
         let startTime = Date.now();
         let connection;
         return this.connect().then(conn => {
@@ -93,7 +88,6 @@ export default class extends base{
         }).then((rows = []) => {
             (this.pool && connection.release) && connection.release();
             this.config.logSql && ORM.log(sql, 'MYSQL', startTime);
-            clearTimeout(this.closeTimer);
             return rows;
         }).catch(err => {
             this.close();
@@ -106,7 +100,6 @@ export default class extends base{
     }
 
     close(){
-        clearTimeout(this.closeTimer);
         if(this.pool){
             let fn = ORM.promisify(this.pool.end, this.pool);
             return fn().then(() => this.pool = null);

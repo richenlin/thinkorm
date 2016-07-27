@@ -29,6 +29,7 @@ export default class {
      */
     init(config = {}) {
         this.config = config;
+        this.parsercls = null;
         this.handel = null;
     }
 
@@ -41,16 +42,35 @@ export default class {
         return path.basename(fname, '.js');
     }
 
-
+    /**
+     *
+     * @returns {Promise.<T>}
+     */
     connect() {
         return Promise.resolve();
     }
 
+    /**
+     *
+     * @returns {Promise.<T>}
+     */
+    parsers(){
+        return Promise.resolve();
+    }
+
+    /**
+     *
+     * @returns {Promise.<T>}
+     */
     schema() {
         //自动创建表\更新表\迁移数据
         return Promise.resolve();
     }
 
+    /**
+     *
+     * @returns {Promise.<T>}
+     */
     close() {
         return Promise.resolve();
     }

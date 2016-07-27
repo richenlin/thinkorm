@@ -13,16 +13,8 @@ export default class extends base {
 
     init(config = {}) {
         super.init(config);
-        this.parser = null;
-        //此Adapter特有的方法定义,例如mysql中可以使用startTrans,而mongo不行
-        this.methods = {
-            startTrans: this.startTrans,
-            commit: this.commit,
-            rollback: this.rollback
-        };
-        //保存传入的操作条件
-        this._options = {};
         this.transTimes = 0; //transaction times
+        this.lastInsertId = 0;
     }
 
     connect() {
@@ -30,8 +22,14 @@ export default class extends base {
             return this.handel;
         }
         this.handel = new socket(this.config);
-        this.parser = new parser(this.config);
         return this.handel;
+    }
+
+    parsers(){
+        if(!this.parsercls){
+            this.parsercls = new parser(this.config);
+        }
+        return this.parsercls;
     }
 
     schema(){
@@ -44,7 +42,7 @@ export default class extends base {
      */
     query(sql){
         return this.connect().query(sql).then(data => {
-            return this.parser.bufferToString(data);
+            return this.parsers().bufferToString(data);
         });
     }
 
@@ -111,11 +109,11 @@ export default class extends base {
      */
     add(data, options) {
         options.method = 'INSERT';
-        return this.parser.buildSql(data, options).then(sql => {
+        return this.parsers().buildSql(data, options).then(sql => {
             return this.execute(sql);
         }).then(data => {
             //
-            return data;
+            return this.lastInsertId;
         });
     }
 
@@ -126,7 +124,10 @@ export default class extends base {
      * @return {[type]}         [description]
      */
     addAll(data, options) {
-        options.method = 'INSERT';
+        let promised = data.map(item => {
+            return this.add(item, options);
+        });
+        return Promise.all(promised);
     }
 
     /**
@@ -155,7 +156,7 @@ export default class extends base {
      */
     delete(options) {
         options.method = 'DELETE';
-        return this.parser.buildSql(options).then(sql => {
+        return this.parsers().buildSql(options).then(sql => {
             return this.execute(sql);
         }).then(data => {
             //
@@ -169,7 +170,7 @@ export default class extends base {
      */
     update(data, options) {
         options.method = 'UPDATE';
-        return this.parser.buildSql(data, options).then(sql => {
+        return this.parsers().buildSql(data, options).then(sql => {
             return this.execute(sql);
         }).then(data => {
             //
@@ -186,7 +187,7 @@ export default class extends base {
         options.method = 'SELECT';
         options.count = options.field || '*';
         options.limit = [0, 1];
-        return this.parser.buildSql(options).then(sql => {
+        return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
             //
@@ -203,7 +204,7 @@ export default class extends base {
         options.method = 'SELECT';
         options.sum = options.field || '*';
         options.limit = [0, 1];
-        return this.parser.buildSql(options).then(sql => {
+        return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
             //
@@ -218,10 +219,9 @@ export default class extends base {
     find(options) {
         options.method = 'SELECT';
         options.limit = [0, 1];
-        return this.parser.buildSql(options).then(sql => {
+        return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            //
             return data;
         });
     }
@@ -232,7 +232,7 @@ export default class extends base {
      */
     select(options) {
         options.method = 'SELECT';
-        return this.parser.buildSql(options).then(sql => {
+        return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
             //
