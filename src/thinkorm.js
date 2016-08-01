@@ -98,15 +98,15 @@ export default class {
         this.safe = (this.config.db_ext_config.safe === true);
         //配置hash
         this.adapterKey = ORM.hash(`${this.config.db_type}_${this.config.db_host}_${this.config.db_port}_${this.config.db_name}`);
-        //构建连接池
-        this.instances = null;
+        //构建连接
+        this.db = null;
     }
 
     /**
      * 获取数据库连接实例
      * @returns {*}
      */
-    db() {
+    initDb() {
         let adapterList = {
             mysql: __dirname + '/Adapter/mysql.js',
             postgresql: __dirname + '/Adapter/postgresql.js',
@@ -119,8 +119,8 @@ export default class {
         if (!instances) {
             instances = new (ORM.safeRequire(adapterList[this.config.db_type]))(this.config);
         }
-        this.instances = instances;
-        return this.instances;
+        this.db = instances;
+        return this.db;
     }
 
     /**
@@ -235,6 +235,7 @@ export default class {
      * @param data
      * @param options
      * @param preCheck
+     * @param option
      * @returns {*}
      */
     parseData(data, options, preCheck = true, option = 1) {
@@ -372,7 +373,7 @@ export default class {
             this._data = ORM.extend({}, data);
             this._data = await this._beforeAdd(this._data, parsedOptions);
             this._data = await this.parseData(this._data, parsedOptions);
-            let result = await this.db().add(this._data, parsedOptions);
+            let result = await this.initDb().add(this._data, parsedOptions);
             let pk = await this.getPk();
             this._data[pk] = this._data[pk] ? this._data[pk] : result;
             await this._afterAdd(this._data, parsedOptions);
@@ -389,7 +390,6 @@ export default class {
      * @return {[type]}         [description]
      */
     _afterAdd(data, options) {
-        console.log(data)
         return Promise.resolve(data);
     }
 
@@ -415,7 +415,7 @@ export default class {
                 return this.parseData(item, parsedOptions);
             });
             this._data = await Promise.all(promiseso);
-            let result = await this.db().addAll(this._data, parsedOptions);
+            let result = await this.initDb().addAll(this._data, parsedOptions);
             if (!ORM.isEmpty(result) && ORM.isArray(result)) {
                 let pk = await this.getPk(), resData = [];
                 result.forEach((v, k) => {
@@ -438,9 +438,16 @@ export default class {
      * @param data
      * @param options
      */
-    thenAdd(data, options){
+    async thenAdd(data, options){
         try {
-
+            if(ORM.isEmpty(data)){
+                return this.error('_DATA_TYPE_INVALID_')
+            }
+            let record = await this.find(options);
+            if(ORM.isEmpty(record)){
+                return this.add(data, options);
+            }
+            return null;
         } catch (e) {
             return this.error(`${this.modelName}:${e.message}`);
         }
@@ -462,7 +469,14 @@ export default class {
      */
     async delete(options) {
         try {
-
+            let parsedOptions = await this.parseOptions(options);
+            if(ORM.isEmpty(parsedOptions.where)){
+                return this.error('_OPTION_TYPE_INVALID_')
+            }
+            await this._beforeDelete(parsedOptions);
+            let result = await this.initDb().delete(parsedOptions);
+            await this._afterDelete(parsedOptions);
+            return result;
         } catch (e) {
             return this.error(`${this.modelName}:${e.message}`);
         }
@@ -492,7 +506,10 @@ export default class {
      */
     async update(data, options) {
         try {
-
+            let parsedOptions = await this.parseOptions(options);
+            if(ORM.isEmpty(parsedOptions.where)){
+                return this.error('_OPTION_TYPE_INVALID_')
+            }
         } catch (e) {
             return this.error(`${this.modelName}:${e.message}`);
         }
@@ -542,7 +559,7 @@ export default class {
     async find(options) {
         try{
             let parsedOptions = await this.parseOptions(options);
-            let result = await this.db().find(parsedOptions);
+            let result = await this.initDb().find(parsedOptions);
             result = await this.parseData(result || [], parsedOptions, false);
             return this._afterFind(ORM.isArray(result) ? result[0] : result, options);
         } catch(e) {
@@ -565,7 +582,7 @@ export default class {
     async select(options) {
         try{
             let parsedOptions = await this.parseOptions(options);
-            let result = await this.db().select(parsedOptions);
+            let result = await this.initDb().select(parsedOptions);
             result = await this.parseData(result || [], parsedOptions, false);
             return this._afterSelect(result, options);
         } catch(e) {

@@ -143,12 +143,12 @@ export default class extends base {
             options.data = data;
         }
         let parseOptions =  this.parseSql(data, options);
+
         let seqs = await analyze(parseOptions);
         let builder =  await sequelizer({
             dialect: 'mysql',
             tree: seqs
         });
-
         let sql = '';
         if(!ORM.isEmpty(builder.sql)){
             sql = builder.sql;

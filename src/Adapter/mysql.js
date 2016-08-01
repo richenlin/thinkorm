@@ -131,26 +131,6 @@ export default class extends base {
     }
 
     /**
-     * 查询后新增
-     * @param data
-     * @param options
-     */
-    thenAdd(data, options){
-        options.method = 'INSERT';
-        if(ORM.isEmpty(options.where)){
-            return this.add(data, options);
-        } else {
-            return this.find(options).then(result => {
-                if(ORM.isEmpty(result)){
-                    return this.add(data, options);
-                } else {
-                    return Promise.reject('Data record is exists.');
-                }
-            })
-        }
-    }
-
-    /**
      * 删除数据
      * @return {[type]} [description]
      */
@@ -222,6 +202,7 @@ export default class extends base {
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
+            //
             return data;
         });
     }

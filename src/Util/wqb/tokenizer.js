@@ -78,7 +78,6 @@ module.exports = function tokenizer(inputs) {
       _.each(_.keys(obj), function tokenizeKey(key, idx) {
         // Check if the key is a known identifier
         var isIdentitifier = identifiers[key];
-
         // If so, look ahead at it's value to determine what to do next.
         if (isIdentitifier) {
           //  ╔═╗╔═╗╔═╗╦═╗╔═╗╔╦╗╔═╗╦═╗  ╔═╗╦═╗╔═╗╔╦╗╦╔═╗╔═╗╔╦╗╔═╗╔═╗

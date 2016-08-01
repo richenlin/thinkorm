@@ -6,7 +6,7 @@
  * @version    16/7/26
  */
 var thinkorm = require('../index.js');
-var cls = new thinkorm('test',{
+var cls = new thinkorm('user',{
     db_type: 'mysql',
     db_host: '192.168.99.100',
     db_port: 3306,
@@ -20,7 +20,7 @@ var cls = new thinkorm('test',{
 
 function test(){
     "use strict";
-    return cls.addAll([{name: 'test'},{name: 'test2'}]).then(function (data) {
+    return cls.delete({where: {id: 1}}).then(function (data) {
         console.log(data);
     })
 }
@@ -31,7 +31,7 @@ test();
 //function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 //var parser = requireDefault(require('../lib/Parser/mysql.js')).default;
 //var cls = new parser();
-//
+//console.log(cls)
 //cls.buildSql(
 //    {
 //        status: 'archived'
