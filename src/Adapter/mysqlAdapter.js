@@ -13,46 +13,69 @@ export default class extends base {
         this.knexClient = Knex({
             client: this.config.db_type
         })
+        this.sql = '';
 
     }
 
     //实例化数据库Socket
     socket() {
-
+        if (this._socket) {
+            return this._socket;
+        }
+        let MysqlSocket = require('../Socket/mysqlSocket').default;
+        this._socket = new MysqlSocket(this.config);
+        return this._socket;
     }
 
+    /**
+     * 执行查询类操作
+     * @param sql
+     */
     async query(sql) {
         console.log(sql);
+        this.sql = sql;
+        return this.socket().query(sql).then(data=> {
+            return this.bufferToString(data);
+        })
     }
+
+    /**
+     * 更新,修改,删除类操作
+     * @param sql
+     */
+    async execute(sql) {
+
+    }
+
 
     async count(options) {
         this.knex = this.knexClient.count(options.count);
         this.queryBuilder(options);
-        this.query(this.knex.toString());
+        return this.query(this.knex.toString());
     }
 
     async min(options) {
         this.knex = this.knexClient.min(options.min);
         this.queryBuilder(options);
-        this.query(this.knex.toString());
+        return this.query(this.knex.toString());
     }
 
     async max(options) {
         this.knex = this.knexClient.max(options.max);
         this.queryBuilder(options);
-        this.query(this.knex.toString());
+        return this.query(this.knex.toString());
     }
 
     async avg(options) {
         this.knex = this.knexClient.avg(options.avg);
         this.queryBuilder(options);
-        this.query(this.knex.toString());
+        return this.query(this.knex.toString());
     }
 
     async avgDistinct(options) {
         this.knex = this.knexClient.avgDistinct(options.avgDistinct);
         this.queryBuilder(options);
-        this.query(this.knex.toString());
+        return this.query(this.knex.toString());
     }
 
     /**
@@ -62,7 +85,7 @@ export default class extends base {
     async increment(options) {
         this.knex = this.knexClient.increment(options.increment[0], options.increment[1]);
         this.queryBuilder(options);
-        this.query(this.knex.toString());
+        return this.query(this.knex.toString());
     }
 
     /**
@@ -72,21 +95,35 @@ export default class extends base {
     async decrement(options) {
         this.knex = this.knexClient.decrement(options.decrement[0], options.decrement[1]);
         this.queryBuilder(options);
-        this.query(this.knex.toString());
+        return this.query(this.knex.toString());
     }
 
-    async find(options) {
+    /**
+     * 查询操作
+     * @param options
+     */
+    async select(options) {
         this.knex = this.knexClient.select();
-        this.query(options);
+        this.queryBuilder(options);
+        return this.query(this.knex.toString());
     }
 
+    /**
+     * 新增操作
+     * @param data
+     * @param options
+     */
+    async insert(data, options) {
+        this.knex = this.knexClient.insert(data);
+        return this.query(this.knex.toString());
+    }
 
     /**
      * 查询对象转变为查询语句
      * 基于knex.js http://knexjs.org
      */
     queryBuilder(options) {
-        this.builderTable(`${options.tablePrefix}${options.table}`);
+        this.builderTable(options.table);
         this.builderWhere(options.where);
         this.builderField(options.fields);
         this.builderLimit(options.limit);
@@ -186,6 +223,20 @@ export default class extends base {
         if (optionWhere.whereNotExists) this.knex.whereNotExists(optionWhere.whereNotExists);
         if (optionWhere.whereBetween) this.knex.whereBetween(optionWhere.whereBetween);
         if (optionWhere.whereNotBetween)  this.knex.whereNotBetween(optionWhere.whereNotBetween);
+    }
+
+    bufferToString(data) {
+        if (!this.config.buffer_tostring || !ORM.isArray(data)) {
+            return data;
+        }
+        for (let i = 0, length = data.length; i < length; i++) {
+            for (let key in data[i]) {
+                if (ORM.isBuffer(data[i][key])) {
+                    data[i][key] = data[i][key].toString();
+                }
+            }
+        }
+        return data;
     }
 
 }
