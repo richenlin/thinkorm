@@ -183,7 +183,10 @@ export default class extends base {
      */
     where(where) {
         if (!where) return this;
-        if (ORM.isEmpty(this._options.where)) this._options.where = [];
+        if (ORM.isEmpty(this._options.where)) this._options.where = {
+            where: {and: [], not: [], in: [], notin: [], operation: []},
+            orwhere: {and: [], not: [], in: [], notin: [], operation: []}
+        };
         let identifiers = {
             'or': 'OR',
             'OR': 'OR',
@@ -191,6 +194,8 @@ export default class extends base {
             'AND': 'AND',
             'not': 'NOT',
             'NOT': 'NOT',
+            'notin': 'NOTIN',
+            'NOTIN': 'NOTIN',
             'in': 'IN',
             'IN': 'IN',
             '>': 'OPERATOR',
@@ -199,24 +204,102 @@ export default class extends base {
             '<=': 'OPERATOR',
             '>=': 'OPERATOR',
         }
-        let parse = function (key, value) {
-            switch (key) {
+        /*******************此方法将要将where条件解析为knex可用格式**********************/
+        //where = {
+        //    //此项表示id=1,name=a
+        //    and: [[id, 1], [name, a]],
+        //    //此项表示id !=1
+        //    not: [[id, 1], [name, a]],
+        //    //此项表示id in(1,2)
+        //    in: [[id, [1, 2, 3]], [name, [1, 2, 3]]],
+        //    //此项表示id not in(1,2)
+        //    notin: [[id, [1, 2, 3]]],
+        //    //此项不表示id >= 1
+        //    operator: [[id, '>', 1]],
+        //}
+        //orwhere = {
+        //    //此项表示id=1,name=a
+        //    and: [[id, 1], [name, a]],
+        //    //此项表示id !=1
+        //    not: [[id, 1], [name, a]],
+        //    //此项表示id in(1,2)
+        //    in: [[id, [1, 2, 3]], [name, [1, 2, 3]]],
+        //    //此项表示id not in(1,2)
+        //    notin: [[id, [1, 2, 3]]],
+        //    //此项不表示id >= 1
+        //    operator: [[id, '>', 1]],
+        //}
+        /**************************************************************************/
+        let self = this;
+        let parse = function (key, value, k, isor = false) {
+            switch (identifiers[key]) {
                 //id:{in:[1,2,3,4]}
                 case 'IN':
-
-                    return;
+                    for (let n in value) {
+                        if (isor) {
+                            self._options.where.orwhere.in.push([n, value[n]]);
+                        } else {
+                            self._options.where.where.in.push([n, value[n]]);
+                        }
+                    }
+                    //return;
                     break;
                 case 'OR':
-                    return;
-                    break;
-                case 'AND':
+                    for (let m of value) {
+                        for (let o in m) {
+                            parse(o, m[o], o, true);
+                        }
+                    }
                     return;
                     break;
                 case 'NOT':
+                    for (let n in value) {
+                        if (isor) {
+                            self._options.where.orwhere.not.push([n, value[n]]);
+                        } else {
+                            self._options.where.where.not.push([n, value[n]]);
+                        }
+                    }
+
+                    break;
+                    return;
+                case 'NOTIN':
+                    console.log(isor)
+                    for (let n in value) {
+                        if (isor) {
+                            self._options.where.orwhere.notin.push([n, value[n]]);
+                        } else {
+                            self._options.where.where.notin.push([n, value[n]]);
+                        }
+                    }
+                    break;
+                case 'OPERATOR':
+                    if (isor) {
+                        self._options.where.orwhere.operation.push([k, key, value])
+                    } else {
+                        self._options.where.where.operation.push([k, key, value])
+                    }
+                    break;
+                    return;
+                case 'AND':
+                default:
+                    if (ORM.isJSONObj(value)) {
+                        for (let n in value) {
+                            parse(n, value[n], key, isor);
+                        }
+                    } else if (isor) {
+                        self._options.where.orwhere.and.push([key, '=', value]);
+                    } else {
+                        self._options.where.where.and.push([key, '=', value]);
+                    }
                     return;
                     break;
             }
         }
+        for (let key in where) {
+            parse(key, where[key]);
+        }
+        console.log(this._options.where);
         return this;
     }
 

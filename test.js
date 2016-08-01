@@ -13,9 +13,16 @@ var model = new Model('user', {
     db_ext_config: false
 });
 model
-    .field(['id', 'user_no'])
-    .where({'id': 1})
-    .order([{id: 'asc', user_no: 'desc'}])
+//.field(['id', 'user_no'])
+//    .where({id: {'>': 1}, user_no: {'<': 1}})
+//    .where({not: {id: 1, user_no: 1}})
+//    .where({notin: {id: 1, user_no: 1}})
+    //    .where({in: {id: [1, 2, 3], user_no: [1]}})
+    //    .where({or: [{id: 1}, {user_no: 1}]})
+    //    .where({or: [{in: {id: [1, 2, 3]}}, {user_no: {'<': 1}}]})
+    //    .where({or: [{in: {id: [1, 2, 3]}}, {not: {id: 1, user_no: 1}}]})
+    .where({or:[{notin: {id: 1, user_no: 1}}]})
+    //.order([{id: 'asc', user_no: 'desc'}])
     //.group('id')
     //.limit(1, 10)
     //.join([

@@ -214,15 +214,78 @@ export default class extends base {
      */
     builderWhere(optionWhere) {
         if (!optionWhere) return;
-        if (optionWhere.where) this.knex.where(optionWhere.where);
-        if (optionWhere.whereNot) this.knex.whereNot(optionWhere.whereNot);
-        if (optionWhere.whereNotIn) this.knex.whereNotIn(optionWhere.whereNotIn);
-        if (optionWhere.whereNull) this.knex.whereNull(optionWhere.whereNull);
-        if (optionWhere.whereNotNull)  this.knex.whereNotNull(optionWhere.whereNotNull);
-        if (optionWhere.whereExists) this.knex.whereExists(optionWhere.whereExists);
-        if (optionWhere.whereNotExists) this.knex.whereNotExists(optionWhere.whereNotExists);
-        if (optionWhere.whereBetween) this.knex.whereBetween(optionWhere.whereBetween);
-        if (optionWhere.whereNotBetween)  this.knex.whereNotBetween(optionWhere.whereNotBetween);
+        if (optionWhere.where) {
+            if (optionWhere.where.and) {
+                optionWhere.where.and.map(data=> {
+                    this.knex.where(data[0], data[1], data[2]);
+                })
+            }
+
+            if (optionWhere.where.in) {
+                optionWhere.where.in.map(data=> {
+                    this.knex.whereIn(data[0], data[1]);
+                })
+            }
+
+            if (optionWhere.where.not) {
+                optionWhere.where.not.map(data=> {
+                    this.knex.whereNot(data[0], data[1]);
+                })
+            }
+
+            if (optionWhere.where.notin) {
+                optionWhere.where.notin.map(data=> {
+                    this.knex.whereNotIn(data[0], data[1]);
+                })
+            }
+
+            if (optionWhere.where.operation) {
+                optionWhere.where.operation.map(data=> {
+                    this.knex.where(data[0], data[1], data[2]);
+                })
+            }
+
+        }
+        if (optionWhere.orwhere) {
+            if (optionWhere.orwhere.and) {
+                optionWhere.orwhere.and.map(data=> {
+                    this.knex.orWhere(data[0], data[1], data[2]);
+                })
+            }
+
+            if (optionWhere.orwhere.operation) {
+                optionWhere.orwhere.operation.map(data=> {
+                    this.knex.orWhere(data[0], data[1], data[2]);
+                })
+            }
+
+            if (optionWhere.orwhere.in) {
+                optionWhere.orwhere.in.map(data=> {
+                    this.knex.orWhereIn(data[0], data[1]);
+                })
+            }
+
+            if (optionWhere.orwhere.not) {
+                optionWhere.orwhere.not.map(data=> {
+                    this.knex.orWhereNot(data[0], data[1]);
+                })
+            }
+
+            if (optionWhere.orwhere.notin) {
+                optionWhere.orwhere.notin.map(data=> {
+                    this.knex.orWhereNotIn(data[0], data[1]);
+                })
+            }
+        }
+        //if (optionWhere.where) this.knex.where(optionWhere.where);
+        //if (optionWhere.whereNot) this.knex.whereNot(optionWhere.whereNot);
+        //if (optionWhere.whereNotIn) this.knex.whereNotIn(optionWhere.whereNotIn);
+        //if (optionWhere.whereNull) this.knex.whereNull(optionWhere.whereNull);
+        //if (optionWhere.whereNotNull)  this.knex.whereNotNull(optionWhere.whereNotNull);
+        //if (optionWhere.whereExists) this.knex.whereExists(optionWhere.whereExists);
+        //if (optionWhere.whereNotExists) this.knex.whereNotExists(optionWhere.whereNotExists);
+        //if (optionWhere.whereBetween) this.knex.whereBetween(optionWhere.whereBetween);
+        //if (optionWhere.whereNotBetween)  this.knex.whereNotBetween(optionWhere.whereNotBetween);
     }
 
     bufferToString(data) {
