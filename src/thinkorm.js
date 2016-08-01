@@ -5,26 +5,10 @@
  * @license    MIT
  * @version    16/7/25
  */
+import base from './base';
 import vaild from './Util/valid';
 
-export default class {
-    /**
-     * constructor
-     * @param  {Object} http []
-     * @return {}      []
-     */
-    constructor(...args) {
-        this.init(...args);
-    }
-
-    /**
-     * get current class filename
-     * @return {} []
-     */
-    filename() {
-        let fname = this.__filename || __filename;
-        return path.basename(fname, '.js');
-    }
+export default class extends base {
 
     /**
      * init
