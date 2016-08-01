@@ -239,6 +239,34 @@ export default class extends base {
                 })
             }
 
+            if (optionWhere.where.null) {
+                optionWhere.where.null.map(data=> {
+                    data.map(d=> {
+                        this.knex.whereNull(d);
+                    })
+                })
+            }
+
+            if (optionWhere.where.notnull) {
+                optionWhere.where.notnull.map(data=> {
+                    data.map(d=> {
+                        this.knex.whereNotNull(d);
+                    })
+                })
+            }
+
+            if (optionWhere.where.between) {
+                optionWhere.where.between.map(data=> {
+                    this.knex.whereBetween(data[0], data[1]);
+                })
+            }
+
+            if (optionWhere.where.notbetween) {
+                optionWhere.where.notbetween.map(data=> {
+                    this.knex.whereNotBetween(data[0], data[1]);
+                })
+            }
+
             if (optionWhere.where.operation) {
                 optionWhere.where.operation.map(data=> {
                     this.knex.where(data[0], data[1], data[2]);
@@ -274,6 +302,34 @@ export default class extends base {
             if (optionWhere.orwhere.notin) {
                 optionWhere.orwhere.notin.map(data=> {
                     this.knex.orWhereNotIn(data[0], data[1]);
+                })
+            }
+
+            if (optionWhere.orwhere.null) {
+                optionWhere.orwhere.null.map(data=> {
+                    data.map(d=> {
+                        this.knex.orWhereNull(d);
+                    })
+                })
+            }
+
+            if (optionWhere.orwhere.notnull) {
+                optionWhere.orwhere.notnull.map(data=> {
+                    data.map(d=> {
+                        this.knex.orWhereNotNull(d);
+                    })
+                })
+            }
+
+            if (optionWhere.orwhere.between) {
+                optionWhere.orwhere.between.map(data=> {
+                    this.knex.orWhereBetween(data[0], data[1]);
+                })
+            }
+
+            if (optionWhere.orwhere.notbetween) {
+                optionWhere.orwhere.notbetween.map(data=> {
+                    this.knex.orWhereNotBetween(data[0], data[1]);
                 })
             }
         }

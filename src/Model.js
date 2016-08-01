@@ -184,20 +184,48 @@ export default class extends base {
     where(where) {
         if (!where) return this;
         if (ORM.isEmpty(this._options.where)) this._options.where = {
-            where: {and: [], not: [], in: [], notin: [], operation: []},
-            orwhere: {and: [], not: [], in: [], notin: [], operation: []}
+            where: {
+                and: [],
+                not: [],
+                in: [],
+                notin: [],
+                null: [],
+                notnull: [],
+                between: [],
+                notbetween: [],
+                operation: []
+            },
+            orwhere: {
+                and: [],
+                not: [],
+                in: [],
+                notin: [],
+                null: [],
+                notnull: [],
+                between: [],
+                notbetween: [],
+                operation: []
+            }
         };
         let identifiers = {
-            'or': 'OR',
-            'OR': 'OR',
-            'and': 'AND',
+            or: 'OR',
+            OR: 'OR',
+            and: 'AND',
             'AND': 'AND',
-            'not': 'NOT',
-            'NOT': 'NOT',
-            'notin': 'NOTIN',
-            'NOTIN': 'NOTIN',
-            'in': 'IN',
-            'IN': 'IN',
+            not: 'NOT',
+            NOT: 'NOT',
+            notin: 'NOTIN',
+            NOTIN: 'NOTIN',
+            in: 'IN',
+            IN: 'IN',
+            null: 'NULL',
+            NULL: 'NULL',
+            notnull: 'NOTNULL',
+            NOTNULL: 'NOTNULL',
+            between: 'BETWEEN',
+            BETWEEN: 'BETWEEN',
+            notbetween: 'NOTBETWEEN',
+            NOTBETWEEN: 'NOTBETWEEN',
             '>': 'OPERATOR',
             '<': 'OPERATOR',
             '<>': 'OPERATOR',
@@ -233,17 +261,6 @@ export default class extends base {
         let self = this;
         let parse = function (key, value, k, isor = false) {
             switch (identifiers[key]) {
-                //id:{in:[1,2,3,4]}
-                case 'IN':
-                    for (let n in value) {
-                        if (isor) {
-                            self._options.where.orwhere.in.push([n, value[n]]);
-                        } else {
-                            self._options.where.where.in.push([n, value[n]]);
-                        }
-                    }
-                    //return;
-                    break;
                 case 'OR':
                     for (let m of value) {
                         for (let o in m) {
@@ -252,33 +269,77 @@ export default class extends base {
                     }
                     return;
                     break;
+                //id:{in:[1,2,3,4]}
+                case 'IN':
+                    for (let n in value) {
+                        isor ? self._options.where.orwhere.in.push([n, value[n]]) : self._options.where.where.in.push([n, value[n]]);
+                        //if (isor) {
+                        //    self._options.where.orwhere.in.push([n, value[n]]);
+                        //} else {
+                        //    self._options.where.where.in.push([n, value[n]]);
+                        //}
+                    }
+                    //return;
+                    break;
+                case 'NOTIN':
+                    for (let n in value) {
+                        isor ? self._options.where.orwhere.notin.push([n, value[n]]) : self._options.where.where.notin.push([n, value[n]]);
+                        //if (isor) {
+                        //    self._options.where.orwhere.notin.push([n, value[n]]);
+                        //} else {
+                        //    self._options.where.where.notin.push([n, value[n]]);
+                        //}
+                    }
+                    return;
+                    break;
+                case 'NULL':
+                    if (ORM.isString(value) && value.indexOf(',') > -1) value = value.split(',');
+                    isor ? self._options.where.orwhere.null.push(value) : self._options.where.where.null.push(value);
+                    //if (isor) {
+                    //    self._options.where.orwhere.null.push(value);
+                    //} else {
+                    //    self._options.where.where.null.push(value);
+                    //}
+                    return;
+                    break;
+                case 'NOTNULL':
+                    if (ORM.isString(value) && value.indexOf(',') > -1) value = value.split(',');
+                    isor ? self._options.where.orwhere.notnull.push(value) : self._options.where.where.notnull.push(value);
+                    //if (isor) {
+                    //    self._options.where.orwhere.null.push(value);
+                    //} else {
+                    //    self._options.where.where.null.push(value);
+                    //}
+                    return;
+                    break;
+
+                case 'BETWEEN':
+                    isor ? self._options.where.orwhere.between.push([k, value]) : self._options.where.where.between.push([k, value]);
+                    return;
+                    break;
+                case 'NOTBETWEEN':
+                    isor ? self._options.where.orwhere.notbetween.push([k, value]) : self._options.where.where.notbetween.push([k, value]);
+                    return;
+                    break;
                 case 'NOT':
                     for (let n in value) {
-                        if (isor) {
-                            self._options.where.orwhere.not.push([n, value[n]]);
-                        } else {
-                            self._options.where.where.not.push([n, value[n]]);
-                        }
+                        isor ? self._options.where.orwhere.not.push([n, value[n]]) : self._options.where.where.not.push([n, value[n]]);
+                        //if (isor) {
+                        //    self._options.where.orwhere.not.push([n, value[n]]);
+                        //} else {
+                        //    self._options.where.where.not.push([n, value[n]]);
+                        //}
                     }
 
                     break;
                     return;
-                case 'NOTIN':
-                    console.log(isor)
-                    for (let n in value) {
-                        if (isor) {
-                            self._options.where.orwhere.notin.push([n, value[n]]);
-                        } else {
-                            self._options.where.where.notin.push([n, value[n]]);
-                        }
-                    }
-                    break;
                 case 'OPERATOR':
-                    if (isor) {
-                        self._options.where.orwhere.operation.push([k, key, value])
-                    } else {
-                        self._options.where.where.operation.push([k, key, value])
-                    }
+                    isor ? self._options.where.orwhere.operation.push([k, key, value]) : self._options.where.where.operation.push([k, key, value]);
+                    //if (isor) {
+                    //    self._options.where.orwhere.operation.push([k, key, value])
+                    //} else {
+                    //    self._options.where.where.operation.push([k, key, value])
+                    //}
                     break;
                     return;
                 case 'AND':
@@ -287,10 +348,11 @@ export default class extends base {
                         for (let n in value) {
                             parse(n, value[n], key, isor);
                         }
-                    } else if (isor) {
-                        self._options.where.orwhere.and.push([key, '=', value]);
+                        //} else if (isor) {
+                        //    self._options.where.orwhere.and.push([key, '=', value]);
                     } else {
-                        self._options.where.where.and.push([key, '=', value]);
+                        isor ? self._options.where.orwhere.and.push([key, '=', value]) : self._options.where.where.and.push([key, '=', value]);
+                        //self._options.where.where.and.push([key, '=', value]);
                     }
                     return;
                     break;
@@ -299,7 +361,7 @@ export default class extends base {
         for (let key in where) {
             parse(key, where[key]);
         }
-        console.log(this._options.where);
+        //console.log(this._options.where);
         return this;
     }
 
