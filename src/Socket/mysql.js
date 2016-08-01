@@ -5,7 +5,7 @@
  * @license    MIT
  * @version    16/7/25
  */
-import base from './base';
+import base from '../base';
 
 export default class extends base{
 

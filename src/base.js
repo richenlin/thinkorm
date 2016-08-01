@@ -27,10 +27,8 @@ export default class {
      * @param  {Object} http []
      * @return {}      []
      */
-    init(config = {}) {
-        this.config = config;
-        this.pool = null;
-        this.connection = null;
+    init() {
+
     }
 
     /**
@@ -40,16 +38,5 @@ export default class {
     filename() {
         let fname = this.__filename || __filename;
         return path.basename(fname, '.js');
-    }
-
-    /**
-     * close db connection
-     */
-    close(){
-        clearTimeout(this.closeTimer);
-        if(this.connection){
-            this.connection.close();
-            this.connection = null;
-        }
     }
 }
