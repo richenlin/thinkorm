@@ -471,7 +471,7 @@ export default class {
         try {
             let parsedOptions = await this.parseOptions(options);
             if(ORM.isEmpty(parsedOptions.where)){
-                return this.error('_OPTION_TYPE_INVALID_')
+                return this.error('_OPTION_TYPE_INVALID_');
             }
             await this._beforeDelete(parsedOptions);
             let result = await this.initDb().delete(parsedOptions);
@@ -508,7 +508,7 @@ export default class {
         try {
             let parsedOptions = await this.parseOptions(options);
             if(ORM.isEmpty(parsedOptions.where)){
-                return this.error('_OPTION_TYPE_INVALID_')
+                return this.error('_OPTION_TYPE_INVALID_');
             }
         } catch (e) {
             return this.error(`${this.modelName}:${e.message}`);
