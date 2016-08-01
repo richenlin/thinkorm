@@ -90,7 +90,13 @@ export default class extends base{
             this.config.logSql && ORM.log(sql, 'MYSQL', startTime);
             return rows;
         }).catch(err => {
-            this.close();
+            (this.pool && connection.release) && connection.release();
+            //when socket is closed, try it
+            if(err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'EPIPE'){
+                return this.close().then(() => {
+                    return this.query(sql);
+                });
+            }
             return Promise.reject(err);
         });
     }
