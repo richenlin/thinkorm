@@ -61,6 +61,32 @@ export default class extends base {
      * @param data
      * @param options
      */
+    parseCount(data, options){
+        let parseOptions = {};
+        if(options.method === 'SELECT'){
+            parseOptions['count'] = ORM.isArray(options.count) ? options.count : Array.of(options.count);
+        }
+        return parseOptions;
+    }
+
+    /**
+     *
+     * @param data
+     * @param options
+     */
+    parseSum(data, options){
+        let parseOptions = {};
+        if(options.method === 'SELECT'){
+            parseOptions['sum'] = ORM.isArray(options.sum) ? options.sum : Array.of(options.sum);
+        }
+        return parseOptions;
+    }
+
+    /**
+     *
+     * @param data
+     * @param options
+     */
     parseWhere(data, options){
         let parseOptions = {};
         parseOptions['where'] = options.where || 1;
@@ -143,7 +169,6 @@ export default class extends base {
             options.data = data;
         }
         let parseOptions =  this.parseSql(data, options);
-
         let seqs = await analyze(parseOptions);
         let builder =  await sequelizer({
             dialect: 'mysql',

@@ -10,7 +10,6 @@ import base from '../base';
 export default class extends base{
 
     init(config = {}){
-        super.init(config);
         this.config = {
             database: config.db_name,
             host: config.db_host || '127.0.0.1',
@@ -31,7 +30,7 @@ export default class extends base{
 
     connect(){
         if(this.connection){
-            return this.connection;
+            return Promise.resolve(this.connection);
         }
 
         let driver = require('mysql2');

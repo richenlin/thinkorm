@@ -12,7 +12,7 @@ import socket from '../Socket/mysql';
 export default class extends base {
 
     init(config = {}) {
-        super.init(config);
+        this.config = config;
         this.transTimes = 0; //transaction times
         this.lastInsertId = 0;
     }
@@ -160,35 +160,52 @@ export default class extends base {
 
     /**
      * 查询数据条数
+     * @param field
      * @param options
      * @returns {*}
      */
-    count(options) {
+    count(field, options) {
         options.method = 'SELECT';
-        options.count = options.field || '*';
+        options.count = field;
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            //
+            if(ORM.isArray(field)){
+                return Object.values(data[0]);
+            } else {
+                if(data[0]){
+                    return data[0]['count(`'+field+'`)'] ? (data[0]['count(`'+field+'`)'] || 0) : 0;
+                } else {
+                    return 0;
+                }
+            }
             return data;
         });
     }
 
     /**
      * 统计数据数量和
+     * @param field
      * @param options
      * @returns {*}
      */
-    sum(options) {
+    sum(field, options) {
         options.method = 'SELECT';
-        options.sum = options.field || '*';
+        options.sum = field;
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            //
-            return data;
+            if(ORM.isArray(field)){
+                return Object.values(data[0]);
+            } else {
+                if(data[0]){
+                    return data[0]['sum(`'+field+'`)'] ? (data[0]['sum(`'+field+'`)'] || 0) : 0;
+                } else {
+                    return 0;
+                }
+            }
         });
     }
 
