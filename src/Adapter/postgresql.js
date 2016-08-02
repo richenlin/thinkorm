@@ -25,6 +25,13 @@ export default class extends base {
         return this.handel;
     }
 
+    close(){
+        if(this.handel){
+            this.handel.close();
+            this.handel = null;
+        }
+    }
+
     parsers(){
         if(!this.parsercls){
             this.parsercls = new parser(this.config);
@@ -57,13 +64,6 @@ export default class extends base {
             }
             return data.rowCount || 0;
         });
-    }
-
-    close(){
-        if(this.handel){
-            this.handel.close();
-            this.handel = null;
-        }
     }
 
     /**

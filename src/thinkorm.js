@@ -200,63 +200,6 @@ export default class extends base {
     }
 
     /**
-     * 解析参数
-     * @param  {[type]} options [description]
-     * @return promise         [description]
-     */
-    _parseOptions(oriOpts, extraOptions) {
-        let options;
-        if (ORM.isScalar(oriOpts)) {
-            options = ORM.extend({}, this._options);
-        } else {
-            options = ORM.extend({}, this._options, oriOpts, extraOptions);
-        }
-        //查询过后清空sql表达式组装 避免影响下次查询
-        this._options = {};
-        //获取表名
-        options.table = options.table || this.getTableName();
-        //解析field,根据model的fields进行过滤
-        let field = [];
-        if (ORM.isEmpty(options.field) && !ORM.isEmpty(options.fields)) options.field = options.fields;
-        //解析分页
-        if ('page' in options) {
-            let page = options.page + '';
-            let num = 0;
-            if (page.indexOf(',') > -1) {
-                page = page.split(',');
-                num = parseInt(page[1], 10);
-                page = page[0];
-            }
-            num = num || 10;
-            page = parseInt(page, 10) || 1;
-            options.page = {page: page, num: num};
-        } else {
-            options.page = {page: 1, num: 10};
-        }
-        return options;
-    }
-
-    /**
-     * 检测数据是否合法
-     * @param data
-     * @param options
-     * @param preCheck
-     * @param option
-     * @returns {*}
-     */
-    _parseData(data, options, preCheck = true, option = 1) {
-        if (preCheck) {
-            return data;
-        } else {
-            if (ORM.isJSONObj(data)) {
-                return data;
-            } else {
-                return JSON.parse(JSON.stringify(data));
-            }
-        }
-    }
-
-    /**
      * 根据查询结果生成分页
      * @return {[type]} [description]
      */
@@ -737,6 +680,67 @@ export default class extends base {
             return this.error(`${this.modelName}:${e.message}`);
         }
     }
+
+    /*#######################################################################################*/
+
+    /**
+     * 解析参数
+     * @param  {[type]} options [description]
+     * @return promise         [description]
+     */
+    _parseOptions(oriOpts, extraOptions) {
+        let options;
+        if (ORM.isScalar(oriOpts)) {
+            options = ORM.extend({}, this._options);
+        } else {
+            options = ORM.extend({}, this._options, oriOpts, extraOptions);
+        }
+        //查询过后清空sql表达式组装 避免影响下次查询
+        this._options = {};
+        //获取表名
+        options.table = options.table || this.getTableName();
+        //解析field,根据model的fields进行过滤
+        let field = [];
+        if (ORM.isEmpty(options.field) && !ORM.isEmpty(options.fields)) options.field = options.fields;
+        //解析分页
+        if ('page' in options) {
+            let page = options.page + '';
+            let num = 0;
+            if (page.indexOf(',') > -1) {
+                page = page.split(',');
+                num = parseInt(page[1], 10);
+                page = page[0];
+            }
+            num = num || 10;
+            page = parseInt(page, 10) || 1;
+            options.page = {page: page, num: num};
+        } else {
+            options.page = {page: 1, num: 10};
+        }
+        return options;
+    }
+
+    /**
+     * 检测数据是否合法
+     * @param data
+     * @param options
+     * @param preCheck
+     * @param option
+     * @returns {*}
+     */
+    _parseData(data, options, preCheck = true, option = 1) {
+        if (preCheck) {
+            return data;
+        } else {
+            if (ORM.isJSONObj(data)) {
+                return data;
+            } else {
+                return JSON.parse(JSON.stringify(data));
+            }
+        }
+    }
+
+
 
 
 }
