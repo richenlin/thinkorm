@@ -241,7 +241,7 @@ export default class extends base {
         } else {
             options.data = data;
         }
-        let parseOptions =  this.parseSql(data, options);
+        let parseOptions = await this.parseSql(data, options);
         let seqs = await analyze(parseOptions);
         let builder =  await sequelizer({
             dialect: 'postgresql',
