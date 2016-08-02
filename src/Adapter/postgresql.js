@@ -136,16 +136,11 @@ export default class extends base {
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            if(ORM.isArray(field)){
-                return Object.values(data[0]);
+            if(ORM.isArray(data)){
+                return data[0].count;
             } else {
-                if(data[0]){
-                    return data[0]['count(`'+field+'`)'] ? (data[0]['count(`'+field+'`)'] || 0) : 0;
-                } else {
-                    return 0;
-                }
+                return data.count;
             }
-            return data;
         });
     }
 
@@ -162,14 +157,10 @@ export default class extends base {
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            if(ORM.isArray(field)){
-                return Object.values(data[0]);
+            if(ORM.isArray(data)){
+                return data[0].sum;
             } else {
-                if(data[0]){
-                    return data[0]['sum(`'+field+'`)'] ? (data[0]['sum(`'+field+'`)'] || 0) : 0;
-                } else {
-                    return 0;
-                }
+                return data.sum;
             }
         });
     }

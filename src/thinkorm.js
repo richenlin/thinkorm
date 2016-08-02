@@ -549,7 +549,6 @@ export default class extends base {
     /**
      * 查询数据条数
      * count('xxx')
-     * count(['xxx', 'xxx'])
      * @param options
      * @returns {*}
      */
@@ -561,7 +560,7 @@ export default class extends base {
             // init model
             let model = await this.initDb();
             let result = await model.count(field, parsedOptions);
-            result = await this._parseData(result || [], parsedOptions, false);
+            result = await this._parseData(result || 0, parsedOptions, false);
             return result;
         } catch (e) {
             return this.error(`${this.modelName}:${e.message}`);
@@ -571,7 +570,6 @@ export default class extends base {
     /**
      * 统计数据数量和
      * sum('xxx')
-     * sum(['xxx', 'xxx'])
      * @param field
      * @param options
      * @returns {*}
@@ -584,7 +582,7 @@ export default class extends base {
             // init model
             let model = await this.initDb();
             let result = await model.sum(field, parsedOptions);
-            result = await this._parseData(result || [], parsedOptions, false);
+            result = await this._parseData(result || 0, parsedOptions, false);
             return result;
         } catch (e) {
             return this.error(`${this.modelName}:${e.message}`);

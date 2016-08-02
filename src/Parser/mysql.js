@@ -58,7 +58,6 @@ export default class extends base {
 
     /**
      * count('xxx')
-     * count(['xxx', 'xxx'])
      * @param data
      * @param options
      */
@@ -72,7 +71,6 @@ export default class extends base {
 
     /**
      * sum('xxx')
-     * sum(['xxx', 'xxx'])
      * @param data
      * @param options
      */

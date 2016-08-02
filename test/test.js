@@ -20,7 +20,7 @@ var cls = new thinkorm('user',{
 
 function test(){
     "use strict";
-    return cls.find('', {where: {id: 2}}).then(function (data) {
+    return cls.countSelect('name').then(function (data) {
         console.log(data);
     })
 }
