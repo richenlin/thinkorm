@@ -252,10 +252,11 @@ export default class extends base {
             sql = builder.sql;
             if(!ORM.isEmpty(builder.bindings)){
                 builder.bindings.forEach(item => {
-                    sql =  sql.replace(/\?/, ORM.isNumber(item) ? item : `'${item}'`);
+                    sql =  sql.replace(/\$[0-9]*/, ORM.isNumber(item) ? item : `'${item}'`);
                 });
             }
         }
+        console.log(sql)
         return sql;
     }
 

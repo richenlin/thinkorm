@@ -42,7 +42,7 @@ export default class extends base {
      */
     query(sql){
         return this.connect().query(sql).then(data => {
-            return this.parsers().bufferToString(data);
+            return this.parsers().bufferToString(data.rows);
         });
     }
 
@@ -52,10 +52,10 @@ export default class extends base {
      */
     execute(sql){
         return this.connect().execute(sql).then(data => {
-            if (data.insertId) {
-                this.lastInsertId = data.insertId;
+            if (data.rows && data.rows[0] && data.rows[0].id) {
+                this.lastInsertId = data.rows[0].id;
             }
-            return data.affectedRows || 0;
+            return data.rowCount || 0;
         });
     }
 

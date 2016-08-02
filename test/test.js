@@ -7,9 +7,9 @@
  */
 var thinkorm = require('../index.js');
 var cls = new thinkorm('user',{
-    db_type: 'mysql',
+    db_type: 'postgresql',
     db_host: '192.168.99.100',
-    db_port: 3306,
+    db_port: 5432,
     db_name: 'test',
     db_user: 'root',
     db_pwd: 'richenlin',
@@ -20,13 +20,12 @@ var cls = new thinkorm('user',{
 
 function test(){
     "use strict";
-    return cls.field(['name', 'ttttt.name']).join([{from: 'ttttt', on: [{id: 'id'}, {name: 'name'}]}]).find('', {where: {id: 2}}).then(function (data) {
+    return cls.find('', {where: {id: 2}}).then(function (data) {
         console.log(data);
     })
 }
 
 test();
-
 
 //function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 //var parser = requireDefault(require('../lib/Parser/mysql.js')).default;
