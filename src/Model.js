@@ -75,6 +75,10 @@ export default class extends base {
         return this._adapter;
     }
 
+    initModel() {
+
+    }
+
 
     /**
      * 获取表模型
@@ -603,16 +607,49 @@ export default class extends base {
      */
     async add(data, options) {
         if (ORM.isEmpty(data)) return ORM.error('_DATA_TYPE_INVALID_');
-        options = await
-            this.parseOptions(options);
-        data = await
-            this.parseData(data, options, 1);
-        let result = await
-            this.adapter().insert(data);
+        options = await this.parseOptions(options);
+        this._data = data;
+        this._data = await this.parseData(this._data, options, 1);
+        let result = await this.adapter().insert(this._data, options);
+        let pk = this.getPk();
+        this._data[pk] = this.adapter().getLastInsertId();
         //TODO关联写入
         if (!ORM.isEmpty(this.relation)) {
 
         }
+        this._data[pk] = this._data[pk] ? this._data[pk] : result[pk];
+        await this._afterAdd(this._data, options);
+        return this._data[pk];
+
+    }
+
+    /**
+     * 新增后置操作
+     * @param data
+     * @param opitons
+     * @returns {Promise.<*>}
+     * @private
+     */
+    async _afterAdd(data, opitons) {
+        return Promise.resolve(data);
+    }
+
+    /**
+     * 批量写入,不提供关联写入
+     * @param data
+     * @param options
+     * @returns {*}
+     */
+    async addAll(data, options) {
+        //判断是否为数组
+        if (!ORM.isArray(data))return ORM.error('DATA MUST BE ARRAY');
+        options = await this.parseOptions(options);
+        this._data = data;
+        let ps = this._data.map(item=> {
+            return this.parseData(item, options);
+        })
+        this._data = await Promise.all(ps)
+        return await this.adapter().insertAll(this._data, options);
     }
 
     /**
@@ -620,13 +657,58 @@ export default class extends base {
      * @param data
      * @param options
      */
-    async  update(data, options) {
+    async update(data, options) {
         if (ORM.isEmpty(data)) return ORM.error('_DATA_TYPE_INVALID_');
-        options = await
-            this.parseOptions(options);
+        options = await this.parseOptions(options);
         this._data = data;
-        this._data = await
-            this.parseData(this._data, options, 2);
+        this._data = await this.parseData(this._data, options, 2);
+        this._data = await this.adapter().update(this._data, options);
+        //TODO关联写入
+        if (!ORM.isEmpty(this.relation)) {
+
+        }
+        return await this._afterUpdate(this._data, options)
+    }
+
+    /**
+     * 更新后置操作
+     * @param data
+     * @param options
+     * @returns {Promise.<*>}
+     * @private
+     */
+    async _afterUpdate(data, options) {
+        return Promise.resolve(data);
+    }
+
+    /**
+     * 删除前置操作
+     * @param options
+     * @private
+     */
+    async _beforeDelte(options) {
+        return Promise.resolve(options);
+    }
+
+    /**
+     * 删除操作
+     * @param options
+     */
+    async delete(options) {
+        options = this.parseOptions(options);
+        options = await this._beforeDelte(options);
+        let result = await this.adapter().delete(options);
+        options = await this._afterDel(options);
+        return result;
+    }
+
+    /**
+     * 删除后置操作
+     * @param options
+     * @private
+     */
+    async _afterDelte(options) {
+
     }
 
     /**

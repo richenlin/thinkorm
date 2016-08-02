@@ -14,7 +14,7 @@ export default class extends base {
             client: this.config.db_type
         })
         this.sql = '';
-
+        this.lastInsertId;
     }
 
     //实例化数据库Socket
@@ -27,11 +27,19 @@ export default class extends base {
         return this._socket;
     }
 
+    getLastSql() {
+        return this.sql;
+    }
+
+    getLastInsertId() {
+        return this.lastInsertId;
+    }
+
     /**
      * 执行查询类操作
      * @param sql
      */
-    async query(sql) {
+    query(sql) {
         console.log(sql);
         this.sql = sql;
         return this.socket().query(sql).then(data=> {
@@ -43,36 +51,43 @@ export default class extends base {
      * 更新,修改,删除类操作
      * @param sql
      */
-    async execute(sql) {
-
+    execute(sql) {
+        console.log(sql);
+        this.sql = sql;
+        return this.socket().query(sql).then(data=> {
+            if (data.insertId) {
+                this.lastInsertId = data.insertId;
+            }
+            return data.affectedRows || 0;
+        })
     }
 
 
-    async count(options) {
+    count(options) {
         this.knex = this.knexClient.count(options.count);
         this.queryBuilder(options);
         return this.query(this.knex.toString());
     }
 
-    async min(options) {
+    min(options) {
         this.knex = this.knexClient.min(options.min);
         this.queryBuilder(options);
         return this.query(this.knex.toString());
     }
 
-    async max(options) {
+    max(options) {
         this.knex = this.knexClient.max(options.max);
         this.queryBuilder(options);
         return this.query(this.knex.toString());
     }
 
-    async avg(options) {
+    avg(options) {
         this.knex = this.knexClient.avg(options.avg);
         this.queryBuilder(options);
         return this.query(this.knex.toString());
     }
 
-    async avgDistinct(options) {
+    avgDistinct(options) {
         this.knex = this.knexClient.avgDistinct(options.avgDistinct);
         this.queryBuilder(options);
         return this.query(this.knex.toString());
@@ -82,7 +97,7 @@ export default class extends base {
      * 字段自增
      * @param options
      */
-    async increment(options) {
+    increment(options) {
         this.knex = this.knexClient.increment(options.increment[0], options.increment[1]);
         this.queryBuilder(options);
         return this.query(this.knex.toString());
@@ -92,7 +107,7 @@ export default class extends base {
      * 字段自增
      * @param options
      */
-    async decrement(options) {
+    decrement(options) {
         this.knex = this.knexClient.decrement(options.decrement[0], options.decrement[1]);
         this.queryBuilder(options);
         return this.query(this.knex.toString());
@@ -102,7 +117,7 @@ export default class extends base {
      * 查询操作
      * @param options
      */
-    async select(options) {
+    select(options) {
         this.knex = this.knexClient.select();
         this.queryBuilder(options);
         return this.query(this.knex.toString());
@@ -113,9 +128,42 @@ export default class extends base {
      * @param data
      * @param options
      */
-    async insert(data, options) {
-        this.knex = this.knexClient.insert(data);
+    insert(data, options) {
+        this.knex = this.knexClient.insert(data).from(options.table);
+        return this.execute(this.knex.toString());
+    }
+
+    /**
+     * 批量写入
+     * 生成多条insert语句,一次执行
+     * @param data
+     * @param options
+     */
+    insertAll(data, options) {
+        return this.insert(data, options);
+    }
+
+    /**
+     * 更新操作
+     * @param data
+     * @param options
+     */
+    update(data, options) {
+        this.knex = this.knexClient.update(data);
+        this.builderTable(options.table);
+        this.builderWhere(options.where);
         return this.query(this.knex.toString());
+    }
+
+    /**
+     * 删除操作
+     * @param options
+     */
+    delete(options) {
+        this.knex = this.knexClient.del();
+        this.builderTable(options.table);
+        this.builderWhere(options.where);
+        return this.execute(this.knex.toString());
     }
 
     /**
@@ -241,6 +289,7 @@ export default class extends base {
 
             if (optionWhere.where.null) {
                 optionWhere.where.null.map(data=> {
+                    //this.knex.whereNull(...data);
                     data.map(d=> {
                         this.knex.whereNull(d);
                     })
