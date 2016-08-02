@@ -57,7 +57,8 @@ export default class extends base {
     }
 
     /**
-     *
+     * count('xxx')
+     * count(['xxx', 'xxx'])
      * @param data
      * @param options
      */
@@ -70,7 +71,8 @@ export default class extends base {
     }
 
     /**
-     *
+     * sum('xxx')
+     * sum(['xxx', 'xxx'])
      * @param data
      * @param options
      */
@@ -90,6 +92,77 @@ export default class extends base {
     parseWhere(data, options){
         let parseOptions = {};
         parseOptions['where'] = options.where || 1;
+        return parseOptions;
+    }
+
+    /**
+     * group('xxx')
+     * group(['xxx', 'xxx'])
+     * @param data
+     * @param options
+     */
+    parseGroup(data, options){
+        let parseOptions = {};
+        if(options.method === 'SELECT'){
+            parseOptions['groupBy'] = ORM.isArray(options.group) ? options.group : Array.of(options.group);
+        }
+        return parseOptions;
+    }
+
+    /**
+     * join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}], 'inner')
+     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}}], 'left')
+     * join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}], 'right')
+     * @param data
+     * @param options
+     */
+    parseJoin(data, options){
+        let parseOptions = {};
+        if(options.method === 'SELECT'){
+            //解析后结果
+            //innerJoin: [{from: 'accounts',on: {or: [{accounts: 'id',users: 'account_id'},{accounts: 'owner_id',users: 'id'}]}}]
+            //innerJoin: [{from: 'accounts',on: [{accounts: 'id',users: 'account_id'},{accounts: 'owner_id',users: 'id'}]}]
+            if(options.joinType && ORM.isArray(options.join)){
+                let type = options.joinType.toLowerCase();
+                try{
+                    let config = this.config;
+                    let table = options.table;
+                    parseOptions[`${type}Join`] = [];
+                    options.join.forEach(item => {
+                        if(item.from && item.on){
+                            let temp = {};
+                            temp.from = (item.from).toLowerCase();
+                            temp.from = (temp.from).indexOf(config.db_prefix) > -1 ? temp.from : `${config.db_prefix}${temp.from}`;
+                            temp.on = [];
+                            if(ORM.isArray(item.on)){
+                                item.on.forEach(it => {
+                                    if(ORM.isObject(it)){
+                                        for(let i in it){
+                                            temp.on.push({[table]: i, [temp.from]: it[i]});
+                                        }
+                                    }
+                                });
+                            } else {
+                                temp.on = {};
+                                if(ORM.isArray(item.on.or)){
+                                    temp.on.or = [];
+                                    item.on.or.forEach(it => {
+                                        if(ORM.isObject(it)){
+                                            for(let i in it){
+                                                temp.on.or.push({[table]: i, [temp.from]: it[i]});
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                            parseOptions[`${type}Join`].push(temp);
+                        }
+                    });
+                }catch (e){
+                    parseOptions[`${type}Join`] && delete parseOptions[`${type}Join`];
+                }
+            }
+        }
         return parseOptions;
     }
 
@@ -174,6 +247,7 @@ export default class extends base {
             dialect: 'mysql',
             tree: seqs
         });
+        console.log(builder)
         let sql = '';
         if(!ORM.isEmpty(builder.sql)){
             sql = builder.sql;

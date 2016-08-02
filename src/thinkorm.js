@@ -269,15 +269,6 @@ export default class extends base {
     }
 
     /**
-     * 自动验证开关
-     * @param data
-     */
-    verify(flag = false) {
-        this._options.verify = !!flag;
-        return this;
-    }
-
-    /**
      * 指定关联操作的表
      * @param table
      */
@@ -349,7 +340,20 @@ export default class extends base {
         if (ORM.isString(field)) {
             field = field.replace(/ +/g, '').split(',');
         }
-        this._options.field = field;
+        let fds = [], temp = '';
+        field.forEach(item => {
+            if(item.indexOf('.') > -1){
+                temp = item.split('.');
+                if(temp[0].indexOf(this.config.db_prefix) > -1){
+                    fds.push(item);
+                } else {
+                    fds.push(`${this.config.db_prefix}${item}`);
+                }
+            } else {
+                fds.push(`${this._options.table || this.getTableName()}.${item}`);
+            }
+        });
+        this._options.field = fds;
         return this;
     }
 
@@ -362,6 +366,36 @@ export default class extends base {
             return this;
         }
         this._options.where = ORM.extend(false, this._options.where || {}, where);
+        return this;
+    }
+
+    /**
+     *
+     * group('xxx')
+     * group(['xxx', 'xxx'])
+     * @param group
+     */
+    group(group){
+        if (!group) {
+            return this;
+        }
+        this._options.group = group;
+        return this;
+    }
+
+    /**
+     * join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}], 'inner')
+     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}}], 'left')
+     * join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}], 'right')
+     * @param join
+     * @param type  inner/left/right
+     */
+    join(join, type = 'inner'){
+        if (!join) {
+            return this;
+        }
+        this._options.joinType = type;
+        this._options.join = join;
         return this;
     }
 
@@ -571,6 +605,8 @@ export default class extends base {
 
     /**
      * 查询数据条数
+     * count('xxx')
+     * count(['xxx', 'xxx'])
      * @param options
      * @returns {*}
      */
@@ -591,6 +627,8 @@ export default class extends base {
 
     /**
      * 统计数据数量和
+     * sum('xxx')
+     * sum(['xxx', 'xxx'])
      * @param field
      * @param options
      * @returns {*}

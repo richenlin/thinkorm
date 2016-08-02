@@ -20,7 +20,7 @@ var cls = new thinkorm('user',{
 
 function test(){
     "use strict";
-    return cls.countSelect('', {where: {id: 2}}).then(function (data) {
+    return cls.field(['name', 'ttttt.name']).join([{from: 'ttttt', on: [{id: 'id'}, {name: 'name'}]}]).find('', {where: {id: 2}}).then(function (data) {
         console.log(data);
     })
 }
@@ -49,3 +49,4 @@ test();
 //    "use strict";
 //    console.log(result);
 //});
+

@@ -201,6 +201,20 @@ ORM.isEmpty = function (obj) {
     }
 };
 /**
+ * 判断值是否是数组的元素
+ * @param needle
+ * @param haystack 数组
+ * @returns {boolean}
+ */
+ORM.inArray = function (needle, haystack) {
+    'use strict';
+    let length = haystack.length;
+    for (let i = 0; i < length; i++) {
+        if (haystack[i] == needle) return true;
+    }
+    return false;
+};
+/**
  * 判断是否是个promise
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
