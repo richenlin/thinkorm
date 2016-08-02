@@ -108,16 +108,16 @@ export default class extends base {
      * @returns {*}
      */
     initDb() {
-        let adapterList = {
-            mysql: __dirname + '/Adapter/mysql.js',
-            postgresql: __dirname + '/Adapter/postgresql.js',
-            mongo: __dirname + '/Adapter/mongo.js'
-        };
-        if (!this.config.db_type.toLowerCase() in adapterList) {
-            return this.error('_ADAPTER_IS_NOT_SUPPORT_');
-        }
         let instances = ORM.DB[this.adapterKey];
         if (!instances) {
+            let adapterList = {
+                mysql: __dirname + '/Adapter/mysql.js',
+                postgresql: __dirname + '/Adapter/postgresql.js',
+                mongo: __dirname + '/Adapter/mongo.js'
+            };
+            if (!this.config.db_type.toLowerCase() in adapterList) {
+                return this.error('_ADAPTER_IS_NOT_SUPPORT_');
+            }
             instances = new (ORM.safeRequire(adapterList[this.config.db_type]))(this.config);
             ORM.DB[this.adapterKey] = instances;
         }
@@ -139,20 +139,23 @@ export default class extends base {
      * @param err
      */
     error(err) {
-        let msg = err || '';
-        if (!ORM.isError(msg)) {
-            if (!ORM.isString(msg)) {
-                msg = JSON.stringify(msg);
+        if(err){
+            let msg = err;
+            if (!ORM.isError(msg)) {
+                if (!ORM.isString(msg)) {
+                    msg = JSON.stringify(msg);
+                }
+                msg = new Error(msg);
             }
-            msg = new Error(msg);
-        }
 
-        let stack = msg.message;
-        // connection error
-        if (~stack.indexOf('connect') || ~stack.indexOf('ECONNREFUSED')) {
-            this.instances && this.instances.close && this.instances.close();
+            let stack = msg.message ? msg.message.toLowerCase() : '';
+            // connection error
+            if (~stack.indexOf('connect') || ~stack.indexOf('refused')) {
+                this.instances && this.instances.close && this.instances.close();
+            }
+            ORM.log(msg);
         }
-        return Promise.reject(msg);
+        return Promise.reject();
     }
 
     /**
@@ -375,7 +378,7 @@ export default class extends base {
             result = await this._parseData(this._data[pk] || 0, parsedOptions, false);
             return result;
         } catch (e) {
-            return this.error(`${this.modelName}:${e.message}`);
+            return this.error(e);
         }
     }
 
@@ -428,7 +431,7 @@ export default class extends base {
                 return [];
             }
         } catch (e) {
-            return this.error(`${this.modelName}:${e.message}`);
+            return this.error(e);
         }
     }
 
@@ -448,7 +451,7 @@ export default class extends base {
             }
             return null;
         } catch (e) {
-            return this.error(`${this.modelName}:${e.message}`);
+            return this.error(e);
         }
     }
 
@@ -477,7 +480,7 @@ export default class extends base {
             result = await this._parseData(result || [], parsedOptions, false);
             return result;
         } catch (e) {
-            return this.error(`${this.modelName}:${e.message}`);
+            return this.error(e);
         }
     }
 
@@ -532,7 +535,7 @@ export default class extends base {
             result = await this._parseData(result || [], parsedOptions, false);
             return result;
         } catch (e) {
-            return this.error(`${this.modelName}:${e.message}`);
+            return this.error(e);
         }
     }
 
@@ -563,7 +566,7 @@ export default class extends base {
             result = await this._parseData(result || 0, parsedOptions, false);
             return result;
         } catch (e) {
-            return this.error(`${this.modelName}:${e.message}`);
+            return this.error(e);
         }
     }
 
@@ -585,7 +588,7 @@ export default class extends base {
             result = await this._parseData(result || 0, parsedOptions, false);
             return result;
         } catch (e) {
-            return this.error(`${this.modelName}:${e.message}`);
+            return this.error(e);
         }
     }
 
@@ -604,7 +607,7 @@ export default class extends base {
             result = await this._parseData(result || {}, parsedOptions, false);
             return result;
         } catch(e) {
-            return this.error(`${this.modelName}:${e.message}`);
+            return this.error(e);
         }
     }
 
@@ -631,7 +634,7 @@ export default class extends base {
             result = await this._parseData(result || [], parsedOptions, false);
             return result;
         } catch(e) {
-            return this.error(`${this.modelName}:${e.message}`);
+            return this.error(e);
         }
     }
 
@@ -675,7 +678,7 @@ export default class extends base {
             result = await this._parseData(result, parsedOptions, false);
             return result;
         } catch (e) {
-            return this.error(`${this.modelName}:${e.message}`);
+            return this.error(e);
         }
     }
 

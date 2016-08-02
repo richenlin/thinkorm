@@ -256,7 +256,6 @@ export default class extends base {
                 });
             }
         }
-        console.log(sql)
         return sql;
     }
 

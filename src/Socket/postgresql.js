@@ -80,7 +80,7 @@ export default class extends base{
             this.config.logSql && ORM.log(sql, 'SQL', startTime);
             return rows;
         }).catch(err => {
-            this.release();
+            this.release && this.release();
             //when socket is closed, try it
             if(err.code === 'EPIPE'){
                 this.close();
