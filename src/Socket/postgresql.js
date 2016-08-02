@@ -77,7 +77,7 @@ export default class extends base{
             return fn(sql);
         }).then((rows = []) => {
             this.release && this.release();
-            this.config.logSql && ORM.log(sql, 'MYSQL', startTime);
+            this.config.logSql && ORM.log(sql, 'POSTGRESQL', startTime);
             return rows;
         }).catch(err => {
             this.release();

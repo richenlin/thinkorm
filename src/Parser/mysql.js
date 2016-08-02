@@ -247,7 +247,6 @@ export default class extends base {
             dialect: 'mysql',
             tree: seqs
         });
-        console.log(builder)
         let sql = '';
         if(!ORM.isEmpty(builder.sql)){
             sql = builder.sql;
