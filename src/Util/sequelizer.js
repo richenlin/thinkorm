@@ -1,6 +1,9 @@
- module.exports = function (inputs) {
-    var _ = require('lodash');
-    var knex = require('knex')({
+var _ = require('lodash');
+var knex = require('knex');
+
+module.exports = function (inputs) {
+
+    var knexClient = knex({
       dialect: inputs.dialect,
       useNullAsDefault: true
     });
@@ -602,7 +605,7 @@
     var processUnion = function processUnion(tokens, query, unionType) {
       _.each(tokens, function buildUnionSubquery(token) {
         // Build a standalone knex query builder
-        var subQueryBuilder = knex.queryBuilder();
+        var subQueryBuilder = knexClient.queryBuilder();
 
         // Pass the token to the parser
         tokenParser(subQueryBuilder, token);
@@ -955,7 +958,7 @@
         // and pass it in as the expression value
         if (options.subQuery) {
           // Build a standalone knex query builder and pass it the expression
-          var subQueryBuilder = knex.queryBuilder();
+          var subQueryBuilder = knexClient.queryBuilder();
           tokenParser(subQueryBuilder, expr);
 
           // Toggle off the subquery flag
@@ -1029,7 +1032,7 @@
 
     // Run the token parser
     var knexQuery = (function parseTree(tree) {
-      var query = knex.queryBuilder();
+      var query = knexClient.queryBuilder();
       tokenParser(query, tree);
       return query;
     })(inputs.tree);

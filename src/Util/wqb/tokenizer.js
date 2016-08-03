@@ -1,5 +1,6 @@
+var _ = require('lodash');
 module.exports = function tokenizer(inputs) {
-    var _ = require('lodash');
+
     var expression = inputs.expression;
     var results = [];
 

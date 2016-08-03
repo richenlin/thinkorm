@@ -1,5 +1,5 @@
+var _ = require('lodash');
 module.exports = function analyze(inputs) {
-    var _ = require('lodash');
     var tokens = inputs.tokens;
 
 
