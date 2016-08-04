@@ -252,9 +252,9 @@ export default class extends base {
             return this;
         }
         let _order = [];
-        if(ORM.isObject(order)){
+        if (ORM.isObject(order)) {
             _order.push(order);
-        }else if (ORM.isString(order)) {
+        } else if (ORM.isString(order)) {
             if (order.indexOf(',') > -1) {
                 let strToObj = function (_str) {
                     return _str.replace(/^ +/, '').replace(/ +$/, '')
@@ -285,9 +285,9 @@ export default class extends base {
         }
         let fds = [], temp = '';
         field.forEach(item => {
-            if(item.indexOf('.') > -1){
+            if (item.indexOf('.') > -1) {
                 temp = item.split('.');
-                if(temp[0].indexOf(this.config.db_prefix) > -1){
+                if (temp[0].indexOf(this.config.db_prefix) > -1) {
                     fds.push(item);
                 } else {
                     fds.push(`${this.config.db_prefix}${item}`);
@@ -318,7 +318,7 @@ export default class extends base {
      * group(['xxx', 'xxx'])
      * @param group
      */
-    group(group){
+    group(group) {
         if (!group) {
             return this;
         }
@@ -333,7 +333,7 @@ export default class extends base {
      * @param join
      * @param type  inner/left/right
      */
-    join(join, type = 'inner'){
+    join(join, type = 'inner') {
         if (!join) {
             return this;
         }
@@ -360,7 +360,7 @@ export default class extends base {
      */
     async add(data, options) {
         try {
-            if(ORM.isEmpty(data)){
+            if (ORM.isEmpty(data)) {
                 return this.error('_DATA_TYPE_INVALID_')
             }
             let parsedOptions = await this._parseOptions(options);
@@ -371,6 +371,8 @@ export default class extends base {
             this._data = await this._beforeAdd(this._data, parsedOptions);
             this._data = await this._parseData(this._data, parsedOptions);
             let result = await model.add(this._data, parsedOptions);
+            let pk = this.getPk();
+            this._data[pk] = result;
             await this._afterAdd(this._data, parsedOptions);
             result = await this._parseData(this._data[pk] || 0, parsedOptions, false);
             return result;
@@ -419,7 +421,7 @@ export default class extends base {
                 let pk = await this.getPk(), resData = [];
                 result.forEach((v, k) => {
                     this._data[k][pk] = v;
-                    resData.push(this._afterAdd(this._data[k], parsedOptions).then( () => {
+                    resData.push(this._afterAdd(this._data[k], parsedOptions).then(() => {
                         return v;
                     }));
                 });
@@ -437,13 +439,13 @@ export default class extends base {
      * @param data
      * @param options
      */
-    async thenAdd(data, options){
+    async thenAdd(data, options) {
         try {
-            if(ORM.isEmpty(data)){
+            if (ORM.isEmpty(data)) {
                 return this.error('_DATA_TYPE_INVALID_')
             }
             let record = await this.find(options);
-            if(ORM.isEmpty(record)){
+            if (ORM.isEmpty(record)) {
                 return this.add(data, options);
             }
             return null;
@@ -514,8 +516,8 @@ export default class extends base {
             this._data = await this._parseData(this._data, parsedOptions);
             let pk = await this.getPk();
             // 如果存在主键数据 则自动作为更新条件
-            if (ORM.isEmpty(parsedOptions.where)){
-                if(!ORM.isEmpty(this._data[pk])) {
+            if (ORM.isEmpty(parsedOptions.where)) {
+                if (!ORM.isEmpty(this._data[pk])) {
                     parsedOptions.where = {};
                     parsedOptions.where[pk] = this._data[pk];
                     delete this._data[pk];
@@ -596,7 +598,7 @@ export default class extends base {
      * @return 返回一个promise
      */
     async find(options) {
-        try{
+        try {
             let parsedOptions = await this._parseOptions(options);
             // init model
             let model = await this.initDb();
@@ -605,7 +607,7 @@ export default class extends base {
             await this._afterFind(ORM.isArray(result) ? result[0] : result, options);
             result = await this._parseData(result || {}, parsedOptions, false);
             return result;
-        } catch(e) {
+        } catch (e) {
             return this.error(`${this.modelName}:${e.message}`);
         }
     }
@@ -623,7 +625,7 @@ export default class extends base {
      * @return 返回一个promise
      */
     async select(options) {
-        try{
+        try {
             let parsedOptions = await this._parseOptions(options);
             // init model
             let model = await this.initDb();
@@ -632,7 +634,7 @@ export default class extends base {
             await this._afterSelect(result, options);
             result = await this._parseData(result || [], parsedOptions, false);
             return result;
-        } catch(e) {
+        } catch (e) {
             return this.error(`${this.modelName}:${e.message}`);
         }
     }
@@ -663,8 +665,8 @@ export default class extends base {
             let countNum = await this.count('', parsedOptions);
             let pageOptions = parsedOptions.page;
             let totalPage = Math.ceil(countNum / pageOptions.num);
-            if(ORM.isBoolean(pageFlag)){
-                if(pageOptions.page > totalPage){
+            if (ORM.isBoolean(pageFlag)) {
+                if (pageOptions.page > totalPage) {
                     pageOptions.page = pageFlag === true ? 1 : totalPage;
                 }
                 parsedOptions.page = pageOptions.page + ',' + pageOptions.num;
@@ -739,8 +741,6 @@ export default class extends base {
             }
         }
     }
-
-
 
 
 }

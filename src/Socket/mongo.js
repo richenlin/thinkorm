@@ -7,9 +7,9 @@
  */
 import base from '../base';
 
-export default class extends base{
+export default class extends base {
 
-    init(config = {}){
+    init(config = {}) {
         this.config = {
             database: config.db_name,
             host: config.db_host || '127.0.0.1',
@@ -26,37 +26,37 @@ export default class extends base{
 
     }
 
-    connect(){
-        if(this.connection){
+    connect() {
+        if (this.connection) {
             return Promise.resolve(this.connection);
         }
 
         let driver = require('mongodb');
 
         //connection URL format
-        if(ORM.isEmpty(this.config.connect_url)){
+        if (ORM.isEmpty(this.config.connect_url)) {
             this.config.connect_url = 'mongodb://';
-            if(!ORM.isEmtpy(this.config.user)){
+            if (!ORM.isEmpty(this.config.user)) {
                 this.config.connect_url = `${this.config.connect_url}${this.config.user}:${this.config.password}@`;
             }
             //many hosts
             let hostStr = '';
-            if(ORM.isArray(this.config.host)){
+            if (ORM.isArray(this.config.host)) {
                 hostStr = this.config.host.map((item, i) => {
                     return item + ':' + (this.config.port[i] || this.config.port[0]);
                 }).join(',');
-            }else{
-                hostStr = config.host + ':' + config.port;
+            } else {
+                hostStr = this.config.host + ':' + this.config.port;
             }
             this.config.connect_url = `${this.config.connect_url}${hostStr}/${this.config.database}`;
 
-            if(!ORM.isEmtpy(this.config.maxPoolSize)){
+            if (!ORM.isEmpty(this.config.maxPoolSize)) {
                 this.config.connect_url = `${this.config.connect_url}?maxPoolSize=${this.config.maxPoolSize}`;
             }
-            if(!ORM.isEmtpy(this.config.connectTimeoutMS)){
+            if (!ORM.isEmpty(this.config.connectTimeoutMS)) {
                 this.config.connect_url = `${this.config.connect_url}&connectTimeoutMS=${this.config.connectTimeoutMS}`;
             }
-            if(!ORM.isEmtpy(this.config.replicaSet)){
+            if (!ORM.isEmpty(this.config.replicaSet)) {
                 this.config.connect_url = `${this.config.connect_url}&replicaSet=${this.config.replicaSet}`;
             }
         }
@@ -72,8 +72,55 @@ export default class extends base{
         });
     }
 
-    close(){
-        if(this.connection){
+    async query(options, data) {
+        try {
+            await this.connect();
+            let col = this.connection.collection(options.table), handler, caselist;
+            switch (options.type) {
+                case 'select':
+                case 'SELECT':
+                    //col.find().project({name:1}).toArray(function(err, docs){
+                    //    console.log(docs)
+                    //})
+                    handler = col.find(options.where);
+                    caselist = {skip: true, limit: true, sort: true, project: true};
+                    for (let c in options) {
+                        if (caselist[c]) {
+                            handler[c](options[c])
+                        }
+                    }
+                    return handler.toArray();
+                    break;
+                case 'find':
+                case 'FIND':
+                    handler = col.findOne(options.where);
+                    return handler.toArray();
+                    //return col.find(options.where).skip(1).limit(1).toArray();
+                    break;
+                case 'add':
+                case 'ADD':
+                    return col.insertOne(data)
+                    break;
+                case 'addall':
+                case 'ADDALL':
+                    return col.insertMany(data)
+                    break;
+                case 'update':
+                case 'UPDATE':
+                    return col.updateMany(options.where, data);
+                    break;
+                case 'delete':
+                case 'DELETE':
+                    return col.deleteMany(options.where || {});
+                    break;
+            }
+        } catch (e) {
+            console.log(e.stack)
+        }
+    }
+
+    close() {
+        if (this.connection) {
             this.connection.close();
             this.connection = null;
         }
