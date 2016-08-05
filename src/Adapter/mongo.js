@@ -12,7 +12,6 @@ import socket from '../Socket/mongo';
 export default class extends base {
     init(config = {}) {
         this.config = config;
-        this.lastInsertId = 0;
     }
 
     connect() {
@@ -42,14 +41,53 @@ export default class extends base {
     }
 
     /**
+     *
+     * @param sql
+     */
+    query(options){
+        return this.connect().query(options).then(data => {
+            return this.parsers().bufferToString(data);
+        });
+    }
+
+    /**
+     *
+     * @param sql
+     */
+    execute(options, data){
+        return this.connect().execute(options, data).then(data => {
+            let result = 0;
+            switch (options.method){
+                case 'ADD':
+                    result = data.insertedId;
+                    break;
+                case 'ADDALL':
+                    result = data.insertedCount;
+                    break;
+                case 'UPDATE':
+                    result = data.modifiedCount;
+                    break;
+                case 'DELETE':
+                    result = data.deletedCount;
+                    break;
+            }
+            return result || null;
+        });
+    }
+
+    /**
      * 添加一条数据
      * @param {[type]} data    [description]
      * @param {[type]} options [description]
      * @param int 返回插入的id
      */
     add(data, options) {
-        options.method = 'INSERT';
-        //
+        options.method = 'ADD';
+        return this.parsers().buildSql(data, options).then(sql => {
+            return this.execute(sql, data);
+        }).then(data => {
+            return data;
+        });
     }
 
     /**
@@ -59,10 +97,12 @@ export default class extends base {
      * @return {[type]}         [description]
      */
     addAll(data, options) {
-        let promised = data.map(item => {
-            return this.add(item, options);
+        options.method = 'ADDALL';
+        return this.parsers().buildSql(data, options).then(sql => {
+            return this.execute(sql, data);
+        }).then(data => {
+            return data;
         });
-        return Promise.all(promised);
     }
 
     /**
@@ -71,7 +111,11 @@ export default class extends base {
      */
     delete(options) {
         options.method = 'DELETE';
-        //
+        return this.parsers().buildSql(data, options).then(sql => {
+            return this.execute(sql, data);
+        }).then(data => {
+            return data;
+        });
     }
 
     /**
@@ -80,7 +124,11 @@ export default class extends base {
      */
     update(data, options) {
         options.method = 'UPDATE';
-        //
+        return this.parsers().buildSql(data, options).then(sql => {
+            return this.execute(sql, data);
+        }).then(data => {
+            return data;
+        });
     }
 
     /**
@@ -90,10 +138,14 @@ export default class extends base {
      * @returns {*}
      */
     count(field, options) {
-        options.method = 'SELECT';
+        options.method = 'COUNT';
         options.count = field;
         options.limit = [0, 1];
-        //
+        return this.parsers().buildSql(options).then(sql => {
+            return this.query(sql);
+        }).then(data => {
+            return ORM.isEmpty(data) ? {} : data || {};
+        });
     }
 
     /**
@@ -103,10 +155,11 @@ export default class extends base {
      * @returns {*}
      */
     sum(field, options) {
-        options.method = 'SELECT';
+        options.method = 'SUM';
         options.sum = field;
         options.limit = [0, 1];
-        //
+        //未实现
+        return Promise.reject('not support');
     }
 
     /**
@@ -114,9 +167,13 @@ export default class extends base {
      * @return 返回一个promise
      */
     find(options) {
-        options.method = 'SELECT';
+        options.method = 'FIND';
         options.limit = [0, 1];
-        //
+        return this.parsers().buildSql(options).then(sql => {
+            return this.query(sql);
+        }).then(data => {
+            return ORM.isEmpty(data) ? {} : data || {};
+        });
     }
 
     /**
@@ -125,6 +182,10 @@ export default class extends base {
      */
     select(options) {
         options.method = 'SELECT';
-        //
+        return this.parsers().buildSql(options).then(sql => {
+            return this.query(sql);
+        }).then(data => {
+            return ORM.isEmpty(data) ? [] : data || [];
+        });
     }
 }

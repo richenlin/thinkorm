@@ -198,6 +198,10 @@ export default class extends base {
                     this.pk = v;
                 }
             }
+        } else {
+            if(this.config.db_type === 'mongo'){
+                this.pk = '_id';
+            }
         }
         return this.pk;
     }
@@ -236,6 +240,9 @@ export default class extends base {
         if (ORM.isArray(offset)) {
             length = offset[1] || length;
             offset = offset[0];
+        } else if(length === undefined){
+            length = offset;
+            offset = 0;
         }
         offset = Math.max(parseInt(offset) || 0, 0);
         if (length) {
@@ -254,22 +261,17 @@ export default class extends base {
         if (order === undefined) {
             return this;
         }
-        let _order = [];
         if(ORM.isObject(order)){
-            _order.push(order);
+            this._options.order = order;
         }else if (ORM.isString(order)) {
-            if (order.indexOf(',') > -1) {
-                let strToObj = function (_str) {
-                    return _str.replace(/^ +/, '').replace(/ +$/, '')
-                        .replace(/( +, +)+|( +,)+|(, +)/, ',')
-                        .replace(/ +/g, '-').replace(/,-/g, ',').replace(/-/g, ':')
-                        .replace(/^/, '{"').replace(/$/, '"}')
-                        .replace(/:/g, '":"').replace(/,/g, '","');
-                };
-                this._options.order = JSON.parse(strToObj(order));
-            } else {
-                this._options.order = order;
-            }
+            let strToObj = function (_str) {
+                return _str.replace(/^ +/, '').replace(/ +$/, '')
+                    .replace(/( +, +)+|( +,)+|(, +)/, ',')
+                    .replace(/ +/g, '-').replace(/,-/g, ',').replace(/-/g, ':')
+                    .replace(/^/, '{"').replace(/$/, '"}')
+                    .replace(/:/g, '":"').replace(/,/g, '","');
+            };
+            this._options.order = JSON.parse(strToObj(order));
         }
         return this;
     }
@@ -555,14 +557,13 @@ export default class extends base {
      * @param options
      * @returns {*}
      */
-    async count(field, options) {
+    async count(options) {
         try {
             let parsedOptions = await this._parseOptions(options);
             let pk = await this.getPk();
-            field = field || pk;
             // init model
             let model = await this.initDb();
-            let result = await model.count(field, parsedOptions);
+            let result = await model.count(pk, parsedOptions);
             result = await this._parseData(result || 0, parsedOptions, false);
             return result;
         } catch (e) {

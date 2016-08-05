@@ -222,10 +222,11 @@ export default class extends base {
         let parseOptions = {};
         for(let n in options){
             let mt = ORM.ucFirst(n);
-            if(this[`parse${mt}`] && ORM.isFunction(this[`parse${mt}`])){
+            if(options[n] !== 'where' && this[`parse${mt}`] && ORM.isFunction(this[`parse${mt}`])){
                 parseOptions = ORM.extend(false, parseOptions, this[`parse${mt}`](data, options));
             }
         }
+        parseOptions = ORM.extend(parseOptions, this.parseWhere(data, options));
         return parseOptions;
     }
 
