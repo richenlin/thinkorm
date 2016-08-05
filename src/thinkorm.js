@@ -594,6 +594,78 @@ export default class extends base {
     }
 
     /**
+     * 最小值
+     * sum('xxx')
+     * sum(['xxx', 'xxx'])
+     * @param field
+     * @param options
+     * @returns {*}
+     */
+    async min(field, options) {
+        try {
+            let parsedOptions = await this._parseOptions(options);
+            let pk = await this.getPk();
+            field = field || pk;
+            // init model
+            let model = await this.initDb();
+            let result = await model.min(field, parsedOptions);
+            result = await this._parseData(result || [], parsedOptions, false);
+            return result;
+        } catch (e) {
+            return this.error(`${this.modelName}:${e.message}`);
+        }
+    }
+
+
+    /**
+     * 最大值
+     * sum('xxx')
+     * sum(['xxx', 'xxx'])
+     * @param field
+     * @param options
+     * @returns {*}
+     */
+    async max(field, options) {
+        try {
+            let parsedOptions = await this._parseOptions(options);
+            let pk = await this.getPk();
+            field = field || pk;
+            // init model
+            let model = await this.initDb();
+            let result = await model.max(field, parsedOptions);
+            result = await this._parseData(result || [], parsedOptions, false);
+            return result;
+        } catch (e) {
+            return this.error(`${this.modelName}:${e.message}`);
+        }
+    }
+
+
+    /**
+     * 平均值
+     * sum('xxx')
+     * sum(['xxx', 'xxx'])
+     * @param field
+     * @param options
+     * @returns {*}
+     */
+    async avg(field, options) {
+        try {
+            let parsedOptions = await this._parseOptions(options);
+            let pk = await this.getPk();
+            field = field || pk;
+            // init model
+            let model = await this.initDb();
+            let result = await model.avg(field, parsedOptions);
+            result = await this._parseData(result || [], parsedOptions, false);
+            return result;
+        } catch (e) {
+            return this.error(`${this.modelName}:${e.message}`);
+        }
+    }
+
+
+    /**
      * 查询一条数据
      * @return 返回一个promise
      */

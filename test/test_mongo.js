@@ -26,7 +26,7 @@ var cls = new thinkorm('user', {
 //    db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
 //});
 //
-//cls.addAll([{id:1,name:'a'},{id:2,name:'b'},{id:3,name:'c'},{id:4,name:'d'}]);
+//cls.addAll([{id:10,name:'a'},{id:20,name:'b'},{id:30,name:'c'},{id:40,name:'d'}]);
 //cls.field('user_no').group('user_no').select().then(data=>{
 //    console.log(data)
 //})
@@ -42,6 +42,6 @@ var cls = new thinkorm('user', {
 //cls.where({name:'b'}).delete().then(data=>{
 //    console.log(data)
 //})
-cls.where({name:'a'}).sum('id').then(data=>{
+cls.where({name:'c'}).min('id').then(data=>{
     console.log(data)
 })

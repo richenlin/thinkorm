@@ -75,7 +75,7 @@ export default class extends base {
     async query(options, data) {
         try {
             await this.connect();
-            let col = this.connection.collection(options.table), handler, caselist;
+            let col = this.connection.collection(options.table), handler, caselist, fn, pipe = [];
             switch (options.type) {
                 case 'select':
                 case 'SELECT':
@@ -93,14 +93,13 @@ export default class extends base {
                     break;
                 case 'sum':
                 case 'SUM':
-                    let fn = ORM.promisify(col.aggregate, col);
-                    let pipe = [];
+                    fn = ORM.promisify(col.aggregate, col);
                     if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
                     //此处gropu必须在match后面.......没搞懂
                     pipe.push({
                         $group: {
                             _id: 1,
-                            count: {$sum: `$id`}
+                            count: {$sum: `$${data}`}
                         }
                     })
                     //pipe = [
@@ -113,9 +112,44 @@ export default class extends base {
                     //    }
                     //
                     //]
-                    console.log(pipe)
                     return fn(pipe);
-                    //return col.aggregate([{$group: {$_id: group}, total: {$sum: group}}]).toArray();
+                    break;
+                case 'avg':
+                case 'AVG':
+                    fn = ORM.promisify(col.aggregate, col);
+                    if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
+                    pipe.push({
+                        $group: {
+                            _id: 1,
+                            count: {$avg: `$${data}`}
+                        }
+                    })
+                    return fn(pipe);
+                    break;
+                case 'min':
+                case 'MIN':
+                    fn = ORM.promisify(col.aggregate, col);
+                    if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
+                    pipe.push({
+                        $group: {
+                            _id: 1,
+                            count: {$min: `$${data}`}
+                        }
+                    })
+
+                    return fn(pipe);
+                    break;
+                case 'MAX':
+                case 'max':
+                    fn = ORM.promisify(col.aggregate, col);
+                    if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
+                    pipe.push({
+                        $group: {
+                            _id: 1,
+                            count: {$max: `$${data}`}
+                        }
+                    })
+                    return fn(pipe);
                     break;
                 case 'find':
                 case 'FIND':

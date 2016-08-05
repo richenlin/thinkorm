@@ -181,11 +181,57 @@ export default class extends base {
         return this.parsers().buildSql(field, options).then(sql => {
             return this.execute(sql, field);
         }).then(data => {
+            return data[0].count || 0
+        });
+    }
+
+    /**
+     * 平均值
+     * @param field
+     * @param options
+     * @returns {*}
+     */
+    avg(field, options) {
+        options.method = 'avg';
+        return this.parsers().buildSql(field, options).then(sql => {
+            return this.execute(sql, field);
+        }).then(data => {
             console.log(data)
             return data[0].count || 0
         });
     }
 
 
+    /**
+     * 最大值
+     * @param field
+     * @param options
+     * @returns {*}
+     */
+    max(field, options) {
+        options.method = 'max';
+        return this.parsers().buildSql(field, options).then(sql => {
+            return this.execute(sql, field);
+        }).then(data => {
+            console.log(data)
+            return data[0].count || 0
+        });
+    }
+
+
+    /**
+     * 最小值
+     * @param field
+     * @param options
+     * @returns {*}
+     */
+    min(field, options) {
+        options.method = 'min';
+        return this.parsers().buildSql(field, options).then(sql => {
+            return this.execute(sql, field);
+        }).then(data => {
+            return data[0].count || 0
+        });
+    }
 }
 
