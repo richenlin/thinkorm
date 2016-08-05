@@ -58,6 +58,9 @@ export default class extends base {
                 case 'DELETE':
                     return data.deletedCount;
                     break;
+                default:
+                    return data;
+                    break;
             }
         });
     }
@@ -166,6 +169,21 @@ export default class extends base {
      */
     count(field, options) {
 
+    }
+
+    /**
+     * 求和
+     * @param field
+     * @param options
+     */
+    sum(field, options) {
+        options.method = 'sum';
+        return this.parsers().buildSql(field, options).then(sql => {
+            return this.execute(sql, field);
+        }).then(data => {
+            console.log(data)
+            return data[0].count || 0
+        });
     }
 
 

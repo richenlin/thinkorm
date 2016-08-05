@@ -91,6 +91,32 @@ export default class extends base {
                     }
                     return handler.toArray();
                     break;
+                case 'sum':
+                case 'SUM':
+                    let fn = ORM.promisify(col.aggregate, col);
+                    let pipe = [];
+                    if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
+                    //此处gropu必须在match后面.......没搞懂
+                    pipe.push({
+                        $group: {
+                            _id: 1,
+                            count: {$sum: `$id`}
+                        }
+                    })
+                    //pipe = [
+                    //    {$match: {name: 'a'}},
+                    //    {
+                    //        $group: {
+                    //            _id: 1,
+                    //            count: {$sum: `$id`}
+                    //        }
+                    //    }
+                    //
+                    //]
+                    console.log(pipe)
+                    return fn(pipe);
+                    //return col.aggregate([{$group: {$_id: group}, total: {$sum: group}}]).toArray();
+                    break;
                 case 'find':
                 case 'FIND':
                     handler = col.findOne(options.where);
