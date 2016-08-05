@@ -168,7 +168,12 @@ export default class extends base {
      * @param options
      */
     count(field, options) {
-
+        options.method = 'count';
+        return this.parsers().buildSql(field, options).then(sql => {
+            return this.execute(sql, field);
+        }).then(data => {
+            return data[0].count || 0
+        });
     }
 
     /**

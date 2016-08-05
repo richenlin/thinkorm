@@ -91,6 +91,19 @@ export default class extends base {
                     }
                     return handler.toArray();
                     break;
+                case 'count':
+                case 'COUNT':
+                    fn = ORM.promisify(col.aggregate, col);
+                    if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
+                    pipe.push({
+                        $group: {
+                            _id: null,
+                            count: {$sum:1}
+                        }
+                    })
+                    return fn(pipe);
+                    break;
+                    break;
                 case 'sum':
                 case 'SUM':
                     fn = ORM.promisify(col.aggregate, col);
