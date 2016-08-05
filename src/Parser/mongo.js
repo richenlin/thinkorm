@@ -222,7 +222,6 @@ export default class extends base {
                 parseOptions = ORM.extend(false, parseOptions, this[`parse${mt}`](data, options));
             }
         }
-
         parseOptions = ORM.extend(parseOptions, this.parseWhere(data, options));
         return parseOptions;
     }

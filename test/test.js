@@ -20,7 +20,7 @@ var cls = new thinkorm('user',{
 
 function test(){
     "use strict";
-    return cls.where({'or': [{name: 'test'}, {name: 'aa'}]}).countSelect().then(function (data) {
+    return cls.where({'or': [{name: 'aa'}]}).countSelect().then(function (data) {
         console.log(data);
     })
 }

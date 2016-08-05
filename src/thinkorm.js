@@ -662,7 +662,7 @@ export default class extends base {
                 options = {};
             }
             let parsedOptions = await this._parseOptions(options);
-            let countNum = await this.count('', parsedOptions);
+            let countNum = await this.count(parsedOptions);
             let pageOptions = parsedOptions.page;
             let totalPage = Math.ceil(countNum / pageOptions.num);
             if(ORM.isBoolean(pageFlag)){

@@ -144,7 +144,7 @@ export default class extends base {
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            return ORM.isEmpty(data) ? {} : data || {};
+            return ORM.isEmpty(data) ? 0 : data || 0;
         });
     }
 
