@@ -369,13 +369,13 @@ export default class extends base {
                 return this.error('_DATA_TYPE_INVALID_')
             }
             let parsedOptions = await this._parseOptions(options);
-            // init model
-            let model = await this.initDb();
+            // init db
+            let db = await this.initDb();
             //copy data
             this._data = ORM.extend({}, data);
             this._data = await this._beforeAdd(this._data, parsedOptions);
             this._data = await this._parseData(this._data, parsedOptions);
-            let result = await model.add(this._data, parsedOptions);
+            let result = await db.add(this._data, parsedOptions);
             await this._afterAdd(this._data, parsedOptions);
             result = await this._parseData(this._data[pk] || 0, parsedOptions, false);
             return result;
@@ -406,8 +406,8 @@ export default class extends base {
                 return this.error('_DATA_TYPE_INVALID_');
             }
             let parsedOptions = await this._parseOptions(options);
-            // init model
-            let model = await this.initDb();
+            // init db
+            let db = await this.initDb();
             //copy data
             this._data = ORM.extend([], data);
             let promisesd = this._data.map(item => {
@@ -418,7 +418,7 @@ export default class extends base {
                 return this._parseData(item, parsedOptions);
             });
             this._data = await Promise.all(promiseso);
-            let result = await model.addAll(this._data, parsedOptions);
+            let result = await db.addAll(this._data, parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
             if (!ORM.isEmpty(result) && ORM.isArray(result)) {
                 let pk = await this.getPk(), resData = [];
@@ -474,10 +474,10 @@ export default class extends base {
     async delete(options) {
         try {
             let parsedOptions = await this._parseOptions(options);
-            // init model
-            let model = await this.initDb();
+            // init db
+            let db = await this.initDb();
             await this._beforeDelete(parsedOptions);
-            let result = await model.delete(parsedOptions);
+            let result = await db.delete(parsedOptions);
             await this._afterDelete(parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
             return result;
@@ -511,8 +511,8 @@ export default class extends base {
     async update(data, options) {
         try {
             let parsedOptions = await this._parseOptions(options);
-            // init model
-            let model = await this.initDb();
+            // init db
+            let db = await this.initDb();
             //copy data
             this._data = ORM.extend({}, data);
             this._data = await this._beforeUpdate(this._data, parsedOptions);
@@ -532,7 +532,7 @@ export default class extends base {
                     delete this._data[pk];
                 }
             }
-            let result = await model.update(this._data, parsedOptions);
+            let result = await db.update(this._data, parsedOptions);
             await this._afterUpdate(this._data, parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
             return result;
@@ -561,9 +561,9 @@ export default class extends base {
         try {
             let parsedOptions = await this._parseOptions(options);
             let pk = await this.getPk();
-            // init model
-            let model = await this.initDb();
-            let result = await model.count(pk, parsedOptions);
+            // init db
+            let db = await this.initDb();
+            let result = await db.count(pk, parsedOptions);
             result = await this._parseData(result || 0, parsedOptions, false);
             return result;
         } catch (e) {
@@ -583,9 +583,9 @@ export default class extends base {
             let parsedOptions = await this._parseOptions(options);
             let pk = await this.getPk();
             field = field || pk;
-            // init model
-            let model = await this.initDb();
-            let result = await model.sum(field, parsedOptions);
+            // init db
+            let db = await this.initDb();
+            let result = await db.sum(field, parsedOptions);
             result = await this._parseData(result || 0, parsedOptions, false);
             return result;
         } catch (e) {
@@ -600,9 +600,9 @@ export default class extends base {
     async find(options) {
         try{
             let parsedOptions = await this._parseOptions(options);
-            // init model
-            let model = await this.initDb();
-            let result = await model.find(parsedOptions);
+            // init db
+            let db = await this.initDb();
+            let result = await db.find(parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
             await this._afterFind(ORM.isArray(result) ? result[0] : result, options);
             result = await this._parseData(result || {}, parsedOptions, false);
@@ -627,9 +627,9 @@ export default class extends base {
     async select(options) {
         try{
             let parsedOptions = await this._parseOptions(options);
-            // init model
-            let model = await this.initDb();
-            let result = await model.select(parsedOptions);
+            // init db
+            let db = await this.initDb();
+            let result = await db.select(parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
             await this._afterSelect(result, options);
             result = await this._parseData(result || [], parsedOptions, false);
@@ -682,8 +682,6 @@ export default class extends base {
             return this.error(e);
         }
     }
-
-    /*#######################################################################################*/
 
     /**
      * 解析参数
@@ -741,8 +739,6 @@ export default class extends base {
             }
         }
     }
-
-
 
 
 }

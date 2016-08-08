@@ -111,8 +111,8 @@ export default class extends base {
      */
     delete(options) {
         options.method = 'DELETE';
-        return this.parsers().buildSql(data, options).then(sql => {
-            return this.execute(sql, data);
+        return this.parsers().buildSql(options).then(sql => {
+            return this.execute(sql);
         }).then(data => {
             return data;
         });

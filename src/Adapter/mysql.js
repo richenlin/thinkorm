@@ -118,16 +118,27 @@ export default class extends base {
     }
 
     /**
-     * 插入多条数据
+     * 插入多条数据(使用事务)
      * @param  {[type]} data    [description]
      * @param  {[type]} options [description]
      * @return {[type]}         [description]
      */
     addAll(data, options) {
-        let promised = data.map(item => {
-            return this.add(item, options);
+        //start trans
+        return this.startTrans().then(() => {
+            let promised = data.map(item => {
+                return this.add(item, options);
+            });
+            return Promise.all(promised);
+        }).then(data => {
+            //commit
+            this.commit();
+            return data;
+        }).catch(e => {
+            //rollback
+            this.rollback();
+            return [];
         });
-        return Promise.all(promised);
     }
 
     /**
