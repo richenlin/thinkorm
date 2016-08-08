@@ -65,31 +65,31 @@ export default class extends base {
 
     count(options) {
         this.knex = this.knexClient.count(options.count);
-        this.queryBuilder(options);
+        this.queryBuilder(options, 'count');
         return this.query(this.knex.toString());
     }
 
     min(options) {
         this.knex = this.knexClient.min(options.min);
-        this.queryBuilder(options);
+        this.queryBuilder(options, 'min');
         return this.query(this.knex.toString());
     }
 
     max(options) {
         this.knex = this.knexClient.max(options.max);
-        this.queryBuilder(options);
+        this.queryBuilder(options, 'max');
         return this.query(this.knex.toString());
     }
 
     avg(options) {
         this.knex = this.knexClient.avg(options.avg);
-        this.queryBuilder(options);
+        this.queryBuilder(options, 'avg');
         return this.query(this.knex.toString());
     }
 
     avgDistinct(options) {
         this.knex = this.knexClient.avgDistinct(options.avgDistinct);
-        this.queryBuilder(options);
+        this.queryBuilder(options, 'avgDistinct');
         return this.query(this.knex.toString());
     }
 
@@ -99,7 +99,7 @@ export default class extends base {
      */
     increment(options) {
         this.knex = this.knexClient.increment(options.increment[0], options.increment[1]);
-        this.queryBuilder(options);
+        this.queryBuilder(options, 'increment');
         return this.query(this.knex.toString());
     }
 
@@ -109,7 +109,7 @@ export default class extends base {
      */
     decrement(options) {
         this.knex = this.knexClient.decrement(options.decrement[0], options.decrement[1]);
-        this.queryBuilder(options);
+        this.queryBuilder(options, 'decrement');
         return this.query(this.knex.toString());
     }
 
@@ -119,7 +119,7 @@ export default class extends base {
      */
     select(options) {
         this.knex = this.knexClient.select();
-        this.queryBuilder(options);
+        this.queryBuilder(options, 'select');
         return this.query(this.knex.toString());
     }
 
@@ -150,8 +150,9 @@ export default class extends base {
      */
     update(data, options) {
         this.knex = this.knexClient.update(data);
-        this.builderTable(options.table);
-        this.builderWhere(options.where);
+        this.queryBuilder(options, 'update');
+        //this.builderTable(options.table);
+        //this.builderWhere(options.where);
         return this.query(this.knex.toString());
     }
 
@@ -161,8 +162,9 @@ export default class extends base {
      */
     delete(options) {
         this.knex = this.knexClient.del();
-        this.builderTable(options.table);
-        this.builderWhere(options.where);
+        this.queryBuilder(options, 'delete');
+        //this.builderTable(options.table);
+        //this.builderWhere(options.where);
         return this.execute(this.knex.toString());
     }
 
@@ -170,14 +172,31 @@ export default class extends base {
      * 查询对象转变为查询语句
      * 基于knex.js http://knexjs.org
      */
-    queryBuilder(options) {
-        this.builderTable(options.table);
-        this.builderWhere(options.where);
-        this.builderField(options.fields);
-        this.builderLimit(options.limit);
-        this.builderOrder(options.order);
-        this.builderGroup(options.group);
-        this.builderJoin(options.join);
+    queryBuilder(options, optype = 'select') {
+        let caseList = {
+            select: {table: true, where: true, fields: true, limit: true, order: true, group: true, join: true},
+            add: {table: true},
+            update: {table: true, where: true},
+            delete: {table: true, where: true},
+            count: {table: true, where: true},
+            min: {table: true, where: true},
+            max: {table: true, where: true},
+            avg: {table: true, where: true},
+            avgDistinct: {table: true, where: true},
+            increment: {table: true, where: true},
+            decrement: {table: true, where: true},
+        }
+
+        for (let o in options) {
+            if (caseList[optype][o] && this[`builder${ORM.ucFirst(o)}`]) this[`builder${ORM.ucFirst(o)}`](options[o]);
+        }
+        //this.builderTable(options.table);
+        //this.builderWhere(options.where);
+        //this.builderFields(options.fields);
+        //this.builderLimit(options.limit);
+        //this.builderOrder(options.order);
+        //this.builderGroup(options.group);
+        //this.builderJoin(options.join);
     }
 
     /**
@@ -192,7 +211,7 @@ export default class extends base {
      * 解析字段
      * @param optionField
      */
-    builderField(optionField) {
+    builderFields(optionField) {
         if (!optionField) return;
         this.knex.column(optionField);
     }

@@ -1,7 +1,11 @@
 /**
- * Created by lihao on 16/7/26.
+ *
+ * @author     lihao
+ * @copyright  Copyright (c) 2016 - <richenlin(at)gmail.com>
+ * @license    MIT
+ * @version    16/8/8
  */
-var Model = require('./index');
+var Model = require('../index');
 var model = new Model('user', {
     db_type: 'mysql', // 数据库类型
     db_host: '192.168.99.100', // 服务器地址
@@ -12,12 +16,19 @@ var model = new Model('user', {
     db_prefix: 'think_', // 数据库表前缀
     db_ext_config: false
 });
+
+model.setRelation({
+    userinfo: {type: 'hasone', model: 'user_info'},
+    scores: {type: 'hasmany', model: 'scores'},
+    cls: {type: 'manytomany', model: 'class', relationtable: 'think_user_class_map'}
+});
+
 model
 //.field(['id', 'user_no'])
 //    .where({id: {'>': 1}, user_no: {'<': 1}})
 //    .where({id: {'between': [1, 100]}})
 //    .where({id: {'notbetween': [1, 100]}})
-    .where({not: {id: 1, user_no: 1}})
+//    .where({not: {id: 1, user_no: 1}})
     //    .where({notin: {id: 1, user_no: 1}})
     //    .where({notnull: 'id,user_no'})
     //    .where({null: 'id,user_no'})
@@ -65,8 +76,10 @@ model
     //        }
     //    }
     //])
+    .rel(true)
+    .find()
     //.update({user_no: 1})
-    .delete()
+    //.delete()
     .then(data=> {
         console.log(data)
     })

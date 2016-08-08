@@ -46,7 +46,6 @@ export default class extends base {
         }
 
         this.config = config;
-
         //数据表前缀
         if (this.tablePrefix) {
             this.config.db_prefix = this.tablePrefix;
@@ -109,6 +108,13 @@ export default class extends base {
         //merge user set schema config
         this.schema = ORM.extend({}, schema, this.fields);
         return this.schema;
+    }
+
+    /**
+     * 动态设置关联关系
+     */
+    setRelation(relation) {
+        this.relation = relation;
     }
 
     /**
@@ -563,6 +569,9 @@ export default class extends base {
     async find(options) {
         options = await this.parseOptions(options, {limit: [0, 1]});
         let result = await this.adapter().select(options);
+        if (options.rel && !ORM.isEmpty(result)) {
+            await this.__getRelationData(result[0] || {}, options);
+        }
         result = await this.parseData(result[0] || {}, options);
         return this._afterFind(result, options);
     }
@@ -741,5 +750,427 @@ export default class extends base {
     async parseData(data, options, beforeCheck = 0) {
         //TODO 数据检查
         return data;
+    }
+
+    /**
+     * 获取关联数据
+     * @param result
+     * @param options
+     * @private
+     */
+    async __getRelationData(result, options) {
+        let o;
+        if (ORM.isBoolean(options.rel)) {
+            if (options.rel === false) {
+                return result
+            } else {
+                o = true
+            }
+        } else if (ORM.isString(options.rel)) {
+            o = options.rel.replace(/ +/g, '').split(',');
+        } else {
+            o = options.rel;
+        }
+
+        await this.__getRelationOptions(result, o);
+    }
+
+    /**
+     * 解析关联查询options
+     * @param data
+     * @param option
+     * @private
+     */
+    async __getRelationOptions(data, option) {
+        let relation = {};
+        if (option === true) {//查询全部关联关系,且无任何条件
+            relation = this.relation;
+        } else if (ORM.isObject(option)) {//指定查询对象
+            for (let k of Object.keys(option)) {
+                if (this.relation[k]) relation[k] = ORM.extend({}, option[k], this.relation[k]);
+            }
+        } else if (ORM.isArray(option)) {//关联多个模型,但未指定任何条件
+            for (let k of option) {
+                if (this.relation[k]) relation[k] = this.relation[k];
+            }
+        }
+
+        let caseList = {
+            1: this.__getHasOneRelation,
+            2: this.__getHasManyRelation,
+            3: this.__getManyToManyRelation,
+            4: this.__getBelongsToRealtion,
+            HASONE: this.__getHasOneRelation,
+            HASMANY: this.__getHasManyRelation,
+            MANYTOMANY: this.__getManyToManyRelation,
+            BELONGSTO: this.__getBelongsToRealtion,
+        };
+        let relationObj = {}, item;
+        for (let k in relation) {
+            item = relation[k];
+            item.name = k;
+            let type = item.type && !~['1', '2', '3', '4'].indexOf(item.type + '') ? (item.type + '').toUpperCase() : item.type;
+            if (type && type in caseList) {
+                relationObj = await caseList[type](this, data, item)
+            }
+        }
+        return relationObj;
+    }
+
+    /**
+     * 获取一对一关联数据
+     * 附属表中有主表的一个外键
+     * @param relation
+     * @param option
+     * @private
+     */
+    async __getHasOneRelation(self, data, relation) {
+        var Model = require('../index');
+        let model = new Model(relation.model, self.config);
+        //let model = ORM.model(relation.model, {});
+        if (relation.field) model = model.field(relation.field);
+        if (relation.limit) model = model.field(relation.limit);
+        if (relation.order) model = model.field(relation.order);
+        let key = relation.key || self.getPk();
+        let fkey = relation.fkey || `${self.getModelName().toLowerCase()}_id`;
+        let where = {};
+        if (ORM.isArray(data)) {
+            for (let [k,v] of data.entries()) {
+                where[fkey] = v[key]
+                if (relation.where) where = ORM.extend({}, where, relation.where);
+                data[k][relation.name] = await model.where(where).find();
+            }
+        } else {
+            where[fkey] = data[key]
+            if (relation.where) where = ORM.extend({}, where, relation.where);
+            data[relation.name] = await model.where(where).find();
+        }
+        return data;
+    }
+
+    /**
+     * 获取一对多
+     * @param self
+     * @param data
+     * @param relation
+     * @private
+     */
+    async __getHasManyRelation(self, data, relation) {
+        //let model = ORM.model(relation.model, {});
+        var Model = require('../index');
+        let model = new Model(relation.model, self.config);
+        if (relation.field) model = model.field(relation.field);
+        if (relation.limit) model = model.field(relation.limit);
+        if (relation.order) model = model.field(relation.order);
+        let key = relation.key || self.getPk();
+        let fkey = relation.fkey || `${self.getModelName().toLowerCase()}_id`;
+        let where = {};
+        if (ORM.isArray(data)) {
+            for (let [k,v] of data.entries()) {
+                where[fkey] = v[key]
+                if (relation.where) where = ORM.extend({}, where, relation.where);
+                data[k][relation.name] = await model.where(where).select();
+            }
+        } else {
+            where[fkey] = data[key]
+            if (relation.where) where = ORM.extend({}, where, relation.where);
+            data[relation.name] = await model.where(where).select();
+        }
+        return data;
+    }
+
+    /**
+     * 获取多对多,需要一张关联关系表
+     * @param self
+     * @param data
+     * @param relation
+     * @private
+     */
+    async __getManyToManyRelation(self, data, relation) {
+        //let model = ORM.model(relation.model, {});
+        var Model = require('../index');
+        let model = new Model(relation.model, self.config);
+        let modelTableName = model.getTableName();
+        let option = {where: {}}, options = {};
+        if (relation.field) {
+            let field = []
+            for (let f of relation.field.replace(/ +/g, '').split(',')) {
+                field.push(`${modelTableName}.${f}`);
+            }
+            model = model.field(field);
+        }
+        if (relation.limit) model = model.field(relation.limit);
+        if (relation.order) model = model.field(relation.order);
+        if (relation.relationtable) {
+            options.table = relation.relationtable;
+        } else {
+            options.table = `${ORM.config('db_prefix')}${self.getModelName().toLowerCase()}_${model.getModelName().toLowerCase()}_map`;
+        }
+        let key = relation.key || self.getPk();
+        let fkey = relation.fkey || `${self.getModelName().toLowerCase()}_id`;
+        let where = {};
+        //let rkey = model.relation.key || model.getPk();
+        let rfkey = model.relation.fkey || `${model.getModelName().toLowerCase()}_id`;
+        if (ORM.isArray(data)) {
+            for (let [k,v] of data.entries()) {
+                option.where[`${options.table}.${fkey}`] = v[key];
+                if (relation.where) option.where = ORM.extend({}, where, option.where);
+                //data[k][relation.name] = await self.db().select(option);
+                option.join = [{
+                    from: relation.model,
+                    on: {
+                        [relation.model]: key,
+                        [`${options.table}`]: rfkey
+                    }
+                }];
+                data[k][relation.name] = await model.where(option.where).join(option.join).select(options);
+            }
+        } else {
+            option.where[`${options.table}.${fkey}`] = data[key];
+            if (relation.where) option.where = ORM.extend({}, where, option.where);
+            //option.join = `${option.table} ON ${modelTableName}.${key} = ${option.table}.${rfkey}`;
+            option.join = [{
+                from: relation.model,
+                on: {
+                    [relation.model]: key,
+                    [`${options.table}`]: rfkey
+                }
+            }];
+            data[relation.name] = await model.where(option.where).join(option.join).select(options);
+            //data[relation.name] = await await self.db().select(option);
+        }
+        return data;
+    }
+
+    /**
+     * 获取属于关系
+     * 附属表中有主表的一个外键
+     * @private
+     */
+    async __getBelongsToRealtion(self, data, relation) {
+        //let model = ORM.model(relation.model, {});
+        var Model = require('../index');
+        let model = new Model(relation.model, self.config);
+        if (relation.field) model = model.field(relation.field);
+        if (relation.limit) model = model.field(relation.limit);
+        if (relation.order) model = model.field(relation.order);
+        let key = relation.key || self.getPk();
+        let fkey = relation.fkey || `${self.getModelName().toLowerCase()}_id`;
+        let where = {};
+        if (ORM.isArray(data)) {
+            for (let [k,v] of data.entries()) {
+                where[key] = v[fkey]
+                if (relation.where) where = ORM.extend({}, where, relation.where);
+                data[k][relation.name] = await model.where(where).find();
+            }
+        } else {
+            where[key] = data[fkey];
+            if (relation.where) where = ORM.extend({}, where, relation.where);
+            data[relation.name] = await model.where(where).find();
+        }
+        return data;
+    }
+
+    /**
+     * 添加关联关系数据
+     * @param result 主表操作返回结果
+     * @param data 主表数据
+     * @private
+     */
+    async __postRelationData(result, data, postType, options) {
+        let pk = await this.getPk();
+        //data[pk] = result;
+        let caseList = {
+            1: this.__postHasOneRelation,
+            2: this.__postHasManyRelation,
+            3: this.__postManyToManyRelation,
+            4: this.__postBelongsToRealtion,
+            HASONE: this.__postHasOneRelation,
+            HASMANY: this.__postHasManyRelation,
+            MANYTOMANY: this.__postManyToManyRelation,
+            BELONGSTO: this.__postBelongsToRealtion,
+        };
+        let promises = Object.keys(this.relation).map(key=> {
+            let item = this.relation[key];
+            //主表数据没有存储关联字段数据,直接返回
+            if (ORM.isEmpty(data[key])) return;
+            let type = item.type && !~['1', '2', '3', '4'].indexOf(item.type + '') ? (item.type + '').toUpperCase() : item.type;
+            if (type && type in caseList) {
+                caseList[type](this, data, data[key], postType, item);
+            }
+        })
+        await Promise.all(promises);
+        return data;
+    }
+
+    /**
+     * hasone子表数据新增更新
+     * @param self
+     * @param data
+     * @param postType
+     * @param item
+     * @private
+     */
+    async __postHasOneRelation(self, data, childdata, postType, relation) {
+        //let model = ORM.model(relation.model, {});
+        var Model = require('../index');
+        let model = new Model(relation.model, self.config);
+        let key = relation.key || self.getPk();
+        let fkey = relation.fkey || `${self.getModelName().toLowerCase()}_id`;
+        //子表外键数据
+        childdata[fkey] = data[key];
+        switch (postType) {
+            case 'ADD':
+                return await model.add(childdata);
+                break;
+            case 'UPDATE':
+                //对于主表更新数据中,无对子表的外键数据,则不更新
+                if (ORM.isEmpty(childdata[fkey])) return
+                delete childdata[fkey];
+                return await model.where({[fkey]: data[key]}).update(childdata);
+                break
+        }
+    }
+
+
+    /**
+     * hasmany子表数据新增更新
+     * @param self
+     * @param data
+     * @param childdata
+     * @param postType
+     * @param relation
+     * @private
+     */
+    async __postHasManyRelation(self, data, childdata, postType, relation) {
+        //let model = ORM.model(relation.model, {});
+        var Model = require('../index');
+        let model = new Model(relation.model, self.config);
+        let key = relation.key || self.getPk();
+        let fkey = relation.fkey || `${self.getModelName().toLowerCase()}_id`;
+        let pk = model.getPk();
+        //子表外键数据
+        if (!ORM.isArray(childdata)) {
+            childdata = [childdata];
+        }
+        for (let [k,v] of childdata.entries()) {
+            v[fkey] = data[key];
+            switch (postType) {
+                case 'ADD':
+                    await model.add(v);
+                    break;
+                case 'UPDATE':
+                    //如果有子表的id,则对已有的子表数据进行更新
+                    if (v[pk]) {
+                        await model.update(v);
+                    } else if (data[key]) {
+                        //若更新主表数据中有其关联子表的字段,则新增关联数据
+                        v[fkey] = data[key];
+                        await model.add(v);
+                    }
+                    break
+            }
+        }
+        return;
+    }
+
+    /**
+     * manytomany子表数据新增更新
+     * @param self
+     * @param data
+     * @param childdata
+     * @param postType
+     * @param relation
+     * @private
+     */
+    async __postManyToManyRelation(self, data, childdata, postType, relation) {
+        //let model = ORM.model(relation.model, {});
+        var Model = require('../index');
+        let model = new Model(relation.model, self.config);
+        let option = {};
+        if (relation.relationtable) {
+            option.table = relation.relationtable;
+        } else {
+            option.table = `${ORM.config('db_prefix')}${self.getModelName().toLowerCase()}_${model.getModelName().toLowerCase()}_map`;
+        }
+        let key = relation.key || self.getPk();
+        let fkey = relation.fkey || `${self.getModelName().toLowerCase()}_id`;
+        //需要取到对应model的关联key,fkey
+        let rpk = model.getPk(), cid;
+        let rkey = model.relation.key || rpk;
+        let rfkey = model.relation.fkey || `${model.getModelName().toLowerCase()}_id`;
+        if (ORM.isArray(childdata)) {
+            for (let cdata of childdata) {
+                switch (postType) {
+                    case 'ADD':
+                        //先写入关联表
+                        cid = await model.add(cdata);
+                        cdata[rpk] = cid;
+                        //写入两个表关系表
+                        await self.db().add({[fkey]: data[key], [rfkey]: cdata[rkey]}, option);
+                        break;
+                    case 'UPDATE':
+                        //先从两表关系表查出对应关系表的外键
+                        //option.where = {[fkey]: data[key]};
+                        //option.field = rfkey;
+                        //console.log(data);
+                        //console.log(key);
+                        //for (let m of await self.db().select(option)) {
+                        //    if (!ORM.isEmpty(await model.where({[rkey]: m[rfkey]}).find())) {
+                        //        //已存在对应数据,更新
+                        //        await model.where({[rkey]: m[rfkey]}).update(cdata);
+                        //    } else {
+                        //        //无关联数据,新增
+                        //        cid = await model.add(cdata);
+                        //        cdata[rpk] = cid;
+                        //        //写入两个表关系表
+                        //        await self.db().add({[fkey]: data[key], [rfkey]: cdata[rkey]}, option);
+                        //    }
+                        //}
+                        break;
+                }
+            }
+        } else if (ORM.isObject(childdata)) {
+            switch (postType) {
+                case 'ADD':
+                    //先写入关联表
+                    cid = await model.add(childdata);
+                    childdata[rpk] = cid;
+                    await self.db().add({[fkey]: data[key], [rfkey]: childdata[rkey]}, option);
+                    break;
+                case 'UPDATE':
+                    //先从两表关系表查出对应关系表的外键
+                    //option.where = {[fkey]: data[key]};
+                    //option.field = rfkey;
+                    //for (let m of await self.db().select(option)) {
+                    //    if (!ORM.isEmpty(await model.where({[rkey]: m[rfkey]}).find())) {
+                    //        //已存在对应数据,更新
+                    //        model.where({[rkey]: m[rfkey]}).update(childdata);
+                    //    } else {
+                    //        //无关联数据,新增
+                    //        cid = await model.add(childdata);
+                    //        childdata[rpk] = cid;
+                    //        //写入两个表关系表
+                    //        await self.db().add({[fkey]: data[key], [rfkey]: childdata[rkey]}, option);
+                    //    }
+                    //}
+                    break;
+            }
+
+        }
+        return;
+    }
+
+    /**
+     * belongsto 无需写入父表数据
+     * @param self
+     * @param data
+     * @param childdata
+     * @param postType
+     * @param relation
+     * @private
+     */
+    __postBelongsToRealtion(self, data, childdata, postType, relation) {
+        return;
     }
 }

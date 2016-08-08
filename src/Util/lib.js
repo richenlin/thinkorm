@@ -378,3 +378,4 @@ ORM.extend = function () {
     }
     return target;
 };
+

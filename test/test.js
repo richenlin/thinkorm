@@ -1,0 +1,77 @@
+/**
+ * Created by lihao on 16/7/26.
+ */
+var Model = require('../index');
+var model = new Model('user', {
+    db_type: 'mysql', // 数据库类型
+    db_host: '192.168.99.100', // 服务器地址
+    db_port: '3306', // 端口
+    db_name: 'test', // 数据库名
+    db_user: 'root', // 用户名
+    db_pwd: 'richenlin', // 密码
+    db_prefix: 'think_', // 数据库表前缀
+    db_ext_config: false
+});
+
+
+model
+//.field(['id', 'user_no'])
+//    .where({id: {'>': 1}, user_no: {'<': 1}})
+//    .where({id: {'between': [1, 100]}})
+//    .where({id: {'notbetween': [1, 100]}})
+    .where({not: {id: 1, user_no: 1}})
+    //    .where({notin: {id: 1, user_no: 1}})
+    //    .where({notnull: 'id,user_no'})
+    //    .where({null: 'id,user_no'})
+    //    .where({in: {id: [1, 2, 3], user_no: [1]}})
+    //    .where({or: [{id: 1}, {user_no: 1}]})
+    //    .where({or: [{in: {id: [1, 2, 3]}}, {user_no: {'<': 1}}]})
+    //    .where({or: [{in: {id: [1, 2, 3]}}, {not: {id: 1, user_no: 1}}]})
+    //    .where({or: [{null: 'id,user_no'}]})
+    //    .where({or: [{notnull: 'id,user_no'}]})
+    //    .where({or: [{id: {'between': [1, 100]}}, {user_no: 1}]})
+    //    .where({or: [{id: {'notbetween': [1, 100]}}, {user_no: 1}]})
+    //.where({or:[{notin: {id: 1, user_no: 1}}]})
+    //.order([{id: 'asc', user_no: 'desc'}])
+    //.group('id')
+    //.limit(1, 10)
+    //.join([
+    //    {
+    //        from: 'contacts',
+    //        on: {
+    //            or: [
+    //                {
+    //                    accounts: 'id',
+    //                    users: 'account_id'
+    //                },
+    //                {
+    //                    accounts: 'owner_id',
+    //                    users: 'id'
+    //                }
+    //            ]
+    //        }
+    //    },
+    //    {
+    //        from: 'b',
+    //        on: {
+    //            or: [
+    //                {
+    //                    b: 'id',
+    //                    users: 'account_id'
+    //                },
+    //                {
+    //                    b: 'owner_id',
+    //                    users: 'id'
+    //                }
+    //            ]
+    //        }
+    //    }
+    //])
+    .rel(true)
+    .find()
+    //.update({user_no: 1})
+    //.delete()
+    .then(data=> {
+        console.log(data)
+    })
+//model.add({a:'a'});
