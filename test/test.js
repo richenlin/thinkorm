@@ -7,12 +7,12 @@
  */
 var thinkorm = require('../index.js');
 var cls = new thinkorm('user',{
-    db_type: 'mongo',
+    db_type: 'mysql',
     db_host: '192.168.99.100',
-    db_port: 27017,
+    db_port: 3306,
     db_name: 'test',
-    db_user: '',
-    db_pwd: '',
+    db_user: 'root',
+    db_pwd: 'richenlin',
     db_prefix: '',
     db_charset: 'utf8',
     db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
@@ -20,7 +20,7 @@ var cls = new thinkorm('user',{
 
 function test(){
     "use strict";
-    return cls.where({'or': [{name: 'aa'}]}).countSelect().then(function (data) {
+    return cls.where({'or': [{name: 'aa'},{name: 'test'}]}).countSelect().then(function (data) {
         console.log(data);
     })
 }
