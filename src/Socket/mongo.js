@@ -89,8 +89,8 @@ export default class extends base{
                     handler = col.find(options.where || {});
                     break;
                 case 'COUNT':
-                    sql = `${sql}${options.where ? '.find('+ JSON.stringify(options.where) +')' : '.find()'}.count()`;
-                    handler = col.find(options.where || {}).count();
+                    sql = `${sql}${options.where ? '.count('+ JSON.stringify(options.where) +')' : '.count()'}`;
+                    handler = col.count(options.where || {});
                     break;
                 case 'SUM':
                     break;
@@ -108,7 +108,7 @@ export default class extends base{
                 return handler;
             }
         }).then((rows = []) => {
-            this.config.logSql && ORM.log(sql, 'SQL', startTime);
+            this.config.logSql && ORM.log(sql, 'MongoDB', startTime);
             return rows;
         }).catch(err => {
             return Promise.reject(err);
@@ -142,7 +142,7 @@ export default class extends base{
             }
             return handler;
         }).then((rows = []) => {
-            this.config.logSql && ORM.log(sql, 'SQL', startTime);
+            this.config.logSql && ORM.log(sql, 'MongoDB', startTime);
             return rows;
         }).catch(err => {
             return Promise.reject(err);

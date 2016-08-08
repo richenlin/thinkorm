@@ -86,7 +86,7 @@ export default class extends base{
             return fn(sql);
         }).then((rows = []) => {
             (this.pool && connection.release) && connection.release();
-            this.config.logSql && ORM.log(sql, 'SQL', startTime);
+            this.config.logSql && ORM.log(sql, 'MySQL', startTime);
             return rows;
         }).catch(err => {
             (this.pool && connection.release) && connection.release();
