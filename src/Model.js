@@ -467,11 +467,11 @@ export default class extends base {
             if (ORM.isObject(onCondition)) {
                 //or:[{a:'id',b:'a_id'},{a:'name',b:'a_name'}]
                 if (onCondition.or != undefined) {
-                    orArr = [`${this.tablePrefix}${from} AS ${from}`];
+                    orArr = [`${this.tablePrefix}${from} AS ${this.tablePrefix}${from}`];
                     for (let o of onCondition.or) {
                         or = [];
                         for (let k in o) {
-                            or.push(`${k}.${o[k]}`)
+                            or.push(`${this.tablePrefix}${k}.${o[k]}`)
                         }
                         orArr.push(or);
                     }
@@ -480,14 +480,15 @@ export default class extends base {
                     joinArr.push({type: type, from: from, or: orArr})
                 } else {
                     //or:{a:'id',b:'a_id'}
-                    on = [`${this.tablePrefix}${from} AS ${from}`];
+                    on = [`${this.tablePrefix}${from} AS ${this.tablePrefix}${from}`];
                     for (let k in onCondition) {
-                        on.push(`${k}.${onCondition[k]}`);
+                        on.push(`${this.tablePrefix}${k}.${onCondition[k]}`);
                     }
                     joinArr.push({type: type, from: from, on: on})
                 }
             }
         }
+        console.log(joinArr)
         this._options.join = joinArr;
         return this;
     }
@@ -594,6 +595,9 @@ export default class extends base {
     async select(options) {
         options = await this.parseOptions(options);
         let result = await this.adapter().select(options);
+        if (options.rel && !ORM.isEmpty(result)) {//查询关联关系
+            await this.__getRelationData(result, options);
+        }
         result = await this.parseData(result || [], options);
         return this._afterSelect(result, options);
     }
@@ -775,7 +779,7 @@ export default class extends base {
      * @param options
      * @private
      */
-    __getRelationData(result, options) {
+    async __getRelationData(result, options) {
         let o;
         if (ORM.isBoolean(options.rel)) {
             if (options.rel === false) {
@@ -789,7 +793,7 @@ export default class extends base {
             o = options.rel;
         }
 
-        this.__getRelationOptions(result, o);
+        await this.__getRelationOptions(result, o);
     }
 
     /**
@@ -921,7 +925,7 @@ export default class extends base {
         if (relation.relationtable) {
             options.table = relation.relationtable;
         } else {
-            options.table = `${self.db_prefix}${self.getModelName().toLowerCase()}_${model.getModelName().toLowerCase()}_map`;
+            options.table = `${self.config.db_prefix}${self.getModelName().toLowerCase()}_${model.getModelName().toLowerCase()}_map`;
         }
         let key = relation.key || self.getPk();
         let fkey = relation.fkey || `${self.getModelName().toLowerCase()}_id`;
@@ -933,11 +937,12 @@ export default class extends base {
                 option.where[`${options.table}.${fkey}`] = v[key];
                 if (relation.where) option.where = ORM.extend({}, where, option.where);
                 //data[k][relation.name] = await self.db().select(option);
+
                 option.join = [{
                     from: relation.model,
                     on: {
                         [relation.model]: key,
-                        [`${options.table}`]: rfkey
+                        [`${options.table.substring(self.config.db_prefix.length)}`]: rfkey
                     }
                 }];
                 data[k][relation.name] = await model.where(option.where).join(option.join).select(options);
@@ -950,7 +955,7 @@ export default class extends base {
                 from: relation.model,
                 on: {
                     [relation.model]: key,
-                    [`${options.table}`]: rfkey
+                    [`${options.table.substring(self.config.db_prefix.length)}`]: rfkey
                 }
             }];
             data[relation.name] = await model.where(option.where).join(option.join).select(options);

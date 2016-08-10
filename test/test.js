@@ -15,11 +15,11 @@ var model = new Model('user', {
 
 
 model
-//.field(['id', 'user_no'])
-//    .where({id: {'>': 1}, user_no: {'<': 1}})
-//    .where({id: {'between': [1, 100]}})
-//    .where({id: {'notbetween': [1, 100]}})
-    .where({not: {id: 1, user_no: 1}})
+    //.field(['think_user.id as aid', 'think_user.user_no','think_user_info.id as bid'])
+    //    .where({id: {'>': 1}, user_no: {'<': 1}})
+    //    .where({id: {'between': [1, 100]}})
+    //    .where({id: {'notbetween': [1, 100]}})
+    //    .where({not: {id: 1, user_no: 1}})
     //    .where({notin: {id: 1, user_no: 1}})
     //    .where({notnull: 'id,user_no'})
     //    .where({null: 'id,user_no'})
@@ -35,38 +35,15 @@ model
     //.order([{id: 'asc', user_no: 'desc'}])
     //.group('id')
     //.limit(1, 10)
-    //.join([
-    //    {
-    //        from: 'contacts',
-    //        on: {
-    //            or: [
-    //                {
-    //                    accounts: 'id',
-    //                    users: 'account_id'
-    //                },
-    //                {
-    //                    accounts: 'owner_id',
-    //                    users: 'id'
-    //                }
-    //            ]
-    //        }
-    //    },
-    //    {
-    //        from: 'b',
-    //        on: {
-    //            or: [
-    //                {
-    //                    b: 'id',
-    //                    users: 'account_id'
-    //                },
-    //                {
-    //                    b: 'owner_id',
-    //                    users: 'id'
-    //                }
-    //            ]
-    //        }
-    //    }
-    //])
+    .join([
+        {
+            from: 'user_info',
+            on: {
+                user_info: 'user_id',
+                user: 'id'
+            }
+        }
+    ])
     .rel(true)
     .find()
     //.update({user_no: 1})
