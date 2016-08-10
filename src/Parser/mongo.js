@@ -10,6 +10,14 @@ export default class extends base {
         this.lastsql = '';
     }
 
+    /**
+     * 解析关联
+     * @param data
+     * @param options
+     */
+    parseJoin(data,options){
+        
+    }
 
     /**
      * 解析分页

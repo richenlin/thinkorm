@@ -42,6 +42,15 @@ var cls = new thinkorm('user', {
 //cls.where({name:'b'}).delete().then(data=>{
 //    console.log(data)
 //})
-cls.count().then(data=>{
+//cls.count().then(data=>{
+//    console.log(data)
+//})
+cls.join([{
+    from: 'user_info',
+    on: {
+        user_info: 'user_id',
+        users: 'id'
+    }
+}]).find().then(data=> {
     console.log(data)
 })
