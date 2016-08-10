@@ -488,7 +488,6 @@ export default class extends base {
                 }
             }
         }
-        console.log(joinArr)
         this._options.join = joinArr;
         return this;
     }
