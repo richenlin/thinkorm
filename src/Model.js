@@ -616,19 +616,18 @@ export default class extends base {
      */
     async add(data, options) {
         if (ORM.isEmpty(data)) return ORM.error('_DATA_TYPE_INVALID_');
+        this._data = ORM.extend({}, data);
         options = await this.parseOptions(options);
-        this._data = data;
-        this._data = await this.parseData(this._data, options, 1);
-        let result = await this.adapter().insert(this._data, options);
+        data = await this.parseData(data, options, 1);
+        let result = await this.adapter().insert(data, options);
         let pk = this.getPk();
-        this._data[pk] = this.adapter().getLastInsertId();
-        //TODO关联写入
+        this._data[pk] = data[pk] = this.adapter().getLastInsertId();
         if (!ORM.isEmpty(this.relation)) {
-
+            this.__postRelationData(data[this.pk], this._data, 'ADD', options);
         }
         this._data[pk] = this._data[pk] ? this._data[pk] : result[pk];
         await this._afterAdd(this._data, options);
-        return this._data[pk];
+        return data[pk];
 
     }
 
@@ -653,12 +652,31 @@ export default class extends base {
         //判断是否为数组
         if (!ORM.isArray(data))return ORM.error('DATA MUST BE ARRAY');
         options = await this.parseOptions(options);
-        this._data = data;
-        let ps = this._data.map(item=> {
-            return this.parseData(item, options);
-        })
-        this._data = await Promise.all(ps)
-        return await this.adapter().insertAll(this._data, options);
+        this._data = ORM.extend([], data);
+
+        //若需要关联ADDALL,那么就需要将数组遍历后,再进行子对象的写入
+        if (!ORM.isEmpty(this.relation)) {
+            let pk = this.getPk(), count = 0, ps;
+            ps = data.map(item=> {
+                let _item = ORM.extend({}, item);
+                return this.parseData(item, options, 1).then(item=> {
+                    return this.adapter().insert(item, options);
+                }).then(()=> {
+                    _item[pk] = item[pk] = this.adapter().getLastInsertId();
+                    return this.__postRelationData(_item[pk], _item, 'ADD', options);
+                }).then(()=> {
+                    return 1;
+                });
+            })
+            let resule = await Promise.all(ps);
+            return resule.length;
+        } else {
+            ps = this._data.map(item=> {
+                return this.parseData(item, options);
+            })
+            this._data = await Promise.all(ps)
+            return await this.adapter().insertAll(this._data, options);
+        }
     }
 
     /**
@@ -669,12 +687,11 @@ export default class extends base {
     async update(data, options) {
         if (ORM.isEmpty(data)) return ORM.error('_DATA_TYPE_INVALID_');
         options = await this.parseOptions(options);
-        this._data = data;
-        this._data = await this.parseData(this._data, options, 2);
-        this._data = await this.adapter().update(this._data, options);
-        //TODO关联写入
+        this._data = ORM.extend({}, data);
+        data = await this.parseData(data, options, 2);
+        let result = await this.adapter().update(data, options);
         if (!ORM.isEmpty(this.relation)) {
-
+            await this.__postRelationData(result, this._data, 'UPDATE', options);
         }
         return await this._afterUpdate(this._data, options)
     }
@@ -748,7 +765,7 @@ export default class extends base {
      * @param beforeCheck 1:add操作前检查,2:update操作前检查
      */
     async parseData(data, options, beforeCheck = 0) {
-        //TODO 数据检查
+
         return data;
     }
 
@@ -904,7 +921,7 @@ export default class extends base {
         if (relation.relationtable) {
             options.table = relation.relationtable;
         } else {
-            options.table = `${ORM.config('db_prefix')}${self.getModelName().toLowerCase()}_${model.getModelName().toLowerCase()}_map`;
+            options.table = `${self.db_prefix}${self.getModelName().toLowerCase()}_${model.getModelName().toLowerCase()}_map`;
         }
         let key = relation.key || self.getPk();
         let fkey = relation.fkey || `${self.getModelName().toLowerCase()}_id`;
@@ -978,7 +995,7 @@ export default class extends base {
      * @private
      */
     async __postRelationData(result, data, postType, options) {
-        let pk = await this.getPk();
+        let pk = this.getPk();
         //data[pk] = result;
         let caseList = {
             1: this.__postHasOneRelation,
@@ -996,10 +1013,11 @@ export default class extends base {
             if (ORM.isEmpty(data[key])) return;
             let type = item.type && !~['1', '2', '3', '4'].indexOf(item.type + '') ? (item.type + '').toUpperCase() : item.type;
             if (type && type in caseList) {
-                caseList[type](this, data, data[key], postType, item);
+                return caseList[type](this, data, data[key], postType, item);
             }
         })
-        await Promise.all(promises);
+        let res = await Promise.all(promises);
+        console.log(res)
         return data;
     }
 
@@ -1011,7 +1029,7 @@ export default class extends base {
      * @param item
      * @private
      */
-    async __postHasOneRelation(self, data, childdata, postType, relation) {
+    __postHasOneRelation(self, data, childdata, postType, relation) {
         //let model = ORM.model(relation.model, {});
         var Model = require('../index');
         let model = new Model(relation.model, self.config);
@@ -1021,15 +1039,16 @@ export default class extends base {
         childdata[fkey] = data[key];
         switch (postType) {
             case 'ADD':
-                return await model.add(childdata);
+                return model.add(childdata);
                 break;
             case 'UPDATE':
                 //对于主表更新数据中,无对子表的外键数据,则不更新
                 if (ORM.isEmpty(childdata[fkey])) return
                 delete childdata[fkey];
-                return await model.where({[fkey]: data[key]}).update(childdata);
+                return model.where({[fkey]: data[key]}).update(childdata);
                 break
         }
+        return data;
     }
 
 
@@ -1042,7 +1061,7 @@ export default class extends base {
      * @param relation
      * @private
      */
-    async __postHasManyRelation(self, data, childdata, postType, relation) {
+    __postHasManyRelation(self, data, childdata, postType, relation) {
         //let model = ORM.model(relation.model, {});
         var Model = require('../index');
         let model = new Model(relation.model, self.config);
@@ -1053,25 +1072,47 @@ export default class extends base {
         if (!ORM.isArray(childdata)) {
             childdata = [childdata];
         }
-        for (let [k,v] of childdata.entries()) {
-            v[fkey] = data[key];
+        childdata.map(v=> {
+            if (!ORM.isEmpty(data[key])) {
+                v[fkey] = data[key];
+            } else {
+                return true;
+            }
             switch (postType) {
                 case 'ADD':
-                    await model.add(v);
+                    model.add(v);
                     break;
                 case 'UPDATE':
                     //如果有子表的id,则对已有的子表数据进行更新
                     if (v[pk]) {
-                        await model.update(v);
+                        model.update(v);
                     } else if (data[key]) {
                         //若更新主表数据中有其关联子表的字段,则新增关联数据
                         v[fkey] = data[key];
-                        await model.add(v);
+                        model.add(v);
                     }
                     break
             }
-        }
-        return;
+        })
+        //for (let [k,v] of childdata.entries()) {
+        //    v[fkey] = data[key];
+        //    switch (postType) {
+        //        case 'ADD':
+        //            await model.add(v);
+        //            break;
+        //        case 'UPDATE':
+        //            //如果有子表的id,则对已有的子表数据进行更新
+        //            if (v[pk]) {
+        //                await model.update(v);
+        //            } else if (data[key]) {
+        //                //若更新主表数据中有其关联子表的字段,则新增关联数据
+        //                v[fkey] = data[key];
+        //                await model.add(v);
+        //            }
+        //            break
+        //    }
+        //}
+        return data;
     }
 
     /**
@@ -1083,15 +1124,15 @@ export default class extends base {
      * @param relation
      * @private
      */
-    async __postManyToManyRelation(self, data, childdata, postType, relation) {
+    __postManyToManyRelation(self, data, childdata, postType, relation) {
         //let model = ORM.model(relation.model, {});
-        var Model = require('../index');
+        let Model = require('../index');
         let model = new Model(relation.model, self.config);
         let option = {};
         if (relation.relationtable) {
             option.table = relation.relationtable;
         } else {
-            option.table = `${ORM.config('db_prefix')}${self.getModelName().toLowerCase()}_${model.getModelName().toLowerCase()}_map`;
+            option.table = `${self.config.db_prefix}${self.getModelName().toLowerCase()}_${model.getModelName().toLowerCase()}_map`;
         }
         let key = relation.key || self.getPk();
         let fkey = relation.fkey || `${self.getModelName().toLowerCase()}_id`;
@@ -1100,43 +1141,28 @@ export default class extends base {
         let rkey = model.relation.key || rpk;
         let rfkey = model.relation.fkey || `${model.getModelName().toLowerCase()}_id`;
         if (ORM.isArray(childdata)) {
-            for (let cdata of childdata) {
+            childdata.map(cdata=> {
                 switch (postType) {
                     case 'ADD':
                         //先写入关联表
-                        cid = await model.add(cdata);
-                        cdata[rpk] = cid;
-                        //写入两个表关系表
-                        await self.db().add({[fkey]: data[key], [rfkey]: cdata[rkey]}, option);
+                        model.add(cdata).then(cid=> {
+                            cdata[rpk] = cid;
+                            //写入两个表关系表
+                            self.adapter().insert({[fkey]: data[key], [rfkey]: cdata[rkey]}, option);
+                        })
                         break;
                     case 'UPDATE':
-                        //先从两表关系表查出对应关系表的外键
-                        //option.where = {[fkey]: data[key]};
-                        //option.field = rfkey;
-                        //console.log(data);
-                        //console.log(key);
-                        //for (let m of await self.db().select(option)) {
-                        //    if (!ORM.isEmpty(await model.where({[rkey]: m[rfkey]}).find())) {
-                        //        //已存在对应数据,更新
-                        //        await model.where({[rkey]: m[rfkey]}).update(cdata);
-                        //    } else {
-                        //        //无关联数据,新增
-                        //        cid = await model.add(cdata);
-                        //        cdata[rpk] = cid;
-                        //        //写入两个表关系表
-                        //        await self.db().add({[fkey]: data[key], [rfkey]: cdata[rkey]}, option);
-                        //    }
-                        //}
                         break;
                 }
-            }
+            })
         } else if (ORM.isObject(childdata)) {
             switch (postType) {
                 case 'ADD':
                     //先写入关联表
-                    cid = await model.add(childdata);
-                    childdata[rpk] = cid;
-                    await self.db().add({[fkey]: data[key], [rfkey]: childdata[rkey]}, option);
+                    model.add(childdata).then(cid=> {
+                        childdata[rpk] = cid;
+                        self.adapter().insert({[fkey]: data[key], [rfkey]: childdata[rkey]}, option);
+                    })
                     break;
                 case 'UPDATE':
                     //先从两表关系表查出对应关系表的外键
@@ -1158,7 +1184,7 @@ export default class extends base {
             }
 
         }
-        return;
+        return data;
     }
 
     /**
@@ -1171,6 +1197,6 @@ export default class extends base {
      * @private
      */
     __postBelongsToRealtion(self, data, childdata, postType, relation) {
-        return;
+        return data;
     }
 }

@@ -129,6 +129,24 @@ export default class extends base {
      * @param options
      */
     insert(data, options) {
+        //去掉关联查询中的子模型字段
+        let fn = function (data) {
+            for (let key in data) {
+                if (!ORM.isString(data[key]) && !ORM.isBoolean(data[key]) && !ORM.isNumber(data[key])) {
+                    delete data[key];
+                }
+            }
+            return data;
+        }
+        if (ORM.isArray(data)) {
+            let _data = [];
+            data.map(item=> {
+                _data.push(fn(item));
+            })
+            data = data;
+        } else {
+            data = fn(data);
+        }
         this.knex = this.knexClient.insert(data).from(options.table);
         return this.execute(this.knex.toString());
     }
@@ -149,6 +167,24 @@ export default class extends base {
      * @param options
      */
     update(data, options) {
+        //去掉关联查询中的子模型字段
+        let fn = function (data) {
+            for (let key in data) {
+                if (!ORM.isString(data[key]) && !ORM.isBoolean(data[key]) && !ORM.isNumber(data[key])) {
+                    delete data[key];
+                }
+            }
+            return data;
+        }
+        if (ORM.isArray(data)) {
+            let _data = [];
+            data.map(item=> {
+                _data.push(fn(item));
+            })
+            data = data;
+        } else {
+            data = fn(data);
+        }
         this.knex = this.knexClient.update(data);
         this.queryBuilder(options, 'update');
         //this.builderTable(options.table);
