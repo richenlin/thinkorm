@@ -40,7 +40,7 @@ export default class extends base {
      * @param sql
      */
     query(sql) {
-        console.log(sql);
+        //console.log(sql);
         this.sql = sql;
         return this.socket().query(sql).then(data=> {
             return this.bufferToString(data);
@@ -52,7 +52,7 @@ export default class extends base {
      * @param sql
      */
     execute(sql) {
-        console.log(sql);
+        //console.log(sql);
         this.sql = sql;
         return this.socket().query(sql).then(data=> {
             if (data.insertId) {

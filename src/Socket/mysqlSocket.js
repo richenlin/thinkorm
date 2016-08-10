@@ -24,7 +24,7 @@ export default class extends Base {
 
     connect(){
         if(this.connection){
-            return this.connection;
+            return Promise.resolve(this.connection);
         }
 
         let driver = require('mysql2');
@@ -72,6 +72,7 @@ export default class extends Base {
     }
 
     query(sql){
+        console.log(sql)
         let startTime = Date.now();
         let connection;
         return this.connect().then(conn => {
@@ -83,7 +84,6 @@ export default class extends Base {
             this.config.logSql && ORM.log(sql, 'MYSQL', startTime);
             return rows;
         }).catch(err => {
-            console.log(err)
             this.close();
             return Promise.reject(err);
         });

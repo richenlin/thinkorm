@@ -623,7 +623,7 @@ export default class extends base {
         let pk = this.getPk();
         this._data[pk] = data[pk] = this.adapter().getLastInsertId();
         if (!ORM.isEmpty(this.relation)) {
-            this.__postRelationData(data[this.pk], this._data, 'ADD', options);
+            await this.__postRelationData(data[this.pk], this._data, 'ADD', options);
         }
         this._data[pk] = this._data[pk] ? this._data[pk] : result[pk];
         await this._afterAdd(this._data, options);
@@ -775,7 +775,7 @@ export default class extends base {
      * @param options
      * @private
      */
-    async __getRelationData(result, options) {
+    __getRelationData(result, options) {
         let o;
         if (ORM.isBoolean(options.rel)) {
             if (options.rel === false) {
@@ -789,7 +789,7 @@ export default class extends base {
             o = options.rel;
         }
 
-        await this.__getRelationOptions(result, o);
+        this.__getRelationOptions(result, o);
     }
 
     /**
@@ -1016,8 +1016,7 @@ export default class extends base {
                 return caseList[type](this, data, data[key], postType, item);
             }
         })
-        let res = await Promise.all(promises);
-        console.log(res)
+        await Promise.all(promises);
         return data;
     }
 
