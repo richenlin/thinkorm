@@ -16,7 +16,39 @@ export default class extends base {
      * @param options
      */
     parseJoin(data,options){
-        
+        let type, onCondition, from, joinArr = [], on, or, orArr;
+        for (let j of options.join) {
+            type = j.type || 'left';
+            from = j.from;
+            onCondition = j.on;
+            if (ORM.isObject(onCondition)) {
+                //or:[{a:'id',b:'a_id'},{a:'name',b:'a_name'}]
+                if (onCondition.or != undefined) {
+                    orArr = [`${this.config.db_prefix}${from} AS ${this.config.db_prefix}${from}`];
+                    for (let o of onCondition.or) {
+                        or = [];
+                        for (let k in o) {
+                            //or.push(`${this.config.db_prefix}${k}.${o[k]}`)
+                            or.push(o[k]);
+                        }
+                        orArr.push(or);
+                    }
+                    //console.log(orArr)
+                    //or:['user',[[user.id,info.user_id],[user.name,info.user_name]]]
+                    joinArr.push({type: type, from: from, or: orArr})
+                } else {
+                    //or:{a:'id',b:'a_id'}
+                    on = [`${this.config.db_prefix}${from} AS ${this.config.db_prefix}${from}`];
+                    for (let k in onCondition) {
+                        //on.push(`${this.config.db_prefix}${k}.${onCondition[k]}`);
+                        on.push(onCondition[k])
+                    }
+                    joinArr.push({type: type, from: from, on: on})
+                }
+            }
+        }
+        console.log(joinArr)
+        this.jsonObj.lookup = joinArr;
     }
 
     /**
@@ -139,7 +171,7 @@ export default class extends base {
         for (let key in optionWhere) {
             parse(key, optionWhere[key], key);
         }
-        this.jsonObj.where = where;
+        this.jsonObj.match = where;
     }
 
     /**

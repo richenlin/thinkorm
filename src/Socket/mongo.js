@@ -79,26 +79,44 @@ export default class extends base {
             switch (options.type) {
                 case 'select':
                 case 'SELECT':
-                    //col.find().project({name:1}).toArray(function(err, docs){
-                    //    console.log(docs)
-                    //})
-                    handler = col.find(options.where);
-                    caselist = {skip: true, limit: true, sort: true, project: true};
-                    for (let c in options) {
-                        if (caselist[c]) {
-                            handler[c](options[c])
+                    //if (!ORM.isEmpty(options.lookup)) {//需要聚合的lookup方法
+                    //    fn = ORM.promisify(col.aggregate, col);
+                    //    if (!ORM.isEmpty(options.match)) pipe.push({$match: options.match});
+                    //    if (!ORM.isEmpty(options.project)) pipe.push({$project: options.project});
+                    //    if (!ORM.isEmpty(options.sort)) pipe.push({$sort: options.sort});
+                    //    if (!ORM.isEmpty(options.skip)) pipe.push({$skip: options.skip});
+                    //    pipe.push({
+                    //        $lookup: {
+                    //            from: options.lookup[0].from,
+                    //            localField: options.lookup[0].on[1],
+                    //            foreignField: options.lookup[0].on[2],
+                    //            as: options.lookup[0].from
+                    //        }
+                    //    });
+                    //    console.log(pipe)
+                    //    return fn(pipe);
+                    //} else {
+                        //col.find().project({name:1}).toArray(function(err, docs){
+                        //    console.log(docs)
+                        //})
+                        handler = col.find(options.match);
+                        caselist = {skip: true, limit: true, sort: true, project: true};
+                        for (let c in options) {
+                            if (caselist[c]) {
+                                handler[c](options[c])
+                            }
                         }
-                    }
-                    return handler.toArray();
+                        return handler.toArray();
+                    //}
                     break;
                 case 'count':
                 case 'COUNT':
                     fn = ORM.promisify(col.aggregate, col);
-                    if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
+                    if (!ORM.isEmpty(options.match)) pipe.push({$match: options.where});
                     pipe.push({
                         $group: {
                             _id: null,
-                            count: {$sum:1}
+                            count: {$sum: 1}
                         }
                     })
                     return fn(pipe);
@@ -107,7 +125,7 @@ export default class extends base {
                 case 'sum':
                 case 'SUM':
                     fn = ORM.promisify(col.aggregate, col);
-                    if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
+                    if (!ORM.isEmpty(options.match)) pipe.push({$match: options.where});
                     //此处gropu必须在match后面.......没搞懂
                     pipe.push({
                         $group: {
@@ -130,7 +148,7 @@ export default class extends base {
                 case 'avg':
                 case 'AVG':
                     fn = ORM.promisify(col.aggregate, col);
-                    if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
+                    if (!ORM.isEmpty(options.match)) pipe.push({$match: options.where});
                     pipe.push({
                         $group: {
                             _id: 1,
@@ -142,7 +160,7 @@ export default class extends base {
                 case 'min':
                 case 'MIN':
                     fn = ORM.promisify(col.aggregate, col);
-                    if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
+                    if (!ORM.isEmpty(options.match)) pipe.push({$match: options.where});
                     pipe.push({
                         $group: {
                             _id: 1,
@@ -155,7 +173,7 @@ export default class extends base {
                 case 'MAX':
                 case 'max':
                     fn = ORM.promisify(col.aggregate, col);
-                    if (!ORM.isEmpty(options.where)) pipe.push({$match: options.where});
+                    if (!ORM.isEmpty(options.match)) pipe.push({$match: options.where});
                     pipe.push({
                         $group: {
                             _id: 1,
@@ -166,7 +184,7 @@ export default class extends base {
                     break;
                 case 'find':
                 case 'FIND':
-                    handler = col.findOne(options.where);
+                    handler = col.findOne(options.match);
                     return handler.toArray();
                     //return col.find(options.where).skip(1).limit(1).toArray();
                     break;
@@ -180,11 +198,11 @@ export default class extends base {
                     break;
                 case 'update':
                 case 'UPDATE':
-                    return col.updateMany(options.where, data);
+                    return col.updateMany(options.match, data);
                     break;
                 case 'delete':
                 case 'DELETE':
-                    return col.deleteMany(options.where || {});
+                    return col.deleteMany(options.match || {});
                     break;
             }
         } catch (e) {
