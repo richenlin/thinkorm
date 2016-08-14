@@ -18,12 +18,26 @@ var cls = new thinkorm('user',{
     db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
 });
 
+cls.relation = [
+    {
+        type: 'HASONE',
+        model: 'ttttt',
+        key: 'id',
+        fkey: 'tid',
+        //field: ['name', 'user', 'id']
+    }
+];
+
 function test(){
     "use strict";
-    return cls.where({'or': [{name: 'aa'},{name: 'test'}]}).countSelect().then(function (data) {
+    return cls.rel(true).select().then(function (data) {
         console.log(data);
     })
 }
+
+let key = 'ttttt';
+let str = '{"name":"aaa","num":null,"id":2,"tid":2,"ttttt_name":"test","ttttt_user":2,"ttttt_id":2}';
+let out = '{"name":"aaa","num":null,"id":2,"tid":2,"ttttt": {"name":"test","user":2,"id":2}}';
 
 test();
 

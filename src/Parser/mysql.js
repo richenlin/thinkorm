@@ -20,9 +20,9 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseLimit(data, options){
+    parseLimit(data, options) {
         let parseOptions = {};
-        if(options.method === 'SELECT'){
+        if (options.method === 'SELECT') {
             parseOptions['offset'] = options.limit[0] || 0;
             parseOptions['limit'] = options.limit[1] || 10;
         }
@@ -35,9 +35,9 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseOrder(data, options){
+    parseOrder(data, options) {
         let parseOptions = {};
-        if(options.method === 'SELECT'){
+        if (options.method === 'SELECT') {
             parseOptions['orderBy'] = options.order;
         }
         return parseOptions;
@@ -48,10 +48,20 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseField(data, options){
+    parseField(data, options) {
         let parseOptions = {};
-        if(options.method === 'SELECT'){
-            parseOptions['select'] = options.field || '*';
+        if (options.method === 'SELECT') {
+            options.field = options.field || '*';
+            if (ORM.isArray(options.field)) {
+                let fields = [];
+                options.field.forEach(item => {
+                    fields.push(`${options.table}.${item}`)
+                });
+                options.field = fields;
+            } else {
+                options.field = Array.of(`${options.table}.${options.field}`);
+            }
+            parseOptions['select'] = options.field;
         }
         return parseOptions;
     }
@@ -61,9 +71,9 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseCount(data, options){
+    parseCount(data, options) {
         let parseOptions = {};
-        if(options.method === 'SELECT'){
+        if (options.method === 'SELECT') {
             parseOptions['count'] = ORM.isArray(options.count) ? options.count : Array.of(options.count);
         }
         return parseOptions;
@@ -74,9 +84,9 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseSum(data, options){
+    parseSum(data, options) {
         let parseOptions = {};
-        if(options.method === 'SELECT'){
+        if (options.method === 'SELECT') {
             parseOptions['sum'] = ORM.isArray(options.sum) ? options.sum : Array.of(options.sum);
         }
         return parseOptions;
@@ -87,7 +97,7 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseWhere(data, options){
+    parseWhere(data, options) {
         let parseOptions = {};
         parseOptions['where'] = options.where || 1;
         return parseOptions;
@@ -99,9 +109,9 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseGroup(data, options){
+    parseGroup(data, options) {
         let parseOptions = {};
-        if(options.method === 'SELECT'){
+        if (options.method === 'SELECT') {
             parseOptions['groupBy'] = ORM.isArray(options.group) ? options.group : Array.of(options.group);
         }
         return parseOptions;
@@ -114,39 +124,50 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseJoin(data, options){
+    parseJoin(data, options) {
         let parseOptions = {};
-        if(options.method === 'SELECT'){
+        if (options.method === 'SELECT') {
+            //解析主表字段
+            if (ORM.isEmpty(parseOptions.select)) {
+                parseOptions = this.parseField(data, options);
+            }
             //解析后结果
             //innerJoin: [{from: 'accounts',on: {or: [{accounts: 'id',users: 'account_id'},{accounts: 'owner_id',users: 'id'}]}}]
             //innerJoin: [{from: 'accounts',on: [{accounts: 'id',users: 'account_id'},{accounts: 'owner_id',users: 'id'}]}]
-            if(options.joinType && ORM.isArray(options.join)){
+            if (options.joinType && ORM.isArray(options.join)) {
                 let type = options.joinType.toLowerCase();
-                try{
-                    let config = this.config;
-                    let table = options.table;
+                try {
+                    let config = this.config, table = options.table, temp = {};
                     parseOptions[`${type}Join`] = [];
                     options.join.forEach(item => {
-                        if(item.from && item.on){
-                            let temp = {};
+                        if (item.from && item.on) {
+                            let isFiled = false;
                             temp.from = (item.from).toLowerCase();
                             temp.from = (temp.from).indexOf(config.db_prefix) > -1 ? temp.from : `${config.db_prefix}${temp.from}`;
+                            if (!ORM.isEmpty(item.field) && ORM.isArray(item.field)) {
+                                item.field.forEach(it => {
+                                    parseOptions.select.push(`${temp.from}.${it} AS ${item.from}_${it}`);
+                                });
+                                isFiled = true;
+                            }
                             temp.on = [];
-                            if(ORM.isArray(item.on)){
+                            if (ORM.isArray(item.on)) {
                                 item.on.forEach(it => {
-                                    if(ORM.isObject(it)){
-                                        for(let i in it){
+                                    if (ORM.isObject(it)) {
+                                        for (let i in it) {
+                                            !isFiled && (parseOptions.select.push(`${temp.from}.${it[i]} AS ${item.from}_${it[i]}`));
                                             temp.on.push({[table]: i, [temp.from]: it[i]});
                                         }
                                     }
                                 });
                             } else {
                                 temp.on = {};
-                                if(ORM.isArray(item.on.or)){
+                                if (ORM.isArray(item.on.or)) {
                                     temp.on.or = [];
                                     item.on.or.forEach(it => {
-                                        if(ORM.isObject(it)){
-                                            for(let i in it){
+                                        if (ORM.isObject(it)) {
+                                            for (let i in it) {
+                                                !isFiled && (parseOptions.select.push(`${temp.from}.${it[i]} AS ${item.from}_${it[i]}`));
                                                 temp.on.or.push({[table]: i, [temp.from]: it[i]});
                                             }
                                         }
@@ -156,11 +177,12 @@ export default class extends base {
                             parseOptions[`${type}Join`].push(temp);
                         }
                     });
-                }catch (e){
+                } catch (e) {
                     parseOptions[`${type}Join`] && delete parseOptions[`${type}Join`];
                 }
             }
         }
+
         return parseOptions;
     }
 
@@ -170,16 +192,16 @@ export default class extends base {
      * @param options
      * @returns {*}
      */
-    parseTable(data, options){
+    parseTable(data, options) {
         let parseOptions = {};
-        if(options.method === 'UPDATE'){
+        if (options.method === 'UPDATE') {
             parseOptions['using'] = options.table;
-        } else if(options.method === 'INSERT'){
+        } else if (options.method === 'INSERT') {
             parseOptions['into'] = options.table;
-        }else {
+        } else {
             parseOptions['from'] = options.table;
         }
-       return parseOptions;
+        return parseOptions;
     }
 
     /**
@@ -187,11 +209,11 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseData(data, options){
+    parseData(data, options) {
         let parseOptions = {};
-        if(options.method === 'UPDATE'){
+        if (options.method === 'UPDATE') {
             parseOptions['update'] = data;
-        } else if(options.method === 'INSERT'){
+        } else if (options.method === 'INSERT') {
             parseOptions['insert'] = data;
         }
         return parseOptions;
@@ -202,9 +224,9 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseMethod(data, options){
+    parseMethod(data, options) {
         let parseOptions = {};
-        if(options.method === 'DELETE'){
+        if (options.method === 'DELETE') {
             parseOptions['del'] = true;
         }
         return parseOptions;
@@ -216,11 +238,11 @@ export default class extends base {
      * @param options
      * @returns {string}
      */
-    parseSql(data, options){
+    parseSql(data, options) {
         let parseOptions = {};
-        for(let n in options){
+        for (let n in options) {
             let mt = ORM.ucFirst(n);
-            if(options[n] !== 'where' && this[`parse${mt}`] && ORM.isFunction(this[`parse${mt}`])){
+            if (['where'].indexOf(options[n]) === -1 && this[`parse${mt}`] && ORM.isFunction(this[`parse${mt}`])) {
                 parseOptions = ORM.extend(false, parseOptions, this[`parse${mt}`](data, options));
             }
         }
@@ -234,24 +256,24 @@ export default class extends base {
      * @param options
      * @returns {*}
      */
-    async buildSql(data, options){
-        if(options === undefined){
+    async buildSql(data, options) {
+        if (options === undefined) {
             options = data;
         } else {
             options.data = data;
         }
         let parseOptions = await this.parseSql(data, options);
         let seqs = await analyze(parseOptions);
-        let builder =  await sequelizer({
+        let builder = await sequelizer({
             dialect: 'mysql',
             tree: seqs
         });
         let sql = '';
-        if(!ORM.isEmpty(builder.sql)){
+        if (!ORM.isEmpty(builder.sql)) {
             sql = builder.sql;
-            if(!ORM.isEmpty(builder.bindings)){
+            if (!ORM.isEmpty(builder.bindings)) {
                 builder.bindings.forEach(item => {
-                    sql =  sql.replace(/\?/, ORM.isNumber(item) ? item : `'${item}'`);
+                    sql = sql.replace(/\?/, ORM.isNumber(item) ? item : `'${item}'`);
                 });
             }
         }
@@ -263,13 +285,13 @@ export default class extends base {
      * @param data
      * @returns {*}
      */
-    bufferToString(data){
+    bufferToString(data) {
         if (!this.config.buffer_tostring || !ORM.isArray(data)) {
             return data;
         }
-        for(let i = 0, length = data.length; i < length; i++){
-            for(let key in data[i]){
-                if(ORM.isBuffer(data[i][key])){
+        for (let i = 0, length = data.length; i < length; i++) {
+            for (let key in data[i]) {
+                if (ORM.isBuffer(data[i][key])) {
                     data[i][key] = data[i][key].toString();
                 }
             }

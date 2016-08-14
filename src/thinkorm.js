@@ -25,7 +25,7 @@ let parseName = function (name) {
     });
 };
 
-export default class extends base {
+let thinkorm = class extends base {
 
     /**
      * init
@@ -139,7 +139,7 @@ export default class extends base {
      * @param err
      */
     error(err) {
-        if(err){
+        if (err) {
             let msg = err;
             if (!ORM.isError(msg)) {
                 if (!ORM.isString(msg)) {
@@ -199,7 +199,7 @@ export default class extends base {
                 }
             }
         } else {
-            if(this.config.db_type === 'mongo'){
+            if (this.config.db_type === 'mongo') {
                 this.pk = '_id';
             }
         }
@@ -219,11 +219,17 @@ export default class extends base {
     }
 
     /**
-     * 指定关联操作的表
+     * 开启关联操作
      * @param table
      */
     rel(table = false) {
-        this._options.rel = !ORM.isEmpty(this.relation) ? table : false;
+        if (ORM.isBoolean(table)) {
+            this._options.rel = table;
+        } else if (ORM.isString(table)) {
+            this._options.rel = table.replace(/ +/g, '').split(',');
+        } else if (ORM.isArray(table)) {
+            this._options.rel = table;
+        }
         return this;
     }
 
@@ -240,7 +246,7 @@ export default class extends base {
         if (ORM.isArray(offset)) {
             length = offset[1] || length;
             offset = offset[0];
-        } else if(length === undefined){
+        } else if (length === undefined) {
             length = offset;
             offset = 0;
         }
@@ -261,9 +267,9 @@ export default class extends base {
         if (order === undefined) {
             return this;
         }
-        if(ORM.isObject(order)){
+        if (ORM.isObject(order)) {
             this._options.order = order;
-        }else if (ORM.isString(order)) {
+        } else if (ORM.isString(order)) {
             let strToObj = function (_str) {
                 return _str.replace(/^ +/, '').replace(/ +$/, '')
                     .replace(/( +, +)+|( +,)+|(, +)/, ',')
@@ -290,9 +296,9 @@ export default class extends base {
         }
         let fds = [], temp = '';
         field.forEach(item => {
-            if(item.indexOf('.') > -1){
+            if (item.indexOf('.') > -1) {
                 temp = item.split('.');
-                if(temp[0].indexOf(this.config.db_prefix) > -1){
+                if (temp[0].indexOf(this.config.db_prefix) > -1) {
                     fds.push(item);
                 } else {
                     fds.push(`${this.config.db_prefix}${item}`);
@@ -323,7 +329,7 @@ export default class extends base {
      * group(['xxx', 'xxx'])
      * @param group
      */
-    group(group){
+    group(group) {
         if (!group) {
             return this;
         }
@@ -332,14 +338,14 @@ export default class extends base {
     }
 
     /**
-     * join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}], 'inner')
-     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}}], 'left')
-     * join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}], 'right')
+     * join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name']], 'inner')
+     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name']}], 'left')
+     * join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}], field: ['id', 'name']}], 'right')
      * @param join
      * @param type  inner/left/right
      */
-    join(join, type = 'inner'){
-        if (!join) {
+    join(join, type = 'inner') {
+        if (!join || !ORM.isArray(join)) {
             return this;
         }
         this._options.joinType = type;
@@ -365,7 +371,7 @@ export default class extends base {
      */
     async add(data, options) {
         try {
-            if(ORM.isEmpty(data)){
+            if (ORM.isEmpty(data)) {
                 return this.error('_DATA_TYPE_INVALID_')
             }
             let parsedOptions = await this._parseOptions(options);
@@ -377,6 +383,7 @@ export default class extends base {
             this._data = await this._parseData(this._data, parsedOptions);
             let result = await db.add(this._data, parsedOptions);
             await this._afterAdd(this._data, parsedOptions);
+            let pk = await this.getPk();
             result = await this._parseData(this._data[pk] || 0, parsedOptions, false);
             return result;
         } catch (e) {
@@ -424,7 +431,7 @@ export default class extends base {
                 let pk = await this.getPk(), resData = [];
                 result.forEach((v, k) => {
                     this._data[k][pk] = v;
-                    resData.push(this._afterAdd(this._data[k], parsedOptions).then( () => {
+                    resData.push(this._afterAdd(this._data[k], parsedOptions).then(() => {
                         return v;
                     }));
                 });
@@ -442,13 +449,13 @@ export default class extends base {
      * @param data
      * @param options
      */
-    async thenAdd(data, options){
+    async thenAdd(data, options) {
         try {
-            if(ORM.isEmpty(data)){
+            if (ORM.isEmpty(data)) {
                 return this.error('_DATA_TYPE_INVALID_')
             }
             let record = await this.find(options);
-            if(ORM.isEmpty(record)){
+            if (ORM.isEmpty(record)) {
                 return this.add(data, options);
             }
             return null;
@@ -519,8 +526,8 @@ export default class extends base {
             this._data = await this._parseData(this._data, parsedOptions);
             let pk = await this.getPk();
             // 如果存在主键数据 则自动作为更新条件
-            if (ORM.isEmpty(parsedOptions.where)){
-                if(!ORM.isEmpty(this._data[pk])) {
+            if (ORM.isEmpty(parsedOptions.where)) {
+                if (!ORM.isEmpty(this._data[pk])) {
                     parsedOptions.where = {};
                     parsedOptions.where[pk] = this._data[pk];
                     delete this._data[pk];
@@ -598,16 +605,15 @@ export default class extends base {
      * @return 返回一个promise
      */
     async find(options) {
-        try{
+        try {
             let parsedOptions = await this._parseOptions(options);
             // init db
             let db = await this.initDb();
             let result = await db.find(parsedOptions);
-            result = await this._parseData(result || [], parsedOptions, false);
-            await this._afterFind(ORM.isArray(result) ? result[0] : result, options);
-            result = await this._parseData(result || {}, parsedOptions, false);
+            result = await this._parseData(ORM.isArray(result) ? result[0] : result, parsedOptions, false);
+            await this._afterFind(result, parsedOptions);
             return result;
-        } catch(e) {
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -625,16 +631,21 @@ export default class extends base {
      * @return 返回一个promise
      */
     async select(options) {
-        try{
+        try {
             let parsedOptions = await this._parseOptions(options);
             // init db
             let db = await this.initDb();
+            if (parsedOptions.rel) {
+                parsedOptions = this._getRelationData(db, parsedOptions, this.config);
+            }
             let result = await db.select(parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
-            await this._afterSelect(result, options);
-            result = await this._parseData(result || [], parsedOptions, false);
+            if (parsedOptions.rel) {
+                result = this._parseRelationData(db, parsedOptions, result);
+            }
+            await this._afterSelect(result, parsedOptions);
             return result;
-        } catch(e) {
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -665,8 +676,8 @@ export default class extends base {
             let countNum = await this.count(parsedOptions);
             let pageOptions = parsedOptions.page;
             let totalPage = Math.ceil(countNum / pageOptions.num);
-            if(ORM.isBoolean(pageFlag)){
-                if(pageOptions.page > totalPage){
+            if (ORM.isBoolean(pageFlag)) {
+                if (pageOptions.page > totalPage) {
                     pageOptions.page = pageFlag === true ? 1 : totalPage;
                 }
                 parsedOptions.page = pageOptions.page + ',' + pageOptions.num;
@@ -740,5 +751,92 @@ export default class extends base {
         }
     }
 
+    /**
+     *
+     * @param db
+     * @param options
+     * @param config
+     * @returns {*}
+     * @private
+     */
+    _getRelationData(db, options, config) {
+        let caseList = {
+            HASONE: db._getHasOneRelation,
+            HASMANY: db._getHasManyRelation,
+            MANYTOMANY: db._getManyToManyRelation
+        };
+
+        if (ORM.isEmpty(this.relation)) {
+            return options;
+        } else {
+            //类作用域
+            let scope = class extends thinkorm {}, relationOptions = {};
+            this.relation.forEach(rel => {
+                let type = rel.type || '';
+                if (type == 1) {
+                    type = 'HASONE';
+                } else if (type == 2) {
+                    type = 'HASMANY';
+                } else if (type == 3) {
+                    type = 'MANYTOMANY';
+                } else {
+                    type = (type + '').toUpperCase();
+                }
+                if (rel.key && rel.fkey && type && type in caseList) {
+                    relationOptions = ORM.extend(false, relationOptions, caseList[type](scope, rel, options, config));
+                }
+            });
+            return relationOptions;
+        }
+    }
+
+    /**
+     *
+     * @param db
+     * @param options
+     * @param data
+     * @returns {*}
+     * @private
+     */
+    _parseRelationData(db, options, data) {
+        let caseList = {
+            HASONE: db._parseHasOneRelationData,
+            HASMANY: db._parseHasManyRelationData,
+            MANYTOMANY: db._parseManyToManyRelationData
+        };
+
+        if (ORM.isEmpty(this.relation)) {
+            return data;
+        } else {
+            this.relation.forEach(rel => {
+                let type = rel.type || '';
+                if (type == 1) {
+                    type = 'HASONE';
+                } else if (type == 2) {
+                    type = 'HASMANY';
+                } else if (type == 3) {
+                    type = 'MANYTOMANY';
+                } else {
+                    type = (type + '').toUpperCase();
+                }
+                if (rel.key && rel.fkey && type && type in caseList) {
+                    if (options.relationTables && options.relationTables[rel.model]) {
+                        if (ORM.isArray(data)) {
+                            data.forEach(item => {
+                                item[rel.fkey] = {};
+                                item[rel.fkey] = caseList[type](rel, options.relationTables[rel.model], options, item);
+                            });
+                        } else {
+                            data[rel.fkey] = {};
+                            data[rel.fkey] = caseList[type](rel, options.relationTables[rel.model], options, data);
+                        }
+                    }
+                }
+            });
+            return data;
+        }
+    }
 
 }
+
+export default thinkorm;

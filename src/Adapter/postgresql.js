@@ -107,7 +107,7 @@ export default class extends base {
      * @param {[type]} options [description]
      * @param int 返回插入的id
      */
-    add(data, options) {
+    add(data, options = {}) {
         options.method = 'INSERT';
         return this.parsers().buildSql(data, options).then(sql => {
             return this.execute(sql);
@@ -123,7 +123,7 @@ export default class extends base {
      * @param  {[type]} options [description]
      * @return {[type]}         [description]
      */
-    addAll(data, options) {
+    addAll(data, options = {}) {
         //start trans
         return this.startTrans().then(() => {
             let promised = data.map(item => {
@@ -145,7 +145,7 @@ export default class extends base {
      * 删除数据
      * @return {[type]} [description]
      */
-    delete(options) {
+    delete(options = {}) {
         options.method = 'DELETE';
         return this.parsers().buildSql(options).then(sql => {
             return this.execute(sql);
@@ -159,7 +159,7 @@ export default class extends base {
      * 更新数据
      * @return {[type]} [description]
      */
-    update(data, options) {
+    update(data, options = {}) {
         options.method = 'UPDATE';
         return this.parsers().buildSql(data, options).then(sql => {
             return this.execute(sql);
@@ -175,7 +175,7 @@ export default class extends base {
      * @param options
      * @returns {*}
      */
-    count(field, options) {
+    count(field, options = {}) {
         options.method = 'SELECT';
         options.count = field;
         options.limit = [0, 1];
@@ -196,7 +196,7 @@ export default class extends base {
      * @param options
      * @returns {*}
      */
-    sum(field, options) {
+    sum(field, options = {}) {
         options.method = 'SELECT';
         options.sum = field;
         options.limit = [0, 1];
@@ -215,7 +215,7 @@ export default class extends base {
      * 查询一条数据
      * @return 返回一个promise
      */
-    find(options) {
+    find(options = {}) {
         options.method = 'SELECT';
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
@@ -230,7 +230,7 @@ export default class extends base {
      * 查询数据
      * @return 返回一个promise
      */
-    select(options) {
+    select(options = {}) {
         options.method = 'SELECT';
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);

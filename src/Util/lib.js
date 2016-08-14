@@ -342,6 +342,7 @@ ORM.log = function (msg, type, showTime) {
     console.log(`${dateTime}[${type}] ${message}`);
     return;
 };
+
 /**
  * extend, from jquery，具有深度复制功能
  * @return {[type]} [description]

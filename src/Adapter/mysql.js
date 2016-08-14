@@ -25,21 +25,21 @@ export default class extends base {
         return this.handel;
     }
 
-    close(){
-        if(this.handel){
+    close() {
+        if (this.handel) {
             this.handel.close();
             this.handel = null;
         }
     }
 
-    parsers(){
-        if(!this.parsercls){
+    parsers() {
+        if (!this.parsercls) {
             this.parsercls = new parser(this.config);
         }
         return this.parsercls;
     }
 
-    schema(){
+    schema() {
         //自动创建表\更新表\迁移数据
     }
 
@@ -47,7 +47,7 @@ export default class extends base {
      *
      * @param sql
      */
-    query(sql){
+    query(sql) {
         return this.connect().query(sql).then(data => {
             return this.parsers().bufferToString(data);
         });
@@ -57,7 +57,7 @@ export default class extends base {
      *
      * @param sql
      */
-    execute(sql){
+    execute(sql) {
         return this.connect().execute(sql).then(data => {
             if (data.insertId) {
                 this.lastInsertId = data.insertId;
@@ -70,9 +70,9 @@ export default class extends base {
      *
      * @returns {*}
      */
-    startTrans(){
-        if(this.transTimes === 0){
-            this.transTimes ++;
+    startTrans() {
+        if (this.transTimes === 0) {
+            this.transTimes++;
             return this.execute('START TRANSACTION');
         }
     }
@@ -81,8 +81,8 @@ export default class extends base {
      *
      * @returns {*}
      */
-    commit(){
-        if(this.transTimes > 0){
+    commit() {
+        if (this.transTimes > 0) {
             this.transTimes = 0;
             return this.execute('COMMIT');
         }
@@ -93,8 +93,8 @@ export default class extends base {
      *
      * @returns {*}
      */
-    rollback(){
-        if(this.transTimes > 0){
+    rollback() {
+        if (this.transTimes > 0) {
             this.transTimes = 0;
             return this.execute('ROLLBACK');
         }
@@ -107,7 +107,7 @@ export default class extends base {
      * @param {[type]} options [description]
      * @param int 返回插入的id
      */
-    add(data, options) {
+    add(data, options = {}) {
         options.method = 'INSERT';
         return this.parsers().buildSql(data, options).then(sql => {
             return this.execute(sql);
@@ -123,7 +123,7 @@ export default class extends base {
      * @param  {[type]} options [description]
      * @return {[type]}         [description]
      */
-    addAll(data, options) {
+    addAll(data, options = {}) {
         //start trans
         return this.startTrans().then(() => {
             let promised = data.map(item => {
@@ -145,7 +145,7 @@ export default class extends base {
      * 删除数据
      * @return {[type]} [description]
      */
-    delete(options) {
+    delete(options = {}) {
         options.method = 'DELETE';
         return this.parsers().buildSql(options).then(sql => {
             return this.execute(sql);
@@ -159,7 +159,7 @@ export default class extends base {
      * 更新数据
      * @return {[type]} [description]
      */
-    update(data, options) {
+    update(data, options = {}) {
         options.method = 'UPDATE';
         return this.parsers().buildSql(data, options).then(sql => {
             return this.execute(sql);
@@ -175,21 +175,21 @@ export default class extends base {
      * @param options
      * @returns {*}
      */
-    count(field, options) {
+    count(field, options = {}) {
         options.method = 'SELECT';
         options.count = field;
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            if(ORM.isArray(data)){
-                if(data[0]){
-                    return data[0]['count(`'+field+'`)'] ? (data[0]['count(`'+field+'`)'] || 0) : 0;
+            if (ORM.isArray(data)) {
+                if (data[0]) {
+                    return data[0]['count(`' + field + '`)'] ? (data[0]['count(`' + field + '`)'] || 0) : 0;
                 } else {
                     return 0;
                 }
             } else {
-                return data['count(`'+field+'`)'] || 0;
+                return data['count(`' + field + '`)'] || 0;
             }
         });
     }
@@ -200,21 +200,21 @@ export default class extends base {
      * @param options
      * @returns {*}
      */
-    sum(field, options) {
+    sum(field, options = {}) {
         options.method = 'SELECT';
         options.sum = field;
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            if(ORM.isArray(data)){
-                if(data[0]){
-                    return data[0]['sum(`'+field+'`)'] ? (data[0]['sum(`'+field+'`)'] || 0) : 0;
+            if (ORM.isArray(data)) {
+                if (data[0]) {
+                    return data[0]['sum(`' + field + '`)'] ? (data[0]['sum(`' + field + '`)'] || 0) : 0;
                 } else {
                     return 0;
                 }
             } else {
-                return data['sum(`'+field+'`)'] || 0;
+                return data['sum(`' + field + '`)'] || 0;
             }
         });
     }
@@ -223,7 +223,7 @@ export default class extends base {
      * 查询一条数据
      * @return 返回一个promise
      */
-    find(options) {
+    find(options = {}) {
         options.method = 'SELECT';
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
@@ -238,7 +238,7 @@ export default class extends base {
      * 查询数据
      * @return 返回一个promise
      */
-    select(options) {
+    select(options = {}) {
         options.method = 'SELECT';
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
@@ -246,5 +246,74 @@ export default class extends base {
             //
             return data;
         });
+    }
+
+    /**
+     * hasone
+     * @param scope
+     * @param rel
+     * @param options
+     * @param config
+     * @private
+     */
+    _getHasOneRelation(scope, rel, options, config) {
+        let relationModel = new scope(rel.model, config);
+        if (!relationModel.trueTableName) {
+            return options;
+        }
+        //join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}], 'left')
+        options.joinType = 'left';
+        options.relationTables = {};
+        options.relationTables[rel.model] = relationModel.modelName;
+        options.join = [{
+            field: rel.field || relationModel.fields,
+            from: relationModel.trueTableName,
+            on: [{[rel.fkey]: rel.key}]//hasone fkey 主表外键 key子表主键
+        }];
+        return options;
+    }
+
+    /**
+     * hasmany
+     * @param scope
+     * @param rel
+     * @param options
+     * @param config
+     * @private
+     */
+    _getHasManyRelation(scope, rel, options, config) {
+
+    }
+
+    /**
+     * manytomany
+     * @param scope
+     * @param rel
+     * @param options
+     * @param config
+     * @private
+     */
+    _getManyToManyRelation(scope, rel, options, config) {
+
+    }
+
+    _parseHasOneRelationData(rel, modelName, options, data) {
+        let tempObj = {}, tempName;
+        for (let n in data) {
+            if (n.indexOf(modelName) > -1) {
+                tempName = n.replace(`${modelName}_`, '');
+                tempName && (tempObj[tempName] = data[n]);
+                delete data[n];
+            }
+        }
+        return tempObj;
+    }
+
+    _parseHasManyRelationData(rel, modelName, options, data) {
+
+    }
+
+    _parseManyToManyRelationData(rel, modelName, options, data) {
+
     }
 }
