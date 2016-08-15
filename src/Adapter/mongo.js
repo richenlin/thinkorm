@@ -12,6 +12,9 @@ import socket from '../Socket/mongo';
 export default class extends base {
     init(config = {}) {
         this.config = config;
+
+        this.handel = null;
+        this.parsercls = null;
     }
 
     connect() {
@@ -22,21 +25,22 @@ export default class extends base {
         return this.handel;
     }
 
-    close(){
-        if(this.handel){
+    close() {
+        if (this.handel) {
             this.handel.close();
             this.handel = null;
         }
     }
 
-    parsers(){
-        if(!this.parsercls){
-            this.parsercls = new parser(this.config);
+    parsers() {
+        if (this.parsercls) {
+            return this.parsercls;
         }
+        this.parsercls = new parser(this.config);
         return this.parsercls;
     }
 
-    schema(){
+    schema() {
         //自动创建表\更新表\迁移数据
     }
 
@@ -44,7 +48,7 @@ export default class extends base {
      *
      * @param sql
      */
-    query(options){
+    query(options) {
         return this.connect().query(options).then(data => {
             return this.parsers().bufferToString(data);
         });
@@ -54,10 +58,10 @@ export default class extends base {
      *
      * @param sql
      */
-    execute(options, data){
+    execute(options, data) {
         return this.connect().execute(options, data).then(data => {
             let result = 0;
-            switch (options.method){
+            switch (options.method) {
                 case 'ADD':
                     result = data.insertedId;
                     break;

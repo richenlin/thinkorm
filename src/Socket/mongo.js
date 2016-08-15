@@ -23,7 +23,7 @@ export default class extends base{
             replicaSet: config.db_ext_config.db_replicaset || '',
             connect_url: config.db_ext_config.db_conn_url || ''
         }
-
+        this.connection = null;
     }
 
     connect(){
@@ -145,6 +145,7 @@ export default class extends base{
             this.config.logSql && ORM.log(sql, 'MongoDB', startTime);
             return rows;
         }).catch(err => {
+            this.config.logSql && ORM.log(sql, 'MongoDB', startTime);
             return Promise.reject(err);
         });
     }

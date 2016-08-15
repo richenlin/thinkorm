@@ -59,6 +59,8 @@ let thinkorm = class extends base {
         this._options = {};
         // 数据
         this._data = {};
+        // 关联模型数据
+        this._releationData = {};
         // 验证规则
         this._valid = vaild;
 
@@ -182,7 +184,7 @@ let thinkorm = class extends base {
         }
         let filename = this.__filename || __filename;
         let last = filename.lastIndexOf('/');
-        this.modelName = filename.substr(last + 1, filename.length - last - 9);
+        this.modelName = filename.substr(last + 1, filename.length - last - 4);
         return this.modelName;
     }
 
@@ -294,25 +296,19 @@ let thinkorm = class extends base {
         if (ORM.isString(field)) {
             field = field.replace(/ +/g, '').split(',');
         }
-        let fds = [], temp = '';
-        field.forEach(item => {
-            if (item.indexOf('.') > -1) {
-                temp = item.split('.');
-                if (temp[0].indexOf(this.config.db_prefix) > -1) {
-                    fds.push(item);
-                } else {
-                    fds.push(`${this.config.db_prefix}${item}`);
-                }
-            } else {
-                fds.push(`${this._options.table || this.getTableName()}.${item}`);
-            }
-        });
-        this._options.field = fds;
+        this._options.field = field;
         return this;
     }
 
     /**
      * where条件
+     * 书写方法:
+     * and:      where({id: 1, name: 'a'})
+     * or:       where({or: [{...}, {...}]})
+     * in:       where({id: [1,2,3]})
+     * not:      where({not: {name: '', id: 1}})
+     * notin:    where({notin: {'id': [1,2,3]}})
+     * operator: where({id: {'<>': 1, '>=': 0}})
      * @return {[type]} [description]
      */
     where(where) {
@@ -338,14 +334,17 @@ let thinkorm = class extends base {
     }
 
     /**
-     * join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name']], 'inner')
+     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name']}], 'inner')
      * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name']}], 'left')
-     * join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}], field: ['id', 'name']}], 'right')
+     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name']}], 'right')
      * @param join
      * @param type  inner/left/right
      */
     join(join, type = 'inner') {
         if (!join || !ORM.isArray(join)) {
+            return this;
+        }
+        if(['inner', 'right', 'left'].indexOf(type) === -1){
             return this;
         }
         this._options.joinType = type;
@@ -610,7 +609,8 @@ let thinkorm = class extends base {
             // init db
             let db = await this.initDb();
             let result = await db.find(parsedOptions);
-            result = await this._parseData(ORM.isArray(result) ? result[0] : result, parsedOptions, false);
+            result = await this._parseData(result, parsedOptions, false);
+            result = (ORM.isArray(result) ? result[0] : result) || {};
             await this._afterFind(result, parsedOptions);
             return result;
         } catch (e) {
@@ -741,6 +741,7 @@ let thinkorm = class extends base {
      */
     _parseData(data, options, preCheck = true, option = 1) {
         if (preCheck) {
+            //分离关联模型数据
             return data;
         } else {
             if (ORM.isJSONObj(data)) {
@@ -782,7 +783,7 @@ let thinkorm = class extends base {
                 } else {
                     type = (type + '').toUpperCase();
                 }
-                if (rel.key && rel.fkey && type && type in caseList) {
+                if (rel.fkey && type && type in caseList) {
                     relationOptions = ORM.extend(false, relationOptions, caseList[type](scope, rel, options, config));
                 }
             });
@@ -819,7 +820,7 @@ let thinkorm = class extends base {
                 } else {
                     type = (type + '').toUpperCase();
                 }
-                if (rel.key && rel.fkey && type && type in caseList) {
+                if (rel.fkey && type && type in caseList) {
                     if (options.relationTables && options.relationTables[rel.model]) {
                         if (ORM.isArray(data)) {
                             data.forEach(item => {

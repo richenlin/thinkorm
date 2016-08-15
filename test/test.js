@@ -22,22 +22,26 @@ cls.relation = [
     {
         type: 'HASONE',
         model: 'ttttt',
-        key: 'id',
         fkey: 'tid',
-        //field: ['name', 'user', 'id']
+        field: ['name', 'user', 'id']
     }
 ];
 
 function test(){
     "use strict";
-    return cls.rel(true).select().then(function (data) {
+    return cls
+        //.where({id: {'<>': 1, '>=': 0}}).find()
+        //.join([{from: 'ttttt', on: {or: [{tid: 'id'}, {name: 'name'}], num: 'user'}, field: ['id', 'name']}], 'left').find()
+        //.rel(true).select()
+        .rel('ttttt').select()
+        .then(function (data) {
         console.log(data);
     })
 }
 
-let key = 'ttttt';
-let str = '{"name":"aaa","num":null,"id":2,"tid":2,"ttttt_name":"test","ttttt_user":2,"ttttt_id":2}';
-let out = '{"name":"aaa","num":null,"id":2,"tid":2,"ttttt": {"name":"test","user":2,"id":2}}';
+//let key = 'ttttt';
+//let str = '{"name":"aaa","num":null,"id":2,"tid":2,"ttttt_name":"test","ttttt_user":2,"ttttt_id":2}';
+//let out = '{"name":"aaa","num":null,"id":2,"tid":2,"ttttt": {"name":"test","user":2,"id":2}}';
 
 test();
 

@@ -21,6 +21,7 @@ export default class extends base{
             logSql: config.db_ext_config.db_log_sql || false,
             max: config.db_ext_config.db_pool_size || 10
         }
+        this.connection = null;
     }
 
     connect(){
@@ -86,6 +87,7 @@ export default class extends base{
                 this.close();
                 return this.query(sql);
             }
+            this.config.logSql && ORM.log(sql, 'PostgreSQL', startTime);
             return Promise.reject(err);
         });
     }

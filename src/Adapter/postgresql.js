@@ -15,6 +15,9 @@ export default class extends base {
         this.config = config;
         this.transTimes = 0; //transaction times
         this.lastInsertId = 0;
+
+        this.handel = null;
+        this.parsercls = null;
     }
 
     connect() {
@@ -25,21 +28,22 @@ export default class extends base {
         return this.handel;
     }
 
-    close(){
-        if(this.handel){
+    close() {
+        if (this.handel) {
             this.handel.close();
             this.handel = null;
         }
     }
 
-    parsers(){
-        if(!this.parsercls){
-            this.parsercls = new parser(this.config);
+    parsers() {
+        if (this.parsercls) {
+            return this.parsercls;
         }
+        this.parsercls = new parser(this.config);
         return this.parsercls;
     }
 
-    schema(){
+    schema() {
         //自动创建表\更新表\迁移数据
     }
 
@@ -47,7 +51,7 @@ export default class extends base {
      *
      * @param sql
      */
-    query(sql){
+    query(sql) {
         return this.connect().query(sql).then(data => {
             return this.parsers().bufferToString(data.rows);
         });
@@ -57,7 +61,7 @@ export default class extends base {
      *
      * @param sql
      */
-    execute(sql){
+    execute(sql) {
         return this.connect().execute(sql).then(data => {
             if (data.rows && data.rows[0] && data.rows[0].id) {
                 this.lastInsertId = data.rows[0].id;
@@ -70,9 +74,9 @@ export default class extends base {
      *
      * @returns {*}
      */
-    startTrans(){
-        if(this.transTimes === 0){
-            this.transTimes ++;
+    startTrans() {
+        if (this.transTimes === 0) {
+            this.transTimes++;
             return this.execute('BEGIN');
         }
     }
@@ -81,8 +85,8 @@ export default class extends base {
      *
      * @returns {*}
      */
-    commit(){
-        if(this.transTimes > 0){
+    commit() {
+        if (this.transTimes > 0) {
             this.transTimes = 0;
             return this.execute('COMMIT');
         }
@@ -93,8 +97,8 @@ export default class extends base {
      *
      * @returns {*}
      */
-    rollback(){
-        if(this.transTimes > 0){
+    rollback() {
+        if (this.transTimes > 0) {
             this.transTimes = 0;
             return this.execute('ROLLBACK');
         }
@@ -182,7 +186,7 @@ export default class extends base {
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            if(ORM.isArray(data)){
+            if (ORM.isArray(data)) {
                 return data[0].count;
             } else {
                 return data.count;
@@ -203,7 +207,7 @@ export default class extends base {
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            if(ORM.isArray(data)){
+            if (ORM.isArray(data)) {
                 return data[0].sum;
             } else {
                 return data.sum;

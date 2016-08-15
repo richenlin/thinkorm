@@ -15,6 +15,9 @@ export default class extends base {
         this.config = config;
         this.transTimes = 0; //transaction times
         this.lastInsertId = 0;
+
+        this.handel = null;
+        this.parsercls = null;
     }
 
     connect() {
@@ -33,9 +36,10 @@ export default class extends base {
     }
 
     parsers() {
-        if (!this.parsercls) {
-            this.parsercls = new parser(this.config);
+        if (this.parsercls) {
+            return this.parsercls;
         }
+        this.parsercls = new parser(this.config);
         return this.parsercls;
     }
 
@@ -176,7 +180,7 @@ export default class extends base {
      * @returns {*}
      */
     count(field, options = {}) {
-        options.method = 'SELECT';
+        options.method = 'COUNT';
         options.count = field;
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
@@ -201,7 +205,7 @@ export default class extends base {
      * @returns {*}
      */
     sum(field, options = {}) {
-        options.method = 'SELECT';
+        options.method = 'SUM';
         options.sum = field;
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
@@ -225,6 +229,7 @@ export default class extends base {
      */
     find(options = {}) {
         options.method = 'SELECT';
+        options.field = options.field || ['*'];
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
@@ -240,6 +245,7 @@ export default class extends base {
      */
     select(options = {}) {
         options.method = 'SELECT';
+        options.field = options.field || ['*'];
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -264,11 +270,11 @@ export default class extends base {
         //join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}], 'left')
         options.joinType = 'left';
         options.relationTables = {};
-        options.relationTables[rel.model] = relationModel.modelName;
+        options.relationTables[rel.model] = relationModel.trueTableName;
         options.join = [{
             field: rel.field || relationModel.fields,
             from: relationModel.trueTableName,
-            on: [{[rel.fkey]: rel.key}]//hasone fkey 主表外键 key子表主键
+            on: {[rel.fkey]: relationModel.getPk()}//hasone fkey 主表外键: 子表主键
         }];
         return options;
     }
