@@ -26,6 +26,7 @@ export default class extends base{
         if (charset === 'utf8' || charset === 'utf-8') {
             this.config.charset = 'UTF8_GENERAL_CI';
         }
+        this.pool = null;
         this.connection = null;
     }
 
@@ -33,13 +34,8 @@ export default class extends base{
         if(this.connection){
             return Promise.resolve(this.connection);
         }
-
-        let driver = require('mysql2');
         //use pool
-        //if(this.config.connectionLimit){
-            this.pool = driver.createPool(this.config);
-        //}
-        //if(this.pool){
+        if(this.pool){
             let fn = ORM.promisify(this.pool.getConnection, this.pool);
             return fn().then(conn => {
                 this.connection = conn;
@@ -48,34 +44,41 @@ export default class extends base{
                 this.close();
                 return Promise.reject(err);
             });
-        //}
-        //let connectKey = `mysql://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}`;
-        //return ORM.await(connectKey, () => {
-        //    let deferred = ORM.getDefer();
-        //    let connection = driver.createConnection(this.config);
-        //    connection.connect(err => {
-        //        if(err){
-        //            this.close();
-        //            deferred.reject(err);
-        //        } else {
-        //            deferred.resolve();
-        //        }
-        //    });
-        //    connection.on('error', () => {
-        //        this.close();
-        //        deferred.reject('DB connection error');
-        //    })
-        //    connection.on('end', () => {
-        //        this.close();
-        //        deferred.reject('DB connection end');
-        //    })
-        //    this.connection = connection;
-        //    if (this.deferred) {
-        //        this.deferred.reject(new Error('DB connection closed'));
-        //    }
-        //    this.deferred = deferred;
-        //    return this.deferred.promise;
-        //});
+        }
+
+        let driver = require('mysql');
+        if(this.config.connectionLimit){
+            this.pool = driver.createPool(this.config);
+            return this.connect();
+        }
+
+        let connectKey = `mysql://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}`;
+        return ORM.await(connectKey, () => {
+            let deferred = ORM.getDefer();
+            let connection = driver.createConnection(this.config);
+            connection.connect(err => {
+                if(err){
+                    this.close();
+                    deferred.reject(err);
+                } else {
+                    deferred.resolve();
+                }
+            });
+            connection.on('error', () => {
+                this.close();
+                deferred.reject('DB connection error');
+            })
+            connection.on('end', () => {
+                this.close();
+                deferred.reject('DB connection end');
+            })
+            this.connection = connection;
+            if (this.deferred) {
+                this.deferred.reject(new Error('DB connection closed'));
+            }
+            this.deferred = deferred;
+            return this.deferred.promise;
+        });
     }
 
     query(sql){
