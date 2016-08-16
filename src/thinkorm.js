@@ -887,11 +887,11 @@ let thinkorm = class extends base {
      * @returns {{}}
      * @private
      */
-    async _getManyToManyRelation(scope, rel, data) {
+    _getManyToManyRelation(scope, rel, data) {
         if(!scope || ORM.isEmpty(data) || ORM.isEmpty(data[rel.pk])){
             return [];
         }
-        let rpk = await scope.getPk();
+        let rpk = scope.getPk();
         let mapModel = `${rel.pmodel}_${rel.model}_map`;
         let options = {
             table: `${scope.config.db_prefix}${mapModel}`,
