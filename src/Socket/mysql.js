@@ -26,7 +26,6 @@ export default class extends base{
         if (charset === 'utf8' || charset === 'utf-8') {
             this.config.charset = 'UTF8_GENERAL_CI';
         }
-        this.pool = null;
         this.connection = null;
     }
 
@@ -35,21 +34,10 @@ export default class extends base{
             return Promise.resolve(this.connection);
         }
         //use pool
-        if(this.pool){
-            let fn = ORM.promisify(this.pool.getConnection, this.pool);
-            return fn().then(conn => {
-                this.connection = conn;
-                return this.connection;
-            }).catch(err => {
-                this.close();
-                return Promise.reject(err);
-            });
-        }
-
         let driver = require('mysql');
         if(this.config.connectionLimit){
-            this.pool = driver.createPool(this.config);
-            return this.connect();
+            this.connection = driver.createPool(this.config);
+            return Promise.resolve(this.connection);
         }
 
         let connectKey = `mysql://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}`;
@@ -61,7 +49,7 @@ export default class extends base{
                     this.close();
                     deferred.reject(err);
                 } else {
-                    deferred.resolve();
+                    deferred.resolve(connection);
                 }
             });
             connection.on('error', () => {
@@ -89,11 +77,9 @@ export default class extends base{
             let fn = ORM.promisify(connection.query, connection);
             return fn(sql);
         }).then((rows = []) => {
-            (this.pool && connection.release) && connection.release();
             this.config.logSql && ORM.log(sql, 'MySQL', startTime);
             return rows;
         }).catch(err => {
-            (this.pool && connection.release) && connection.release();
             //when socket is closed, try it
             if(err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'EPIPE'){
                 return this.close().then(() => {

@@ -37,16 +37,12 @@ let thinkorm = class extends base {
         this.pk = 'id';
         // 数据库配置信息
         this.config = null;
-        // 模型
-        this.model = {};
-        // 模型名称
+        // 模型名称(不能被重载)
         this.modelName = '';
-        // 数据表前缀
+        // 数据表前缀(不能被重载)
         this.tablePrefix = '';
-        // 数据表名（不包含表前缀）
+        // 数据表名(不能被重载)
         this.tableName = '';
-        // 实际数据表名（包含表前缀）
-        this.trueTableName = '';
         // 是否自动迁移(默认安全模式)
         this.safe = true;
         // 数据表字段信息
@@ -54,7 +50,7 @@ let thinkorm = class extends base {
         // 数据验证
         this.validations = {};
         // 关联关系
-        this.relation = [];
+        this.relation = {};
         // 参数
         this._options = {};
         // 数据
@@ -64,15 +60,8 @@ let thinkorm = class extends base {
         // 验证规则
         this._valid = vaild;
 
-        // 获取模型名称
-        if (name) {
-            this.modelName = name;
-        } else {
-            //空模型创建临时表
-            this.modelName = '_temp';
-            this.trueTableName = '_temp';
-        }
 
+        // 配置
         this.config = {
             db_type: config.db_type,
             db_host: config.db_host,
@@ -84,24 +73,26 @@ let thinkorm = class extends base {
             db_charset: config.db_charset,
             db_ext_config: config.db_ext_config
         };
-
-        //数据表前缀
-        if (this.tablePrefix) {
-            this.config.db_prefix = this.tablePrefix;
-        } else if (this.config.db_prefix) {
-            this.tablePrefix = this.config.db_prefix;
+        // 获取模型名称
+        if (name) {
+            this.modelName = name;
+            this.tableName = this.getTableName();
         } else {
-            this.tablePrefix = config.db_prefix;
+            //空模型创建临时表
+            this.modelName = '_temp';
+            this.tableName = '_temp';
         }
-        //表名
-        if (!this.trueTableName) {
-            this.trueTableName = this.getTableName();
+        // 表主键
+        if (this.config.db_type === 'mongo') {
+            this.pk = '_id';
         }
-        //安全模式
+        // 数据表前缀
+        this.tablePrefix = this.config.db_prefix || '';
+        // 安全模式
         this.safe = (this.config.db_ext_config.safe === true);
-        //配置hash
+        // 配置hash(不能被重载)
         this.adapterKey = ORM.hash(`${this.config.db_type}_${this.config.db_host}_${this.config.db_port}_${this.config.db_name}`);
-        //构建连接
+        // 链接句柄
         this.db = null;
     }
 
@@ -110,7 +101,7 @@ let thinkorm = class extends base {
      * @returns {*}
      */
     initDb() {
-        let instances = ORM.DB[this.adapterKey];
+        let instances = ORM.DB.conn[this.adapterKey];
         if (!instances) {
             let adapterList = {
                 mysql: __dirname + '/Adapter/mysql.js',
@@ -121,7 +112,7 @@ let thinkorm = class extends base {
                 return this.error('_ADAPTER_IS_NOT_SUPPORT_');
             }
             instances = new (ORM.safeRequire(adapterList[this.config.db_type]))(this.config);
-            ORM.DB[this.adapterKey] = instances;
+            ORM.DB.conn[this.adapterKey] = instances;
         }
         this.db = instances;
         return this.db;
@@ -133,7 +124,67 @@ let thinkorm = class extends base {
      */
     schema() {
         //自动创建表\更新表\迁移数据
-        return this.instances.schema();
+        return this.initDb().then(instances => {
+            return instances.schema(this.tableName, this.fields);
+        })
+    }
+
+    /**
+     * 动态设置关联关系/初始化关联关系
+     * @param relationObj
+     * @returns {*}
+     */
+    setRelation(name, relationShip) {
+        let type;
+        let parseType = function (type) {
+            type = type || 'HASONE';
+            if (type == 1) {
+                type = 'HASONE';
+            } else if (type == 2) {
+                type = 'HASMANY';
+            } else if (type == 3) {
+                type = 'MANYTOMANY';
+            } else {
+                type = (type + '').toUpperCase();
+            }
+            return type
+        };
+        //初始化关联关系
+        if (relationShip === undefined) {
+            if (!ORM.DB.relation[this.tableName]) {
+                ORM.DB.relation[this.tableName] = {};
+                for (let n in this.relation) {
+                    type = parseType(this.relation[n]['type']);
+                    ORM.DB.relation[this.tableName][n] = {
+                        type: type, //关联方式
+                        model: n, //模型名
+                        pk: this.getPk(),//主表主键
+                        pmodel: this.modelName,
+                        field: this.relation[n]['field'] || [],
+                        fkey: this.relation[n]['fkey'] || this.getPk(), //外键
+                        rkey: this.relation[n]['rkey'] || this.getPk() //关联表主键
+                    }
+                }
+            }
+            if (name) {
+                return ORM.DB.relation[this.tableName][name];
+            }
+            return ORM.DB.relation[this.tableName];
+        } else if (name && ORM.isObject(relationShip)) {
+            //动态设置关联关系,可链式操作
+            type = parseType(relationShip['type']);
+            ORM.DB.relation[this.tableName][name] = {
+                type: type, //关联方式
+                model: n, //模型名
+                pk: this.getPk(),//主表主键
+                pmodel: this.modelName,
+                field: relationShip['field'] || [],
+                fkey: relationShip['fkey'] || this.getPk(), //外键
+                rkey: relationShip['rkey'] || this.getPk() //关联表主键
+            }
+            return this;
+        }
+        return null;
     }
 
     /**
@@ -157,7 +208,7 @@ let thinkorm = class extends base {
             }
             ORM.log(msg);
         }
-        return Promise.reject();
+        return ORM.getDefer().promise;
     }
 
     /**
@@ -165,12 +216,12 @@ let thinkorm = class extends base {
      * @return {[type]} [description]
      */
     getTableName() {
-        if (!this.trueTableName) {
+        if (!this.tableName) {
             let tableName = this.config.db_prefix || '';
-            tableName += this.tableName || parseName(this.getModelName());
-            this.trueTableName = tableName.toLowerCase();
+            tableName += parseName(this.getModelName());
+            this.tableName = tableName.toLowerCase();
         }
-        return this.trueTableName;
+        return this.tableName;
     }
 
     /**
@@ -179,12 +230,11 @@ let thinkorm = class extends base {
      * @return string
      */
     getModelName() {
-        if (this.modelName) {
-            return this.modelName;
+        if (!this.modelName) {
+            let filename = this.__filename || __filename;
+            let last = filename.lastIndexOf('/');
+            this.modelName = filename.substr(last + 1, filename.length - last - 4);
         }
-        let filename = this.__filename || __filename;
-        let last = filename.lastIndexOf('/');
-        this.modelName = filename.substr(last + 1, filename.length - last - 4);
         return this.modelName;
     }
 
@@ -199,10 +249,6 @@ let thinkorm = class extends base {
                 if (this.fields[v].hasOwnProperty('primaryKey') && this.fields[v].primaryKey === true) {
                     this.pk = v;
                 }
-            }
-        } else {
-            if (this.config.db_type === 'mongo') {
-                this.pk = '_id';
             }
         }
         return this.pk;
@@ -223,14 +269,33 @@ let thinkorm = class extends base {
     /**
      * 开启关联操作
      * @param table
+     * @param field
      */
-    rel(table = false) {
-        if (ORM.isBoolean(table)) {
-            this._options.rel = table;
-        } else if (ORM.isString(table)) {
-            this._options.rel = table.replace(/ +/g, '').split(',');
-        } else if (ORM.isArray(table)) {
-            this._options.rel = table;
+    rel(table = false, field = {}) {
+        if (table) {
+            //缓存关联关系
+            let rels = this.setRelation();
+            if (table === true) {
+                this._options.rel = rels;
+            } else {
+                if (ORM.isString(table)) {
+                    table = table.replace(/ +/g, '').split(',');
+                }
+                if (ORM.isArray(table)) {
+                    this._options.rel = {};
+                    table.forEach(item => {
+                        rels[item] && (this._options.rel[item] = rels[item]);
+                    });
+                }
+            }
+            //关联表字段
+            if(!ORM.isEmpty(field)){
+                for(let n in field){
+                    if(n in this._options.rel){
+                        this._options.rel[n]['field'] = field[n];
+                    }
+                }
+            }
         }
         return this;
     }
@@ -334,20 +399,15 @@ let thinkorm = class extends base {
     }
 
     /**
-     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name']}], 'inner')
-     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name']}], 'left')
-     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name']}], 'right')
+     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'inner'}])
+     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name'], type: 'left'}])
+     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'right'}])
      * @param join
-     * @param type  inner/left/right
      */
-    join(join, type = 'inner') {
+    join(join) {
         if (!join || !ORM.isArray(join)) {
             return this;
         }
-        if(['inner', 'right', 'left'].indexOf(type) === -1){
-            return this;
-        }
-        this._options.joinType = type;
         this._options.join = join;
         return this;
     }
@@ -635,13 +695,10 @@ let thinkorm = class extends base {
             let parsedOptions = await this._parseOptions(options);
             // init db
             let db = await this.initDb();
-            if (parsedOptions.rel) {
-                parsedOptions = this._getRelationData(db, parsedOptions, this.config);
-            }
             let result = await db.select(parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
-            if (parsedOptions.rel) {
-                result = this._parseRelationData(db, parsedOptions, result);
+            if (!ORM.isEmpty(parsedOptions.rel)) {
+                result = await this._getRelationOption(parsedOptions, result);
             }
             await this._afterSelect(result, parsedOptions);
             return result;
@@ -696,8 +753,10 @@ let thinkorm = class extends base {
 
     /**
      * 解析参数
-     * @param  {[type]} options [description]
-     * @return promise         [description]
+     * @param oriOpts
+     * @param extraOptions
+     * @returns {*}
+     * @private
      */
     _parseOptions(oriOpts, extraOptions) {
         let options;
@@ -710,6 +769,8 @@ let thinkorm = class extends base {
         this._options = {};
         //获取表名
         options.table = options.table || this.getTableName();
+        //模型名称
+        options.name = options.name || this.modelName;
         //解析field,根据model的fields进行过滤
         let field = [];
         if (ORM.isEmpty(options.field) && !ORM.isEmpty(options.fields)) options.field = options.fields;
@@ -754,88 +815,95 @@ let thinkorm = class extends base {
 
     /**
      *
-     * @param db
      * @param options
-     * @param config
      * @returns {*}
      * @private
      */
-    _getRelationData(db, options, config) {
+    async _getRelationOption(options, data) {
         let caseList = {
-            HASONE: db._getHasOneRelation,
-            HASMANY: db._getHasManyRelation,
-            MANYTOMANY: db._getManyToManyRelation
+            HASONE: this._getHasOneRelation,
+            HASMANY: this._getHasManyRelation,
+            MANYTOMANY: this._getManyToManyRelation
         };
-
-        if (ORM.isEmpty(this.relation)) {
-            return options;
-        } else {
-            //类作用域
-            let scope = class extends thinkorm {}, relationOptions = {};
-            this.relation.forEach(rel => {
-                let type = rel.type || '';
-                if (type == 1) {
-                    type = 'HASONE';
-                } else if (type == 2) {
-                    type = 'HASMANY';
-                } else if (type == 3) {
-                    type = 'MANYTOMANY';
-                } else {
-                    type = (type + '').toUpperCase();
+        let relationData = data;
+        if (!ORM.isEmpty(data)) {
+            let relation = options.rel, newClass = class extends thinkorm {}, rtype, scope;
+            let pk = await this.getPk();
+            for (let n in relation) {
+                rtype = relation[n]['type'];
+                if (relation[n].fkey && rtype && rtype in caseList) {
+                    scope = new newClass(n, this.config);
+                    if (ORM.isArray(data)) {
+                        for (let [k,v] of data.entries()) {
+                            data[k][relation[n].fkey] = await caseList[rtype](scope, relation[n], data[k]);
+                        }
+                    } else {
+                        data[relation[n].fkey] = await caseList[rtype](scope, relation[n], data);
+                    }
                 }
-                if (rel.fkey && type && type in caseList) {
-                    relationOptions = ORM.extend(false, relationOptions, caseList[type](scope, rel, options, config));
-                }
-            });
-            return relationOptions;
+            }
         }
+
+        return relationData;
     }
 
     /**
      *
-     * @param db
-     * @param options
+     * @param scope
+     * @param rel
      * @param data
      * @returns {*}
      * @private
      */
-    _parseRelationData(db, options, data) {
-        let caseList = {
-            HASONE: db._parseHasOneRelationData,
-            HASMANY: db._parseHasManyRelationData,
-            MANYTOMANY: db._parseManyToManyRelationData
-        };
-
-        if (ORM.isEmpty(this.relation)) {
-            return data;
-        } else {
-            this.relation.forEach(rel => {
-                let type = rel.type || '';
-                if (type == 1) {
-                    type = 'HASONE';
-                } else if (type == 2) {
-                    type = 'HASMANY';
-                } else if (type == 3) {
-                    type = 'MANYTOMANY';
-                } else {
-                    type = (type + '').toUpperCase();
-                }
-                if (rel.fkey && type && type in caseList) {
-                    if (options.relationTables && options.relationTables[rel.model]) {
-                        if (ORM.isArray(data)) {
-                            data.forEach(item => {
-                                item[rel.fkey] = {};
-                                item[rel.fkey] = caseList[type](rel, options.relationTables[rel.model], options, item);
-                            });
-                        } else {
-                            data[rel.fkey] = {};
-                            data[rel.fkey] = caseList[type](rel, options.relationTables[rel.model], options, data);
-                        }
-                    }
-                }
-            });
-            return data;
+    _getHasOneRelation(scope, rel, data) {
+        if(!scope || ORM.isEmpty(data) || ORM.isEmpty(data[rel.fkey])){
+            return {};
         }
+        let options = {field: rel.field,where: {[rel.rkey]: data[rel.fkey]}, table: `${scope.config.db_prefix}${rel.model}`, name: rel.model};
+        return scope.find(options);
+    }
+
+    /**
+     *
+     * @param scope
+     * @param rel
+     * @param data
+     * @returns {{}}
+     * @private
+     */
+    _getHasManyRelation(scope, rel, data) {
+        if(!scope || ORM.isEmpty(data) || ORM.isEmpty(data[rel.pk])){
+            return [];
+        }
+        let options = {field: rel.field,where: {[rel.rkey]: data[rel.pk]}, table: `${scope.config.db_prefix}${rel.model}`, name: rel.model};
+        return scope.select(options);
+    }
+
+    /**
+     *
+     * @param scope
+     * @param rel
+     * @param data
+     * @returns {{}}
+     * @private
+     */
+    async _getManyToManyRelation(scope, rel, data) {
+        if(!scope || ORM.isEmpty(data) || ORM.isEmpty(data[rel.pk])){
+            return [];
+        }
+        let rpk = await scope.getPk();
+        let mapModel = `${rel.pmodel}_${rel.model}_map`;
+        let options = {
+            table: `${scope.config.db_prefix}${mapModel}`,
+            name: mapModel,
+            join: [
+                {from: `${rel.model}`, on: {[rel.rkey]: rpk}, field: rel.field, type: 'inner'}
+            ],
+            where: {
+                [rel.fkey] : data[rel.pk]
+            }
+        };
+        return scope.select(options);
     }
 
 }

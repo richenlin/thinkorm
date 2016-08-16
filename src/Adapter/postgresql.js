@@ -180,7 +180,7 @@ export default class extends base {
      * @returns {*}
      */
     count(field, options = {}) {
-        options.method = 'SELECT';
+        options.method = 'COUNT';
         options.count = field;
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
@@ -201,7 +201,7 @@ export default class extends base {
      * @returns {*}
      */
     sum(field, options = {}) {
-        options.method = 'SELECT';
+        options.method = 'SUM';
         options.sum = field;
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
@@ -221,6 +221,7 @@ export default class extends base {
      */
     find(options = {}) {
         options.method = 'SELECT';
+        options.field = options.field || ['*'];
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
@@ -236,6 +237,7 @@ export default class extends base {
      */
     select(options = {}) {
         options.method = 'SELECT';
+        options.field = options.field || ['*'];
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {

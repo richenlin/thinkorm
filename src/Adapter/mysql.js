@@ -229,7 +229,6 @@ export default class extends base {
      */
     find(options = {}) {
         options.method = 'SELECT';
-        options.field = options.field || ['*'];
         options.limit = [0, 1];
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
@@ -245,81 +244,11 @@ export default class extends base {
      */
     select(options = {}) {
         options.method = 'SELECT';
-        options.field = options.field || ['*'];
         return this.parsers().buildSql(options).then(sql => {
             return this.query(sql);
         }).then(data => {
             //
             return data;
         });
-    }
-
-    /**
-     * hasone
-     * @param scope
-     * @param rel
-     * @param options
-     * @param config
-     * @private
-     */
-    _getHasOneRelation(scope, rel, options, config) {
-        let relationModel = new scope(rel.model, config);
-        if (!relationModel.trueTableName) {
-            return options;
-        }
-        //join([{from: 'test', on: [{aaa: bbb}, {ccc: ddd}]}], 'left')
-        options.joinType = 'left';
-        options.relationTables = {};
-        options.relationTables[rel.model] = relationModel.trueTableName;
-        options.join = [{
-            field: rel.field || relationModel.fields,
-            from: relationModel.trueTableName,
-            on: {[rel.fkey]: relationModel.getPk()}//hasone fkey 主表外键: 子表主键
-        }];
-        return options;
-    }
-
-    /**
-     * hasmany
-     * @param scope
-     * @param rel
-     * @param options
-     * @param config
-     * @private
-     */
-    _getHasManyRelation(scope, rel, options, config) {
-
-    }
-
-    /**
-     * manytomany
-     * @param scope
-     * @param rel
-     * @param options
-     * @param config
-     * @private
-     */
-    _getManyToManyRelation(scope, rel, options, config) {
-
-    }
-
-    _parseHasOneRelationData(rel, modelName, options, data) {
-        let tempObj = {}, tempName;
-        for (let n in data) {
-            if (n.indexOf(modelName) > -1) {
-                tempName = n.replace(`${modelName}_`, '');
-                tempName && (tempObj[tempName] = data[n]);
-                delete data[n];
-            }
-        }
-        return tempObj;
-    }
-
-    _parseHasManyRelationData(rel, modelName, options, data) {
-
-    }
-
-    _parseManyToManyRelationData(rel, modelName, options, data) {
-
     }
 }

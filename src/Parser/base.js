@@ -192,11 +192,11 @@ let parseKnexOrWhere = function (knex, optionOrWhere) {
 /**
  *
  * @param onCondition
- * @param table
- * @param joinTable
+ * @param alias
+ * @param joinAlias
  * @returns {string}
  */
-let preParseKnexJoin = function (onCondition, table, joinTable, funcTemp = 'this') {
+let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this') {
     //解析on
     for (let n in onCondition) {
         if (n === 'or' || n === 'OR') {
@@ -205,11 +205,21 @@ let preParseKnexJoin = function (onCondition, table, joinTable, funcTemp = 'this
             }
             onCondition[n].forEach(it => {
                 for (let i in it) {
-                    funcTemp += `.orOn('${table}.${i}', '=', '${joinTable}.${it[i]}')`;
+                    //a join b, b join c的情况下,on条件内已经申明alias
+                    if(i.indexOf('.') === -1){
+                        funcTemp += `.orOn('${alias}.${i}', '=', '${joinAlias}.${it[i]}')`;
+                    } else {
+                        funcTemp += `.orOn('${i}', '=', '${joinAlias}.${it[i]}')`;
+                    }
                 }
             })
         } else {
-            funcTemp += `.on('${table}.${n}', '=', '${joinTable}.${onCondition[n]}')`;
+            //a join b, b join c的情况下,on条件内已经申明alias
+            if(n.indexOf('.') === -1){
+                funcTemp += `.on('${alias}.${n}', '=', '${joinAlias}.${onCondition[n]}')`;
+            } else {
+                funcTemp += `.on('${n}', '=', '${joinAlias}.${onCondition[n]}')`;
+            }
         }
     }
     return funcTemp;
@@ -262,7 +272,7 @@ export default class extends base {
             if (item.indexOf('.') > -1) {
                 fds.push(item);
             } else {
-                fds.push(`${options.table}.${item}`);
+                fds.push(`${options.name}.${item}`);
             }
         });
         this.knex.column(fds);
@@ -303,7 +313,7 @@ export default class extends base {
         };
         //parse where options
         for (let key in options.where) {
-            preParseKnexWhere(optionsWhere, key, options.where[key], '', options.table);
+            preParseKnexWhere(optionsWhere, key, options.where[key], '', options.name);
         }
 
         //parsed to knex
@@ -330,9 +340,9 @@ export default class extends base {
     }
 
     /**
-     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name']}], 'inner')
-     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name']}], 'left')
-     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name']}], 'right')
+     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'inner'}])
+     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name'], type: 'left'}])
+     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'right'}])
      * @param data
      * @param options
      */
@@ -341,25 +351,28 @@ export default class extends base {
         //.innerJoin('accounts', function() {
         //    this.on('accounts.id', '=', 'users.account_id').on('accounts.owner_id', '=', 'users.id').orOn('accounts.owner_id', '=', 'users.id')
         //})
-        if (options.joinType && ORM.isArray(options.join)) {
-            let type = options.joinType, config = this.config, table = options.table, joinTable = '', onCondition, func = '';
+        if (ORM.isArray(options.join)) {
+            let type, config = this.config, name = options.name, joinTable = '', onCondition, func = '';
             options.join.map(item => {
-                if (item.from && item.on) {
+                if (item && item.from && item.on) {
                     onCondition = item.on;
                     joinTable = item.from.toLowerCase();
                     joinTable = joinTable.indexOf(config.db_prefix) > -1 ? joinTable : `${config.db_prefix}${joinTable}`;
+                    //关联表字段
                     if (!ORM.isEmpty(item.field) && ORM.isArray(item.field)) {
+                        options.field = options.field || [];
                         item.field.forEach(it => {
                             //关联表字段必须指定,不能写*
                             if (it.indexOf('*') === -1) {
-                                options.field.push(`${joinTable}.${it} AS ${joinTable}_${it}`);
+                                options.field.push(`${item.from}.${it} AS ${item.from}_${it}`);
                             }
                         });
                     }
                     //构造函数
-                    func = new Function('', preParseKnexJoin(onCondition, table, joinTable));
+                    func = new Function('', preParseKnexJoin(onCondition, name, item.from));
                     //拼装knex
-                    this.knex[`${type}Join`](`${joinTable} AS ${joinTable}`, func);
+                    type = item.type ? item.type.toLowerCase() : 'inner';
+                    this.knex[`${type}Join`](`${joinTable} AS ${item.from}`, func);
                 }
             });
         }
@@ -381,7 +394,7 @@ export default class extends base {
      * @returns {*}
      */
     parseTable(data, options) {
-        this.knex.from(`${options.table} AS ${options.table}`);
+        this.knex.from(`${options.table} AS ${options.name}`);
     }
 
     /**

@@ -13,35 +13,44 @@ var cls = new thinkorm('user',{
     db_name: 'test',
     db_user: 'root',
     db_pwd: 'richenlin',
-    db_prefix: '',
+    db_prefix: 'think_',
     db_charset: 'utf8',
     db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
 });
 
-cls.relation = [
-    {
-        type: 'HASONE',
-        model: 'ttttt',
-        fkey: 'tid',
-        field: ['name', 'user', 'id']
+cls.relation = {
+    profile : {
+        type: 'hasone',//关联方式
+        field: ['test', 'id'],//关联表字段
+        fkey: 'profile', //外键
+        rkey: 'id' //关联表主键
+    },
+    pet: {
+        type: 'hasmany',
+        field: ['types','user', 'id'],
+        fkey: 'pet',
+        rkey: 'user'
+    },
+    group: {
+        type: 'manytomany',
+        field: ['name', 'type', 'id'],
+        fkey: 'userid',
+        rkey: 'groupid'
     }
-];
+};
 
 function test(){
     "use strict";
     return cls
         //.where({id: {'<>': 1, '>=': 0}}).find()
-        //.join([{from: 'ttttt', on: {or: [{tid: 'id'}, {name: 'name'}], num: 'user'}, field: ['id', 'name']}], 'left').find()
-        //.rel(true).select()
-        .rel('ttttt').select()
+        //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+        //.field(['id','username']).join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+        .rel(true).select()
+        //.rel('ttttt').select()
         .then(function (data) {
-        console.log(data);
+        console.log(JSON.stringify(data));
     })
 }
-
-//let key = 'ttttt';
-//let str = '{"name":"aaa","num":null,"id":2,"tid":2,"ttttt_name":"test","ttttt_user":2,"ttttt_id":2}';
-//let out = '{"name":"aaa","num":null,"id":2,"tid":2,"ttttt": {"name":"test","user":2,"id":2}}';
 
 test();
 

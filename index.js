@@ -12,7 +12,7 @@ require('babel-runtime/core-js/promise').default = Promise;
 //define THINK object
 global.ORM = {};
 //define DB instance
-ORM.DB = {};
+ORM.DB = {conn: {}, schema: {}, relation: []};
 require('./lib/Util/lib.js');
 //export
 function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
