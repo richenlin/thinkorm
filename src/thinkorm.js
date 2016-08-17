@@ -985,12 +985,14 @@ let thinkorm = class extends base {
                 case 'ADD':
                     //子表增加数据
                     let fkey = await scope.add(v, {table: `${scope.config.db_prefix}${rel.model}`, name: rel.model});
-                    //关系表增加数据
+                    //关系表增加数据,使用thenAdd
+                    relationOptions.where = {[rel.fkey]: result, [rel.rkey]: fkey};
                     fkey && (await scope.thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, relationOptions));
                     break;
                 case 'UPDATE':
                     //关系表两个外键都存在,使用thenAdd,不存在关系就新建
                     if(v[rel.fkey] && v[rel.rkey]){
+                        relationOptions.where = {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]};
                         await scope.thenAdd(v, relationOptions);
                     }
                     break;
