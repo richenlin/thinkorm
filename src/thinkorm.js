@@ -882,7 +882,7 @@ let thinkorm = class extends base {
             HASMANY: this._postHasManyRelation,
             MANYTOMANY: this._postManyToManyRelation
         };
-        let resultData = result;
+
         if (!ORM.isEmpty(result)) {
             let relation = options.rel, newClass = class extends thinkorm {}, rtype, scope;
             let pk = await this.getPk();
@@ -890,11 +890,11 @@ let thinkorm = class extends base {
                 rtype = relation[n]['type'];
                 if (relation[n].fkey && rtype && rtype in caseList) {
                     scope = new newClass(n, this.config);
-                    resultData = await caseList[rtype](scope, result, relation[n], relationData[n], postType)
+                    await caseList[rtype](scope, result, relation[n], relationData[n], postType)
                 }
             }
         }
-        return resultData;
+        return;
     }
 
     /**
@@ -916,7 +916,7 @@ let thinkorm = class extends base {
                 //子表插入数据
                 let fkey = await scope.add(relationData, relationOptions);
                 //更新主表关联字段
-                fkey && (scope.update({[rel.fkey]: fkey}, {where: {[rel.pk]: result}, table: `${scope.config.db_prefix}${rel.pmodel}`, name: rel.pmodel}));
+                fkey && (await scope.update({[rel.fkey]: fkey}, {where: {[rel.pk]: result}, table: `${scope.config.db_prefix}${rel.pmodel}`, name: rel.pmodel}));
                 break;
             case 'UPDATE':
                 //子表主键数据存在才更新
@@ -942,20 +942,22 @@ let thinkorm = class extends base {
             return;
         }
         let relationOptions = {table: `${scope.config.db_prefix}${rel.model}`, name: rel.model};
-        switch (postType){
-            case 'ADD':
-                //子表插入数据
-                relationData[rel.rkey] = relationData[rel.pk];
-                relationData[rel.rkey] && (await scope.add(relationData, relationOptions));
-                break;
-            case 'UPDATE':
-                for(let [k, v] of relationData.entries()){
+        for(let [k, v] of relationData.entries()){
+            switch (postType){
+                case 'ADD':
+                    //子表插入数据
+                    if(v[rel.pk]){
+                        v[rel.rkey] = v[rel.pk];
+                        await scope.add(v, relationOptions);
+                    }
+                    break;
+                case 'UPDATE':
                     //子表主键数据存在才更新
                     if(v[rel.rkey]){
                         await scope.update(v, relationOptions);
                     }
-                }
-                break;
+                    break;
+            }
         }
         return;
     }
@@ -977,16 +979,22 @@ let thinkorm = class extends base {
         let rpk = scope.getPk();
         //关系表
         let mapModel = `${rel.pmodel}_${rel.model}_map`;
-        switch (postType){
-            case 'ADD':
-                //子表增加数据
-                let fkey = scope.add(relationData, {table: `${scope.config.db_prefix}${rel.model}`, name: rel.model});
-                //关系表增加数据
-                //fkey && (scope.thenAdd({[]}));
-                break;
-            case 'UPDATE':
-                //子表主键存在且子表记录存在,更新关系表(需要使用thenAdd)
-                break;
+        let relationOptions = {table: `${scope.config.db_prefix}${mapModel}`, name: mapModel};
+        for(let [k, v] of relationData.entries()){
+            switch (postType){
+                case 'ADD':
+                    //子表增加数据
+                    let fkey = await scope.add(v, {table: `${scope.config.db_prefix}${rel.model}`, name: rel.model});
+                    //关系表增加数据
+                    fkey && (await scope.thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, relationOptions));
+                    break;
+                case 'UPDATE':
+                    //关系表两个外键都存在,使用thenAdd,不存在关系就新建
+                    if(v[rel.fkey] && v[rel.rkey]){
+                        await scope.thenAdd(v, relationOptions);
+                    }
+                    break;
+            }
         }
         return;
     }

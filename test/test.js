@@ -29,20 +29,20 @@ cls.relation = {
     Profile : {
         type: 'hasone',//关联方式
         field: ['test', 'id'],//关联表字段
-        fkey: 'profile', //主表外键
+        fkey: 'profile', //主表外键 (子表主键)
         rkey: 'id' //子表主键
     },
     Pet: {
         type: 'hasmany',
         field: ['types','user', 'id'],
         fkey: 'pet',//虚拟字段
-        rkey: 'user'//子表外键
+        rkey: 'user'//子表外键 (主表主键)
     },
     Group: {
         type: 'manytomany',
         field: ['name', 'type', 'id'],
-        fkey: 'userid',//map主表外键
-        rkey: 'groupid'//map子表外键
+        fkey: 'userid',//map外键(主表主键)
+        rkey: 'groupid'//map外键(子表主键)
     }
 };
 
