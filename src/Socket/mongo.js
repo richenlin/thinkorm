@@ -127,10 +127,10 @@ export default class extends base{
                     sql = `${sql}.insertOne(${JSON.stringify(data)})`;
                     handler = col.insertOne(data);
                     break;
-                case 'ADDALL':
-                    sql = `${sql}.insertMany(${JSON.stringify(data)})`;
-                    handler = col.insertMany(data);
-                    break;
+                //case 'ADDALL':
+                //    sql = `${sql}.insertMany(${JSON.stringify(data)})`;
+                //    handler = col.insertMany(data);
+                //    break;
                 case 'UPDATE':
                     sql = `${sql}${options.where ? '.update('+ JSON.stringify(options.where) +', {$set:'+JSON.stringify(data)+'}, false, true))' : '.update({}, {$set:'+JSON.stringify(data)+'})'}`;
                     handler = col.updateMany(options.where || {}, data);

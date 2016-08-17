@@ -352,27 +352,27 @@ export default class extends base {
         //    this.on('accounts.id', '=', 'users.account_id').on('accounts.owner_id', '=', 'users.id').orOn('accounts.owner_id', '=', 'users.id')
         //})
         if (ORM.isArray(options.join)) {
-            let type, config = this.config, name = options.name, joinTable = '', onCondition, func = '';
+            let type, config = this.config, name = options.name, joinAlias = '', joinTable = '', onCondition, func = '';
             options.join.map(item => {
                 if (item && item.from && item.on) {
                     onCondition = item.on;
-                    joinTable = item.from.toLowerCase();
-                    joinTable = joinTable.indexOf(config.db_prefix) > -1 ? joinTable : `${config.db_prefix}${joinTable}`;
+                    joinAlias = ORM.parseName(item.from);
+                    joinTable = `${config.db_prefix}${joinAlias}`;
                     //关联表字段
                     if (!ORM.isEmpty(item.field) && ORM.isArray(item.field)) {
                         options.field = options.field || [];
                         item.field.forEach(it => {
                             //关联表字段必须指定,不能写*
                             if (it.indexOf('*') === -1) {
-                                options.field.push(`${item.from}.${it} AS ${item.from}_${it}`);
+                                options.field.push(`${item.from}.${it} AS ${joinAlias}_${it}`);
                             }
                         });
                     }
                     //构造函数
-                    func = new Function('', preParseKnexJoin(onCondition, name, item.from));
+                    func = new Function('', preParseKnexJoin(onCondition, name, joinAlias));
                     //拼装knex
                     type = item.type ? item.type.toLowerCase() : 'inner';
-                    this.knex[`${type}Join`](`${joinTable} AS ${item.from}`, func);
+                    this.knex[`${type}Join`](`${joinTable} AS ${joinAlias}`, func);
                 }
             });
         }

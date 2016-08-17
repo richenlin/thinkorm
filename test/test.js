@@ -17,25 +17,32 @@ var cls = new thinkorm('user',{
     db_charset: 'utf8',
     db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
 });
-
+cls.fields = {
+    id: {
+        type: 'integer'
+    },
+    username: {
+        type: 'string'
+    }
+};
 cls.relation = {
-    profile : {
+    Profile : {
         type: 'hasone',//关联方式
         field: ['test', 'id'],//关联表字段
-        fkey: 'profile', //外键
-        rkey: 'id' //关联表主键
+        fkey: 'profile', //主表外键
+        rkey: 'id' //子表主键
     },
-    pet: {
+    Pet: {
         type: 'hasmany',
         field: ['types','user', 'id'],
-        fkey: 'pet',
-        rkey: 'user'
+        fkey: 'pet',//虚拟字段
+        rkey: 'user'//子表外键
     },
-    group: {
+    Group: {
         type: 'manytomany',
         field: ['name', 'type', 'id'],
-        fkey: 'userid',
-        rkey: 'groupid'
+        fkey: 'userid',//map主表外键
+        rkey: 'groupid'//map子表外键
     }
 };
 
@@ -45,8 +52,9 @@ function test(){
         //.where({id: {'<>': 1, '>=': 0}}).find()
         //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
         //.field(['id','username']).join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
-        .rel(true).select()
-        //.rel('ttttt').select()
+        //.rel('Pet').countSelect()
+        //.rel(true).select()
+        .where({id: 3}).update({username: 'test3'})
         .then(function (data) {
         console.log(JSON.stringify(data));
     })

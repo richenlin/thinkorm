@@ -275,6 +275,23 @@ ORM.ucFirst = function (name) {
     return name.substr(0, 1).toUpperCase() + name.substr(1).toLowerCase();
 };
 /**
+ * 字符串命名风格转换
+ * @param  {[type]} name [description]
+ * @param  {[type]} type [description]
+ * @return {[type]}      [description]
+ */
+ORM.parseName = function (name) {
+    name = name.trim();
+    if (!name) {
+        return name;
+    }
+    //首字母如果是大写，不转义为_x
+    name = name[0].toLowerCase() + name.substr(1);
+    return name.replace(/[A-Z]/g, function (a) {
+        return '_' + a.toLowerCase();
+    });
+};
+/**
  * 字符串或文件hash,比md5效率高,但是有很低的概率重复
  * @param input
  * @returns {string}

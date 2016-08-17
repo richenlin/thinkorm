@@ -65,9 +65,9 @@ export default class extends base {
                 case 'ADD':
                     result = data.insertedId;
                     break;
-                case 'ADDALL':
-                    result = data.insertedCount;
-                    break;
+                //case 'ADDALL':
+                //    result = data.insertedCount;
+                //    break;
                 case 'UPDATE':
                     result = data.modifiedCount;
                     break;
@@ -87,21 +87,6 @@ export default class extends base {
      */
     add(data, options = {}) {
         options.method = 'ADD';
-        return this.parsers().buildSql(data, options).then(sql => {
-            return this.execute(sql, data);
-        }).then(data => {
-            return data;
-        });
-    }
-
-    /**
-     * 插入多条数据
-     * @param  {[type]} data    [description]
-     * @param  {[type]} options [description]
-     * @return {[type]}         [description]
-     */
-    addAll(data, options = {}) {
-        options.method = 'ADDALL';
         return this.parsers().buildSql(data, options).then(sql => {
             return this.execute(sql, data);
         }).then(data => {

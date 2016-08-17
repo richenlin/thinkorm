@@ -7,23 +7,6 @@
  */
 import base from './base';
 import vaild from './Util/valid';
-/**
- * 字符串命名风格转换
- * @param  {[type]} name [description]
- * @param  {[type]} type [description]
- * @return {[type]}      [description]
- */
-let parseName = function (name) {
-    name = name.trim();
-    if (!name) {
-        return name;
-    }
-    //首字母如果是大写，不转义为_x
-    name = name[0].toLowerCase() + name.substr(1);
-    return name.replace(/[A-Z]/g, function (a) {
-        return '_' + a.toLowerCase();
-    });
-};
 
 let thinkorm = class extends base {
 
@@ -38,11 +21,9 @@ let thinkorm = class extends base {
         // 数据库配置信息
         this.config = null;
         // 模型名称(不能被重载)
-        this.modelName = '';
-        // 数据表前缀(不能被重载)
-        this.tablePrefix = '';
+        this._modelName = '';
         // 数据表名(不能被重载)
-        this.tableName = '';
+        this._tableName = '';
         // 是否自动迁移(默认安全模式)
         this.safe = true;
         // 数据表字段信息
@@ -56,7 +37,7 @@ let thinkorm = class extends base {
         // 数据
         this._data = {};
         // 关联模型数据
-        this._releationData = {};
+        this._relationData = {};
         // 验证规则
         this._valid = vaild;
 
@@ -75,19 +56,17 @@ let thinkorm = class extends base {
         };
         // 获取模型名称
         if (name) {
-            this.modelName = name;
-            this.tableName = this.getTableName();
+            this._modelName = name;
+            this._tableName = this.getTableName();
         } else {
             //空模型创建临时表
-            this.modelName = '_temp';
-            this.tableName = '_temp';
+            this._modelName = '_temp';
+            this._tableName = '_temp';
         }
         // 表主键
         if (this.config.db_type === 'mongo') {
             this.pk = '_id';
         }
-        // 数据表前缀
-        this.tablePrefix = this.config.db_prefix || '';
         // 安全模式
         this.safe = (this.config.db_ext_config.safe === true);
         // 配置hash(不能被重载)
@@ -125,16 +104,16 @@ let thinkorm = class extends base {
     schema() {
         //自动创建表\更新表\迁移数据
         return this.initDb().then(instances => {
-            return instances.schema(this.tableName, this.fields);
+            return instances.schema(this._tableName, this.fields);
         })
     }
 
     /**
-     * 动态设置关联关系/初始化关联关系
+     * 获取关联关系
      * @param relationObj
      * @returns {*}
      */
-    setRelation(name, relationShip) {
+    getRelation(name) {
         let type;
         let parseType = function (type) {
             type = type || 'HASONE';
@@ -150,41 +129,28 @@ let thinkorm = class extends base {
             return type
         };
         //初始化关联关系
-        if (relationShip === undefined) {
-            if (!ORM.DB.relation[this.tableName]) {
-                ORM.DB.relation[this.tableName] = {};
+        if (!ORM.DB.relation[this._tableName]) {
+            if (!ORM.DB.relation[this._tableName]) {
+                ORM.DB.relation[this._tableName] = {};
                 for (let n in this.relation) {
                     type = parseType(this.relation[n]['type']);
-                    ORM.DB.relation[this.tableName][n] = {
+                    ORM.DB.relation[this._tableName][n] = {
                         type: type, //关联方式
-                        model: n, //模型名
+                        model: ORM.parseName(n), //关联表名,不带前缀
                         pk: this.getPk(),//主表主键
-                        pmodel: this.modelName,
+                        pmodel: this._modelName,//主表名,不带前缀
                         field: this.relation[n]['field'] || [],
-                        fkey: this.relation[n]['fkey'] || this.getPk(), //外键
-                        rkey: this.relation[n]['rkey'] || this.getPk() //关联表主键
+                        fkey: this.relation[n]['fkey'], //外键
+                        rkey: this.relation[n]['rkey'] //关联表主键
                     }
                 }
             }
-            if (name) {
-                return ORM.DB.relation[this.tableName][name];
-            }
-            return ORM.DB.relation[this.tableName];
-        } else if (name && ORM.isObject(relationShip)) {
-            //动态设置关联关系,可链式操作
-            type = parseType(relationShip['type']);
-            ORM.DB.relation[this.tableName][name] = {
-                type: type, //关联方式
-                model: n, //模型名
-                pk: this.getPk(),//主表主键
-                pmodel: this.modelName,
-                field: relationShip['field'] || [],
-                fkey: relationShip['fkey'] || this.getPk(), //外键
-                rkey: relationShip['rkey'] || this.getPk() //关联表主键
-            }
-            return this;
         }
-        return null;
+
+        if (name) {
+            return ORM.DB.relation[this._tableName][name];
+        }
+        return ORM.DB.relation[this._tableName];
     }
 
     /**
@@ -200,7 +166,6 @@ let thinkorm = class extends base {
                 }
                 msg = new Error(msg);
             }
-
             let stack = msg.message ? msg.message.toLowerCase() : '';
             // connection error
             if (~stack.indexOf('connect') || ~stack.indexOf('refused')) {
@@ -216,12 +181,12 @@ let thinkorm = class extends base {
      * @return {[type]} [description]
      */
     getTableName() {
-        if (!this.tableName) {
+        if (!this._tableName) {
             let tableName = this.config.db_prefix || '';
-            tableName += parseName(this.getModelName());
-            this.tableName = tableName.toLowerCase();
+            tableName += ORM.parseName(this.getModelName());
+            this._tableName = tableName.toLowerCase();
         }
-        return this.tableName;
+        return this._tableName;
     }
 
     /**
@@ -229,13 +194,13 @@ let thinkorm = class extends base {
      * @access public
      * @return string
      */
-    getModelName() {
-        if (!this.modelName) {
+    getModelName(name) {
+        if (!this._modelName) {
             let filename = this.__filename || __filename;
             let last = filename.lastIndexOf('/');
-            this.modelName = filename.substr(last + 1, filename.length - last - 4);
+            this._modelName = filename.substr(last + 1, filename.length - last - 4);
         }
-        return this.modelName;
+        return this._modelName;
     }
 
     /**
@@ -274,7 +239,7 @@ let thinkorm = class extends base {
     rel(table = false, field = {}) {
         if (table) {
             //缓存关联关系
-            let rels = this.setRelation();
+            let rels = this.getRelation();
             if (table === true) {
                 this._options.rel = rels;
             } else {
@@ -441,6 +406,9 @@ let thinkorm = class extends base {
             this._data = await this._beforeAdd(this._data, parsedOptions);
             this._data = await this._parseData(this._data, parsedOptions);
             let result = await db.add(this._data, parsedOptions);
+            if(!ORM.isEmpty(this._relationData)){
+                await this._postRelationData(result, parsedOptions, this._relationData, 'ADD');
+            }
             await this._afterAdd(this._data, parsedOptions);
             let pk = await this.getPk();
             result = await this._parseData(this._data[pk] || 0, parsedOptions, false);
@@ -458,49 +426,6 @@ let thinkorm = class extends base {
      */
     _afterAdd(data, options) {
         return Promise.resolve(data);
-    }
-
-    /**
-     * 插入多条数据
-     * @param  {[type]} data    [description]
-     * @param  {[type]} options [description]
-     * @return {[type]}         [description]
-     */
-    async addAll(data, options) {
-        try {
-            if (!ORM.isArray(data) || !ORM.isObject(data[0])) {
-                return this.error('_DATA_TYPE_INVALID_');
-            }
-            let parsedOptions = await this._parseOptions(options);
-            // init db
-            let db = await this.initDb();
-            //copy data
-            this._data = ORM.extend([], data);
-            let promisesd = this._data.map(item => {
-                return this._beforeAdd(item, parsedOptions);
-            });
-            this._data = await Promise.all(promisesd);
-            let promiseso = this._data.map(item => {
-                return this._parseData(item, parsedOptions);
-            });
-            this._data = await Promise.all(promiseso);
-            let result = await db.addAll(this._data, parsedOptions);
-            result = await this._parseData(result || [], parsedOptions, false);
-            if (!ORM.isEmpty(result) && ORM.isArray(result)) {
-                let pk = await this.getPk(), resData = [];
-                result.forEach((v, k) => {
-                    this._data[k][pk] = v;
-                    resData.push(this._afterAdd(this._data[k], parsedOptions).then(() => {
-                        return v;
-                    }));
-                });
-                return Promise.all(resData);
-            } else {
-                return [];
-            }
-        } catch (e) {
-            return this.error(e);
-        }
     }
 
     /**
@@ -599,6 +524,9 @@ let thinkorm = class extends base {
                 }
             }
             let result = await db.update(this._data, parsedOptions);
+            if(!ORM.isEmpty(this._relationData)){
+                await this._postRelationData(result, parsedOptions, this._relationData, 'UPDATE');
+            }
             await this._afterUpdate(this._data, parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
             return result;
@@ -671,6 +599,9 @@ let thinkorm = class extends base {
             let result = await db.find(parsedOptions);
             result = await this._parseData(result, parsedOptions, false);
             result = (ORM.isArray(result) ? result[0] : result) || {};
+            if (!ORM.isEmpty(parsedOptions.rel)) {
+                result = await this._getRelationData(parsedOptions, result);
+            }
             await this._afterFind(result, parsedOptions);
             return result;
         } catch (e) {
@@ -698,7 +629,7 @@ let thinkorm = class extends base {
             let result = await db.select(parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
             if (!ORM.isEmpty(parsedOptions.rel)) {
-                result = await this._getRelationOption(parsedOptions, result);
+                result = await this._getRelationData(parsedOptions, result);
             }
             await this._afterSelect(result, parsedOptions);
             return result;
@@ -770,7 +701,7 @@ let thinkorm = class extends base {
         //获取表名
         options.table = options.table || this.getTableName();
         //模型名称
-        options.name = options.name || this.modelName;
+        options.name = options.name || this._modelName;
         //解析field,根据model的fields进行过滤
         let field = [];
         if (ORM.isEmpty(options.field) && !ORM.isEmpty(options.fields)) options.field = options.fields;
@@ -802,8 +733,38 @@ let thinkorm = class extends base {
      */
     _parseData(data, options, preCheck = true, option = 1) {
         if (preCheck) {
-            //分离关联模型数据
-            return data;
+            //根据模型定义字段类型进行数据检查
+            let result = [];
+            for (let field in data) {
+                //分离关联模型数据
+                if(this.relation[field]){
+                    !this._relationData[field] && (this._relationData[field] = {});
+                    this._relationData[field] = data[field];
+                    delete data[field];
+                }
+                //移除未定义的字段
+                if (!this.fields[field]) {
+                    delete data[field];
+                }
+            }
+            //根据规则自动验证数据
+            if (ORM.isEmpty(this.validations)) {
+                return data;
+            }
+            let field, value, checkData = [];
+            for (field in this.validations) {
+                value = ORM.extend(this.validations[field], {name: field, value: data[field]});
+                checkData.push(value);
+            }
+            if (ORM.isEmpty(checkData)) {
+                return data;
+            }
+            result = {};
+            result = this._valid(checkData);
+            if (ORM.isEmpty(result)) {
+                return data;
+            }
+            return this.error(Object.values(result)[0]);
         } else {
             if (ORM.isJSONObj(data)) {
                 return data;
@@ -819,7 +780,7 @@ let thinkorm = class extends base {
      * @returns {*}
      * @private
      */
-    async _getRelationOption(options, data) {
+    async _getRelationData(options, data) {
         let caseList = {
             HASONE: this._getHasOneRelation,
             HASMANY: this._getHasManyRelation,
@@ -832,7 +793,7 @@ let thinkorm = class extends base {
             for (let n in relation) {
                 rtype = relation[n]['type'];
                 if (relation[n].fkey && rtype && rtype in caseList) {
-                    scope = new newClass(n, this.config);
+                    scope = new newClass(relation[n].model, this.config);
                     if (ORM.isArray(data)) {
                         for (let [k,v] of data.entries()) {
                             data[k][relation[n].fkey] = await caseList[rtype](scope, relation[n], data[k]);
@@ -906,6 +867,129 @@ let thinkorm = class extends base {
         return scope.select(options);
     }
 
+    /**
+     *
+     * @param result
+     * @param options
+     * @param relationData
+     * @param postType
+     * @returns {*}
+     * @private
+     */
+    async _postRelationData(result, options, relationData, postType){
+        let caseList = {
+            HASONE: this._postHasOneRelation,
+            HASMANY: this._postHasManyRelation,
+            MANYTOMANY: this._postManyToManyRelation
+        };
+        let resultData = result;
+        if (!ORM.isEmpty(result)) {
+            let relation = options.rel, newClass = class extends thinkorm {}, rtype, scope;
+            let pk = await this.getPk();
+            for (let n in relation) {
+                rtype = relation[n]['type'];
+                if (relation[n].fkey && rtype && rtype in caseList) {
+                    scope = new newClass(n, this.config);
+                    resultData = await caseList[rtype](scope, result, relation[n], relationData[n], postType)
+                }
+            }
+        }
+        return resultData;
+    }
+
+    /**
+     *
+     * @param scope
+     * @param result
+     * @param rel
+     * @param relationData
+     * @param postType
+     * @private
+     */
+    async _postHasOneRelation(scope, result, rel, relationData, postType){
+        if(!scope || ORM.isEmpty(result) || ORM.isEmpty(relationData)){
+            return;
+        }
+        let relationOptions = {table: `${scope.config.db_prefix}${rel.model}`, name: rel.model};
+        switch (postType){
+            case 'ADD':
+                //子表插入数据
+                let fkey = await scope.add(relationData, relationOptions);
+                //更新主表关联字段
+                fkey && (scope.update({[rel.fkey]: fkey}, {where: {[rel.pk]: result}, table: `${scope.config.db_prefix}${rel.pmodel}`, name: rel.pmodel}));
+                break;
+            case 'UPDATE':
+                //子表主键数据存在才更新
+                if(relationData[rel.fkey]){
+                    await scope.update(relationData, relationOptions);
+                }
+                break;
+        }
+        return;
+    }
+
+    /**
+     *
+     * @param scope
+     * @param result
+     * @param rel
+     * @param relationData
+     * @param postType
+     * @private
+     */
+    async _postHasManyRelation(scope, result, rel, relationData, postType){
+        if(!scope || ORM.isEmpty(result) || ORM.isEmpty(relationData)){
+            return;
+        }
+        let relationOptions = {table: `${scope.config.db_prefix}${rel.model}`, name: rel.model};
+        switch (postType){
+            case 'ADD':
+                //子表插入数据
+                relationData[rel.rkey] = relationData[rel.pk];
+                relationData[rel.rkey] && (await scope.add(relationData, relationOptions));
+                break;
+            case 'UPDATE':
+                for(let [k, v] of relationData.entries()){
+                    //子表主键数据存在才更新
+                    if(v[rel.rkey]){
+                        await scope.update(v, relationOptions);
+                    }
+                }
+                break;
+        }
+        return;
+    }
+
+    /**
+     *
+     * @param scope
+     * @param result
+     * @param rel
+     * @param relationData
+     * @param postType
+     * @private
+     */
+    async _postManyToManyRelation(scope, result, rel, relationData, postType){
+        if(!scope || ORM.isEmpty(result) || ORM.isEmpty(relationData)){
+            return;
+        }
+        //子表主键
+        let rpk = scope.getPk();
+        //关系表
+        let mapModel = `${rel.pmodel}_${rel.model}_map`;
+        switch (postType){
+            case 'ADD':
+                //子表增加数据
+                let fkey = scope.add(relationData, {table: `${scope.config.db_prefix}${rel.model}`, name: rel.model});
+                //关系表增加数据
+                //fkey && (scope.thenAdd({[]}));
+                break;
+            case 'UPDATE':
+                //子表主键存在且子表记录存在,更新关系表(需要使用thenAdd)
+                break;
+        }
+        return;
+    }
 }
 
 export default thinkorm;
