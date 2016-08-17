@@ -45,6 +45,7 @@ export default class extends base {
 
     schema() {
         //自动创建表\更新表\迁移数据
+        return;
     }
 
     /**
@@ -112,7 +113,7 @@ export default class extends base {
      * @param int 返回插入的id
      */
     add(data, options = {}) {
-        options.method = 'INSERT';
+        options.method = 'ADD';
         return this.parsers().buildSql(data, options).then(sql => {
             return this.execute(sql);
         }).then(data => {

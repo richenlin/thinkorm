@@ -405,6 +405,7 @@ export default class extends base {
     parseMethod(data, options) {
         let caseList = {SELECT: 1, ADD: 1, UPDATE: 1, DELETE: 1, COUNT: 1, SUM: 1};
         let optType = options.method;
+        console.log(optType)
         if (optType && optType in caseList) {
             switch (optType) {
                 case 'SELECT':

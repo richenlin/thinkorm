@@ -406,9 +406,9 @@ let thinkorm = class extends base {
             this._data = await this._beforeAdd(this._data, parsedOptions);
             this._data = await this._parseData(this._data, parsedOptions);
             let result = await db.add(this._data, parsedOptions);
-            if(!ORM.isEmpty(this._relationData)){
-                await this._postRelationData(result, parsedOptions, this._relationData, 'ADD');
-            }
+            //if(!ORM.isEmpty(this._relationData)){
+            //    await this._postRelationData(result, parsedOptions, this._relationData, 'ADD');
+            //}
             await this._afterAdd(this._data, parsedOptions);
             let pk = await this.getPk();
             result = await this._parseData(this._data[pk] || 0, parsedOptions, false);
@@ -706,7 +706,7 @@ let thinkorm = class extends base {
         let field = [];
         if (ORM.isEmpty(options.field) && !ORM.isEmpty(options.fields)) options.field = options.fields;
         //解析分页
-        if ('page' in options) {
+        if (options['page']) {
             let page = options.page + '';
             let num = 0;
             if (page.indexOf(',') > -1) {

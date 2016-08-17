@@ -54,7 +54,8 @@ function test(){
         //.field(['id','username']).join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
         //.rel('Pet').countSelect()
         //.rel(true).select()
-        .where({id: 3}).update({username: 'test3'})
+        //.where({id: 3}).update({username: 'test3'})
+        .add({username: 'rrrrrrr',Profile: {test: 'rrrtest'}})
         .then(function (data) {
         console.log(JSON.stringify(data));
     })
