@@ -35,8 +35,12 @@ function test(){
     "use strict";
     return model
         //.where({id: {'<>': 1, '>=': 0}}).find()
+        //.where({id: {'>=': 0}}).count()
+        //.where({id: {'>=': 0}}).sum('id')
+        //.where({id: {'>=': 0}}).select('id')
+        .where({id: {'>=': 0}}).countSelect()
         //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
-        .field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+        //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
         //.rel(true).find()
         //.add({username: 'rrrrrrr',Profile: {test: 'rrrtest'}})
         //.where({id: 60}).update({username: 'tttttt',Profile: {test: 'ttttttt'}})

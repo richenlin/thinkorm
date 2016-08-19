@@ -442,10 +442,10 @@ export default class extends base {
                     this.knex = this.knexClient.del();
                     break;
                 case 'COUNT':
-                    this.knex = this.knexClient.count(options.count);
+                    this.knex = this.knexClient.count(`${options.count} AS count`);
                     break;
                 case 'SUM':
-                    this.knex = this.knexClient.sum(options.sum);
+                    this.knex = this.knexClient.sum(`${options.sum} AS sum`);
                     break;
             }
         }
