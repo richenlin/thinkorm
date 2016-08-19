@@ -9,11 +9,12 @@
 //rewite promise, bluebird is more faster
 global.Promise = require('bluebird');
 require('babel-runtime/core-js/promise').default = Promise;
-//define THINK object
-global.ORM = {};
-//define DB instance
-ORM.DB = {conn: {}, schema: {}, relation: []};
 require('./lib/Util/lib.js');
 //export
 function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-module.exports = requireDefault(require('./lib/thinkorm.js')).default;
+ORM.model = requireDefault(require('./lib/model.js')).default;
+var schema = requireDefault(require('./lib/schema.js')).default;
+module.exports = {
+    setCollection: schema.setCollection,
+    Model: ORM.model
+};

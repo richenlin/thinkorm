@@ -43,11 +43,6 @@ export default class extends base {
         return this.parsercls;
     }
 
-    schema() {
-        //自动创建表\更新表\迁移数据
-        return;
-    }
-
     /**
      *
      * @param sql

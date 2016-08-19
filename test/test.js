@@ -6,7 +6,9 @@
  * @version    16/7/26
  */
 var thinkorm = require('../index.js');
-var cls = new thinkorm('user',{
+function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var config = {
     db_type: 'mysql',
     db_host: '192.168.99.100',
     db_port: 3306,
@@ -16,52 +18,103 @@ var cls = new thinkorm('user',{
     db_prefix: 'think_',
     db_charset: 'utf8',
     db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
-});
-cls.fields = {
-    id: {
-        type: 'integer'
-    },
-    username: {
-        type: 'string'
-    }
 };
-cls.relation = {
-    Profile : {
-        type: 'hasone',//关联方式
-        field: ['test', 'id'],//关联表字段
-        fkey: 'profile', //主表外键 (子表主键)
-        rkey: 'id' //子表主键
-    },
-    Pet: {
-        type: 'hasmany',
-        field: ['types','user', 'id'],
-        fkey: 'pet',//虚拟字段
-        rkey: 'user'//子表外键 (主表主键)
-    },
-    Group: {
-        type: 'manytomany',
-        field: ['name', 'type', 'id'],
-        fkey: 'userid',//map外键(主表主键)
-        rkey: 'groupid'//map外键(子表主键)
-    }
-};
+var User = requireDefault(require('../lib/model/User.js')).default;
+var Profile = requireDefault(require('../lib/model/Profile.js')).default;
+var Pet = requireDefault(require('../lib/model/Pet.js')).default;
+var Group = requireDefault(require('../lib/model/Group.js')).default;
+//加载模型类
+thinkorm.setCollection('User', config, User);
+thinkorm.setCollection('Profile', config, Profile);
+thinkorm.setCollection('Pet', config, Pet);
+thinkorm.setCollection('Group', config, Group);
+
+let model = new User('User', config);
 
 function test(){
     "use strict";
-    return cls
+    return model
         //.where({id: {'<>': 1, '>=': 0}}).find()
         //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
-        //.field(['id','username']).join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
-        //.rel('Pet').countSelect()
-        //.rel(true).select()
-        //.where({id: 3}).update({username: 'test3'})
-        .add({username: 'rrrrrrr',Profile: {test: 'rrrtest'}})
-        .then(function (data) {
-        console.log(JSON.stringify(data));
-    })
+        //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+        //.rel(true).find()
+        //.add({username: 'rrrrrrr',Profile: {test: 'rrrtest'}})
+        //.where({id: 60}).update({username: 'tttttt',Profile: {test: 'ttttttt'}})
+        //.add({username: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
+        //.where({id: 99}).update({username: 'tttttt',Pet: [{id: 7,types: 'ttttttt'}]})
+        .add({username: 'rrrrrrr',Group: [{name: 'ssfsssss'}]})
+        .then(res => {
+        console.log(res);
+    });
 }
-
 test();
+
+//thinkorm.Schema(User, config);
+//thinkorm.Schema(Profile, config);
+//thinkorm.Schema(Pet, config);
+//
+//thinkorm.Model('User').find();
+
+
+
+//var cls = new thinkorm('user',{
+//    db_type: 'mysql',
+//    db_host: '192.168.99.100',
+//    db_port: 3306,
+//    db_name: 'test',
+//    db_user: 'root',
+//    db_pwd: 'richenlin',
+//    db_prefix: 'think_',
+//    db_charset: 'utf8',
+//    db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
+//});
+//cls.fields = {
+//    id: {
+//        type: 'integer'
+//    },
+//    username: {
+//        type: 'string'
+//    }
+//};
+//cls.relation = {
+//    Profile : {
+//        type: 'hasone',//关联方式
+//        field: ['test', 'id'],//关联表字段
+//        fkey: 'profile', //主表外键 (子表主键)
+//        rkey: 'id' //子表主键
+//    },
+//    Pet: {
+//        type: 'hasmany',
+//        field: ['types','user', 'id'],
+//        fkey: 'pet',//虚拟字段
+//        rkey: 'user'//子表外键 (主表主键)
+//    },
+//    Group: {
+//        type: 'manytomany',
+//        field: ['name', 'type', 'id'],
+//        fkey: 'userid',//map外键(主表主键)
+//        rkey: 'groupid'//map外键(子表主键)
+//    }
+//};
+
+//function test(){
+//    "use strict";
+//    return cls
+//        //.where({id: {'<>': 1, '>=': 0}}).find()
+//        //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+//        //.field(['id','username']).join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+//        //.rel('Pet').countSelect()
+//        //.rel(true).select()
+//        //.where({id: 3}).update({username: 'test3'})
+//        //.count('id')
+//        //.sum()
+//        .add({username: 'rrrrrrr',Profile: {test: 'rrrtest'}})
+//        .then(function (data) {
+//        console.log(JSON.stringify(data));
+//    })
+//}
+//
+//test();
 
 //function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 //var analyze = requireDefault(require('../lib/Util/analyze.js')).default;

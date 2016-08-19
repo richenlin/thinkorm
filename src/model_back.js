@@ -65,7 +65,7 @@ let thinkorm = class extends base {
         }
         // 表主键
         if (this.config.db_type === 'mongo') {
-            this.pk = '_id';
+                this.pk = '_id';
         }
         // 安全模式
         this.safe = (this.config.db_ext_config.safe === true);
@@ -406,11 +406,12 @@ let thinkorm = class extends base {
             this._data = await this._beforeAdd(this._data, parsedOptions);
             this._data = await this._parseData(this._data, parsedOptions);
             let result = await db.add(this._data, parsedOptions);
-            //if(!ORM.isEmpty(this._relationData)){
-            //    await this._postRelationData(result, parsedOptions, this._relationData, 'ADD');
-            //}
-            await this._afterAdd(this._data, parsedOptions);
             let pk = await this.getPk();
+            this._data[pk] = this._data[pk] ? this._data[pk] : result;
+            if(!ORM.isEmpty(this._relationData)){
+                await this._postRelationData(result, parsedOptions, this._relationData, 'ADD');
+            }
+            await this._afterAdd(this._data, parsedOptions);
             result = await this._parseData(this._data[pk] || 0, parsedOptions, false);
             return result;
         } catch (e) {
@@ -882,12 +883,11 @@ let thinkorm = class extends base {
             HASMANY: this._postHasManyRelation,
             MANYTOMANY: this._postManyToManyRelation
         };
-
         if (!ORM.isEmpty(result)) {
-            let relation = options.rel, newClass = class extends thinkorm {}, rtype, scope;
+            let relation = this.getRelation(), newClass = class extends thinkorm {}, rtype, scope;
             let pk = await this.getPk();
-            for (let n in relation) {
-                rtype = relation[n]['type'];
+            for (let n in relationData) {
+                rtype = relation[n] ? relation[n]['type'] : null;
                 if (relation[n].fkey && rtype && rtype in caseList) {
                     scope = new newClass(n, this.config);
                     await caseList[rtype](scope, result, relation[n], relationData[n], postType)
@@ -913,10 +913,11 @@ let thinkorm = class extends base {
         let relationOptions = {table: `${scope.config.db_prefix}${rel.model}`, name: rel.model};
         switch (postType){
             case 'ADD':
+                console.log(relationData)
                 //子表插入数据
                 let fkey = await scope.add(relationData, relationOptions);
                 //更新主表关联字段
-                fkey && (await scope.update({[rel.fkey]: fkey}, {where: {[rel.pk]: result}, table: `${scope.config.db_prefix}${rel.pmodel}`, name: rel.pmodel}));
+                //fkey && (await scope.update({[rel.fkey]: fkey}, {where: {[rel.pk]: result}, table: `${scope.config.db_prefix}${rel.pmodel}`, name: rel.pmodel}));
                 break;
             case 'UPDATE':
                 //子表主键数据存在才更新

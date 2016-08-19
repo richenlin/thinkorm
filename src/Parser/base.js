@@ -356,8 +356,8 @@ export default class extends base {
             options.join.map(item => {
                 if (item && item.from && item.on) {
                     onCondition = item.on;
-                    joinAlias = ORM.parseName(item.from);
-                    joinTable = `${config.db_prefix}${joinAlias}`;
+                    joinAlias = item.from;
+                    joinTable = `${config.db_prefix}${ORM.parseName(item.from)}`;
                     //关联表字段
                     if (!ORM.isEmpty(item.field) && ORM.isArray(item.field)) {
                         options.field = options.field || [];
@@ -394,7 +394,29 @@ export default class extends base {
      * @returns {*}
      */
     parseTable(data, options) {
-        this.knex.from(`${options.table} AS ${options.name}`);
+        let optType = options.method;
+        if (optType) {
+            switch (optType) {
+                case 'SELECT':
+                    this.knex.from(`${options.table} AS ${options.name}`);
+                    break;
+                case 'ADD':
+                    this.knex.from(options.table);
+                    break;
+                case 'UPDATE':
+                    this.knex.from(`${options.table} AS ${options.name}`);
+                    break;
+                case 'DELETE':
+                    this.knex.from(`${options.table} AS ${options.name}`);
+                    break;
+                case 'COUNT':
+                    this.knex.from(`${options.table} AS ${options.name}`);
+                    break;
+                case 'SUM':
+                    this.knex.from(`${options.table} AS ${options.name}`);
+                    break;
+            }
+        }
     }
 
     /**
@@ -405,7 +427,6 @@ export default class extends base {
     parseMethod(data, options) {
         let caseList = {SELECT: 1, ADD: 1, UPDATE: 1, DELETE: 1, COUNT: 1, SUM: 1};
         let optType = options.method;
-        console.log(optType)
         if (optType && optType in caseList) {
             switch (optType) {
                 case 'SELECT':
