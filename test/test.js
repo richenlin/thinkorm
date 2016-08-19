@@ -37,12 +37,14 @@ function test(){
         //.where({id: {'<>': 1, '>=': 0}}).find()
         //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
         //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
-        //.rel(true).find()
+        .rel(true).find()
         //.add({username: 'rrrrrrr',Profile: {test: 'rrrtest'}})
         //.where({id: 60}).update({username: 'tttttt',Profile: {test: 'ttttttt'}})
         //.add({username: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
         //.where({id: 99}).update({username: 'tttttt',Pet: [{id: 7,types: 'ttttttt'}]})
-        .add({username: 'rrrrrrr',Group: [{name: 'ssfsssss'}]})
+        //.add({username: 'rrrrrrr',Group: [{name: 'ssfsssss'}]})
+        //.where({id: 115}).update({username: 'tttttt',Group: [{id: 15,name: 'ttttttt'}]})
+        //.where({id: 115}).update({username: 'tttttt',Group: [{userid: 115, groupid: 15}]})
         .then(res => {
         console.log(res);
     });

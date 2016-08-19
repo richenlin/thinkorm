@@ -386,7 +386,7 @@ export default class extends base {
     async add(data, options) {
         try {
             if (ORM.isEmpty(data)) {
-                return this.error('_DATA_TYPE_INVALID_')
+                return this.error('_DATA_TYPE_INVALID_');
             }
             let parsedOptions = await this._parseOptions(options);
             // init model
@@ -395,6 +395,9 @@ export default class extends base {
             this._data = ORM.extend({}, data);
             this._data = await this._beforeAdd(this._data, parsedOptions);
             this._data = await this._parseData(this._data, parsedOptions);
+            if (ORM.isEmpty(this._data)) {
+                return this.error('_DATA_TYPE_INVALID_');
+            }
             let result = await model.add(this._data, parsedOptions);
             let pk = await this.getPk();
             this._data[pk] = this._data[pk] ? this._data[pk] : result;
@@ -427,7 +430,7 @@ export default class extends base {
     async thenAdd(data, options) {
         try {
             if (ORM.isEmpty(data)) {
-                return this.error('_DATA_TYPE_INVALID_')
+                return this.error('_DATA_TYPE_INVALID_');
             }
             let record = await this.find(options);
             if (ORM.isEmpty(record)) {
@@ -456,6 +459,9 @@ export default class extends base {
     async delete(options) {
         try {
             let parsedOptions = await this._parseOptions(options);
+            if (ORM.isEmpty(parsedOptions.where)) {
+                return this.error('_OPERATION_WRONG_');
+            }
             // init model
             let model = await this.initModel();
             await this._beforeDelete(parsedOptions);
@@ -499,6 +505,9 @@ export default class extends base {
             this._data = ORM.extend({}, data);
             this._data = await this._beforeUpdate(this._data, parsedOptions);
             this._data = await this._parseData(this._data, parsedOptions);
+            if (ORM.isEmpty(this._data)) {
+                return this.error('_DATA_TYPE_INVALID_');
+            }
             let pk = await this.getPk();
             // 如果存在主键数据 则自动作为更新条件
             if (ORM.isEmpty(parsedOptions.where)) {
@@ -779,17 +788,18 @@ export default class extends base {
         };
         let relationData = data;
         if (!ORM.isEmpty(data)) {
-            let relation = options.rel, rtype;
+            let relation = options.rel, rtype, fkey;
             let pk = await this.getPk();
             for (let n in relation) {
                 rtype = relation[n]['type'];
                 if (relation[n].fkey && rtype && rtype in caseList) {
+                    fkey = (rtype === 'MANYTOMANY') ? ORM.parseName(relation[n].name) : relation[n].fkey;
                     if (ORM.isArray(data)) {
                         for (let [k,v] of data.entries()) {
-                            data[k][relation[n].fkey] = await caseList[rtype](relation[n], data[k]);
+                            data[k][fkey] = await caseList[rtype](relation[n], data[k]);
                         }
                     } else {
-                        data[relation[n].fkey] = await caseList[rtype](relation[n], data);
+                        data[fkey] = await caseList[rtype](relation[n], data);
                     }
                 }
             }
@@ -853,7 +863,12 @@ export default class extends base {
                 [rel.fkey]: data[rel.primaryPk]
             }
         };
-        return model.select(options);
+        //数据量大的情况下可能有性能问题
+        let regx = new RegExp(`${rel.name}_`, "g");
+        return model.select(options).then(result => {
+            result = JSON.stringify(result).replace(regx, '');
+            return JSON.parse(result);
+        });
     }
 
     /**
@@ -979,11 +994,12 @@ export default class extends base {
                     fkey && rel['mapModel'] && (await rel['mapModel'].thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, {where: {[rel.fkey]: result, [rel.rkey]: fkey}}));
                     break;
                 case 'UPDATE':
-                    //子表
-                    //关系表两个外键都存在,使用thenAdd,不存在关系就新建
+                    //关系表两个外键都存在,更新关系表
                     if (v[rel.fkey] && v[rel.rkey]) {
-                        relationOptions.where = {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]};
-                        await scope.thenAdd(v, relationOptions);
+                        //关系表增加数据,此处不考虑两个外键是否在相关表存在数据,因为关联查询会忽略
+                        rel['mapModel'] && (await rel['mapModel'].thenAdd({[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}}));
+                    } else if(v[rpk]){//仅存在子表主键情况下,更新子表
+                        await model.update(v, {where: {[rpk]: v[rpk]}});
                     }
                     break;
             }
