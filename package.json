@@ -7,6 +7,7 @@
     "test": "npm run eslint && npm run test-cov",
     "test-cov": "istanbul cover ./node_modules/mocha/bin/_mocha -- -t 50000 --recursive  -R spec test/",
     "compile": "babel src -d lib",
+    "compile-test": "babel exmple/model/src -d exmple/model/lib",
     "watch-compile": "npm run compile -- --watch",
     "prepublish": "npm run compile && npm test",
     "eslint": "eslint src/",

@@ -5,7 +5,7 @@
  * @license    MIT
  * @version    16/8/18
  */
-import thinkorm from '../../index';
+import thinkorm from '../../../index';
 
 export default class extends thinkorm{
     init(name, config){
@@ -17,10 +17,7 @@ export default class extends thinkorm{
             id: {
                 type: 'integer'
             },
-            types: {
-                type: 'string'
-            },
-            user: {
+            test: {
                 type: 'string'
             }
         };

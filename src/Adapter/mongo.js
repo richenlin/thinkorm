@@ -52,7 +52,7 @@ export default class extends base {
      *
      */
     startTrans() {
-        ORM.log(`Adapter is not support.`);
+        ORM.log(`Adapter is not support.`, 'WARNING');
         return;
     }
 
@@ -60,7 +60,7 @@ export default class extends base {
      *
      */
     commit() {
-        ORM.log(`Adapter is not support.`);
+        ORM.log(`Adapter is not support.`, 'WARNING');
         return;
     }
 
@@ -68,7 +68,7 @@ export default class extends base {
      *
      */
     rollback() {
-        ORM.log(`Adapter is not support.`);
+        ORM.log(`Adapter is not support.`, 'WARNING');
         return;
     }
 

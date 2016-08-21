@@ -14,7 +14,7 @@ var _inherits2 = require('babel-runtime/helpers/inherits');
 
 var _inherits3 = _interopRequireDefault(_inherits2);
 
-var _index = require('../../index');
+var _index = require('../../../index');
 
 var _index2 = _interopRequireDefault(_index);
 
@@ -37,7 +37,10 @@ var _class = function (_thinkorm) {
             id: {
                 type: 'integer'
             },
-            test: {
+            types: {
+                type: 'string'
+            },
+            user: {
                 type: 'string'
             }
         };

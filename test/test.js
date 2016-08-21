@@ -25,10 +25,10 @@ var config = {
     db_charset: 'utf8',
     db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
 };
-var User = ORM.safeRequire(path.dirname(__dirname) + '/lib/model/User.js');
-var Profile = ORM.safeRequire(path.dirname(__dirname) + '/lib/model/Profile.js');
-var Pet = ORM.safeRequire(path.dirname(__dirname) + '/lib/model/Pet.js');
-var Group = ORM.safeRequire(path.dirname(__dirname) + '/lib/model/Group.js');
+var User = ORM.safeRequire(path.dirname(__dirname) + '/exmple/model/lib/User.js');
+var Profile = ORM.safeRequire(path.dirname(__dirname) + '/exmple/model/lib/Profile.js');
+var Pet = ORM.safeRequire(path.dirname(__dirname) + '/exmple/model/lib/Pet.js');
+var Group = ORM.safeRequire(path.dirname(__dirname) + '/exmple/model/lib/Group.js');
 
 //加载模型类
 thinkorm.load('User', config, User);
