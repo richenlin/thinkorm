@@ -9,18 +9,18 @@ var path = require('path');
 var thinkorm = require('../index.js');
 
 var config = {
-    db_type: 'mysql',
+    //db_type: 'mysql',
     //db_type: 'postgresql',
-    //db_type: 'mongo',
+    db_type: 'mongo',
     db_host: '192.168.99.100',
-    db_port: 3306,
+    //db_port: 3306,
     //db_port: 5432,
-    //db_port: 27017,
+    db_port: 27017,
     db_name: 'test',
-    db_user: 'root',
-    //db_user: '',
-    db_pwd: 'richenlin',
-    //db_pwd: '',
+    //db_user: 'root',
+    db_user: '',
+    //db_pwd: 'richenlin',
+    db_pwd: '',
     db_prefix: 'think_',
     db_charset: 'utf8',
     db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
@@ -41,7 +41,7 @@ let model = new User('User', config);
 function test() {
     "use strict";
     return model
-    //.where({id: {'<>': 1, '>=': 0}}).find()
+    .where({id: {'<>': 1, '>=': 0}, name: '', or: [{name: 'aa'}, {name: 'aaa'}]}).find()
     //.where({id: {'>=': 0}}).count()
     //.where({id: {'>=': 0}}).sum('id')
     //.where({id: {'>=': 0}}).select()
@@ -49,7 +49,7 @@ function test() {
     //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.where({id: {'>=': 0}}).group(['id','username']).find()
-    .rel(true).find()
+    //.rel(true).find()
     //.add({username: 'rrrrrrr',Profile: {test: 'rrrtest'}})
     //.where({id: 60}).update({username: 'tttttt',Profile: {test: 'ttttttt'}})
     //.add({username: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
