@@ -18,7 +18,6 @@ export default class extends base{
             port: config.db_port || 3306,
             charset: config.db_charset || 'utf8',
             timeout: config.db_timeout || 30,
-            logSql: config.db_ext_config.db_log_sql || false,
             connectionLimit: config.db_ext_config.db_pool_size || 10
         }
         //node-mysql2 not support utf8 or utf-8
@@ -67,32 +66,6 @@ export default class extends base{
             this.deferred = deferred;
             return this.deferred.promise;
         });
-    }
-
-    query(sql){
-        let startTime = Date.now();
-        let connection;
-        return this.connect().then(conn => {
-            connection = conn;
-            let fn = ORM.promisify(connection.query, connection);
-            return fn(sql);
-        }).then((rows = []) => {
-            this.config.logSql && ORM.log(sql, 'MySQL', startTime);
-            return rows;
-        }).catch(err => {
-            //when socket is closed, try it
-            if(err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'EPIPE'){
-                return this.close().then(() => {
-                    return this.query(sql);
-                });
-            }
-            this.config.logSql && ORM.log(sql, 'MySQL', startTime);
-            return Promise.reject(err);
-        });
-    }
-
-    execute(sql){
-        return this.query(sql);
     }
 
     close(){

@@ -90,8 +90,9 @@ function getRelation(name, config) {
             //MANYTOMANY map
             if(type === 'MANYTOMANY'){
                 let mapName = `${cls.modelName}${n}Map`;
+                let model = ORM.safeRequire(__dirname + '/model.js');
                 if(!ORM.collections[key][mapName]){
-                    let _class = class extends ORM.model{
+                    let _class = class extends model{
                         init(name, config){
                             super.init(name, config);
                             // 是否自动迁移(默认安全模式)

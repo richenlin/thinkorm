@@ -7,7 +7,7 @@
  */
 import thinkorm from '../../index';
 
-export default class extends thinkorm.Model{
+export default class extends thinkorm{
     init(name, config){
         super.init(name, config);
         // 是否自动迁移(默认安全模式)

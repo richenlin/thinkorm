@@ -18,7 +18,6 @@ export default class extends base{
             port: config.db_port || 5432,
             charset: config.db_charset || 'utf8',
             idleTimeoutMillis: config.db_timeout * 1000 || 8 * 60 * 60 * 1000,
-            logSql: config.db_ext_config.db_log_sql || false,
             max: config.db_ext_config.db_pool_size || 10
         }
         this.connection = null;
@@ -44,9 +43,9 @@ export default class extends base{
                     this.close();
                     deferred.reject(err);
                 } else {
-                    this.release = done;
                     this.connection = client;
-                    deferred.resolve(client);
+                    this.connection.release = done;
+                    deferred.resolve(this.connection);
                 }
             });
             connection.on('error', () => {
@@ -67,33 +66,6 @@ export default class extends base{
             this.deferred = deferred;
             return this.deferred.promise;
         });
-    }
-
-    query(sql){
-        let startTime = Date.now();
-        let connection;
-        return this.connect().then(conn => {
-            connection = conn;
-            let fn = ORM.promisify(connection.query, connection);
-            return fn(sql);
-        }).then((rows = []) => {
-            this.release && this.release();
-            this.config.logSql && ORM.log(sql, 'PostgreSQL', startTime);
-            return rows;
-        }).catch(err => {
-            this.release && this.release();
-            //when socket is closed, try it
-            if(err.code === 'EPIPE'){
-                this.close();
-                return this.query(sql);
-            }
-            this.config.logSql && ORM.log(sql, 'PostgreSQL', startTime);
-            return Promise.reject(err);
-        });
-    }
-
-    execute(sql){
-        return this.query(sql);
     }
 
     close(){

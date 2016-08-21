@@ -84,6 +84,15 @@ export default class extends base {
     }
 
     /**
+     *
+     * @param args
+     * @returns {*}
+     */
+    static load(...args){
+        return schema.setCollection(...args);
+    }
+
+    /**
      * 初始化模型
      */
     async initModel() {
@@ -103,32 +112,6 @@ export default class extends base {
         } catch (e) {
             return this.error(e);
         }
-    }
-
-    /**
-     * 数据迁移
-     */
-    migrate() {
-        // mongodb is schema less
-        if (this.config.db_type === 'mongo') {
-            return;
-        }
-    }
-
-    /**
-     * 获取关联对象
-     * @param name
-     * @param config
-     * @returns {*}
-     */
-    getRelation(name, config) {
-        try{
-            let _relation = schema.getRelation(name, config);
-            return _relation;
-        }catch (e){
-            return this.error(e);
-        }
-
     }
 
     /**
@@ -152,6 +135,58 @@ export default class extends base {
             ORM.log(msg);
         }
         return ORM.getDefer().promise;
+    }
+
+    /**
+     * 数据迁移
+     */
+    async migrate() {
+        try{
+            // init model
+            let model = await this.initModel();
+            return model.migrate(ORM.collections[this.clsKey]);
+        }catch (e){
+            return this.error(e);
+        }
+    }
+
+    /**
+     * 事务开始
+     */
+    async startTrans() {
+        try{
+            // init model
+            let model = await this.initModel();
+            return model.startTrans();
+        }catch (e){
+            return this.error(e);
+        }
+    }
+
+    /**
+     * 事务提交
+     */
+    async commit() {
+        try{
+            // init model
+            let model = await this.initModel();
+            return model.commit();
+        }catch (e){
+            return this.error(e);
+        }
+    }
+
+    /**
+     * 事务回滚
+     */
+    async rollback() {
+        try{
+            // init model
+            let model = await this.initModel();
+            return model.rollback();
+        }catch (e){
+            return this.error(e);
+        }
     }
 
     /**
@@ -195,18 +230,22 @@ export default class extends base {
      * @return string
      */
     getPk() {
-        if (!ORM.isEmpty(this.fields)) {
-            for (let v in this.fields) {
-                if (this.fields[v].hasOwnProperty('primaryKey') && this.fields[v].primaryKey === true) {
-                    this.pk = v;
+        try{
+            if (!ORM.isEmpty(this.fields)) {
+                for (let v in this.fields) {
+                    if (this.fields[v].hasOwnProperty('primaryKey') && this.fields[v].primaryKey === true) {
+                        this.pk = v;
+                    }
+                }
+            } else {
+                if (this.config.db_type === 'mongo') {
+                    this.pk = '_id';
                 }
             }
-        } else {
-            if (this.config.db_type === 'mongo') {
-                this.pk = '_id';
-            }
+            return this.pk;
+        }catch (e){
+            return this.error(e);
         }
-        return this.pk;
     }
 
     /**
@@ -214,11 +253,15 @@ export default class extends base {
      * @return {[type]} [description]
      */
     page(page, listRows) {
-        if (page === undefined) {
+        try{
+            if (page === undefined) {
+                return this;
+            }
+            this._options.page = listRows === undefined ? page : page + ',' + listRows;
             return this;
+        }catch (e){
+            return this.error(e);
         }
-        this._options.page = listRows === undefined ? page : page + ',' + listRows;
-        return this;
     }
 
     /**
@@ -227,32 +270,36 @@ export default class extends base {
      * @param field
      */
     rel(table = false, field = {}) {
-        if (table) {
-            //获取关联关系
-            let rels = this.getRelation(this.modelName, this.config);
-            if (table === true) {
-                this._options.rel = rels;
-            } else {
-                if (ORM.isString(table)) {
-                    table = table.replace(/ +/g, '').split(',');
+        try{
+            if (table) {
+                //获取关联关系
+                let rels = schema.getRelation(this.modelName, this.config);
+                if (table === true) {
+                    this._options.rel = rels;
+                } else {
+                    if (ORM.isString(table)) {
+                        table = table.replace(/ +/g, '').split(',');
+                    }
+                    if (ORM.isArray(table)) {
+                        this._options.rel = {};
+                        table.forEach(item => {
+                            rels[item] && (this._options.rel[item] = rels[item]);
+                        });
+                    }
                 }
-                if (ORM.isArray(table)) {
-                    this._options.rel = {};
-                    table.forEach(item => {
-                        rels[item] && (this._options.rel[item] = rels[item]);
-                    });
-                }
-            }
-            //关联表字段
-            if (!ORM.isEmpty(field)) {
-                for (let n in field) {
-                    if (n in this._options.rel) {
-                        this._options.rel[n]['field'] = field[n];
+                //关联表字段
+                if (!ORM.isEmpty(field)) {
+                    for (let n in field) {
+                        if (n in this._options.rel) {
+                            this._options.rel[n]['field'] = field[n];
+                        }
                     }
                 }
             }
+            return this;
+        }catch (e){
+            return this.error(e);
         }
-        return this;
     }
 
     /**
@@ -262,22 +309,26 @@ export default class extends base {
      * @return {[type]}        [description]
      */
     limit(offset, length) {
-        if (offset === undefined) {
+        try{
+            if (offset === undefined) {
+                return this;
+            }
+            if (ORM.isArray(offset)) {
+                length = offset[1] || length;
+                offset = offset[0];
+            } else if (length === undefined) {
+                length = offset;
+                offset = 0;
+            }
+            offset = Math.max(parseInt(offset) || 0, 0);
+            if (length) {
+                length = Math.max(parseInt(length) || 0, 0);
+            }
+            this._options.limit = [offset, length];
             return this;
+        }catch (e){
+            return this.error(e);
         }
-        if (ORM.isArray(offset)) {
-            length = offset[1] || length;
-            offset = offset[0];
-        } else if (length === undefined) {
-            length = offset;
-            offset = 0;
-        }
-        offset = Math.max(parseInt(offset) || 0, 0);
-        if (length) {
-            length = Math.max(parseInt(length) || 0, 0);
-        }
-        this._options.limit = [offset, length];
-        return this;
     }
 
     /**
@@ -286,22 +337,26 @@ export default class extends base {
      * @returns {exports}
      */
     order(order) {
-        if (order === undefined) {
+        try{
+            if (order === undefined) {
+                return this;
+            }
+            if (ORM.isObject(order)) {
+                this._options.order = order;
+            } else if (ORM.isString(order)) {
+                let strToObj = function (_str) {
+                    return _str.replace(/^ +/, '').replace(/ +$/, '')
+                        .replace(/( +, +)+|( +,)+|(, +)/, ',')
+                        .replace(/ +/g, '-').replace(/,-/g, ',').replace(/-/g, ':')
+                        .replace(/^/, '{"').replace(/$/, '"}')
+                        .replace(/:/g, '":"').replace(/,/g, '","');
+                };
+                this._options.order = JSON.parse(strToObj(order));
+            }
             return this;
+        }catch (e){
+            return this.error(e);
         }
-        if (ORM.isObject(order)) {
-            this._options.order = order;
-        } else if (ORM.isString(order)) {
-            let strToObj = function (_str) {
-                return _str.replace(/^ +/, '').replace(/ +$/, '')
-                    .replace(/( +, +)+|( +,)+|(, +)/, ',')
-                    .replace(/ +/g, '-').replace(/,-/g, ',').replace(/-/g, ':')
-                    .replace(/^/, '{"').replace(/$/, '"}')
-                    .replace(/:/g, '":"').replace(/,/g, '","');
-            };
-            this._options.order = JSON.parse(strToObj(order));
-        }
-        return this;
     }
 
     /**
@@ -310,14 +365,18 @@ export default class extends base {
      * @return {[type]}         [description]
      */
     field(field) {
-        if (ORM.isEmpty(field)) {
+        try{
+            if (ORM.isEmpty(field)) {
+                return this;
+            }
+            if (ORM.isString(field)) {
+                field = field.replace(/ +/g, '').split(',');
+            }
+            this._options.field = field;
             return this;
+        }catch (e){
+            return this.error(e);
         }
-        if (ORM.isString(field)) {
-            field = field.replace(/ +/g, '').split(',');
-        }
-        this._options.field = field;
-        return this;
     }
 
     /**
@@ -332,11 +391,15 @@ export default class extends base {
      * @return {[type]} [description]
      */
     where(where) {
-        if (!where) {
+        try{
+            if (!where) {
+                return this;
+            }
+            this._options.where = ORM.extend(false, this._options.where || {}, where);
             return this;
+        }catch (e){
+            return this.error(e);
         }
-        this._options.where = ORM.extend(false, this._options.where || {}, where);
-        return this;
     }
 
     /**
@@ -346,11 +409,15 @@ export default class extends base {
      * @param group
      */
     group(group) {
-        if (!group) {
+        try{
+            if (!group) {
+                return this;
+            }
+            this._options.group = group;
             return this;
+        }catch (e){
+            return this.error(e);
         }
-        this._options.group = group;
-        return this;
     }
 
     /**
@@ -360,11 +427,15 @@ export default class extends base {
      * @param join
      */
     join(join) {
-        if (!join || !ORM.isArray(join)) {
+        try{
+            if (!join || !ORM.isArray(join) || join.length === 0) {
+                return this;
+            }
+            this._options.join = join;
             return this;
+        }catch (e){
+            return this.error(e);
         }
-        this._options.join = join;
-        return this;
     }
 
     /**
@@ -781,31 +852,35 @@ export default class extends base {
      * @private
      */
     async _getRelationData(options, data) {
-        let caseList = {
-            HASONE: this._getHasOneRelation,
-            HASMANY: this._getHasManyRelation,
-            MANYTOMANY: this._getManyToManyRelation
-        };
-        let relationData = data;
-        if (!ORM.isEmpty(data)) {
-            let relation = options.rel, rtype, fkey;
-            let pk = await this.getPk();
-            for (let n in relation) {
-                rtype = relation[n]['type'];
-                if (relation[n].fkey && rtype && rtype in caseList) {
-                    fkey = (rtype === 'MANYTOMANY') ? ORM.parseName(relation[n].name) : relation[n].fkey;
-                    if (ORM.isArray(data)) {
-                        for (let [k,v] of data.entries()) {
-                            data[k][fkey] = await caseList[rtype](relation[n], data[k]);
+        try{
+            let caseList = {
+                HASONE: this._getHasOneRelation,
+                HASMANY: this._getHasManyRelation,
+                MANYTOMANY: this._getManyToManyRelation
+            };
+            let relationData = data;
+            if (!ORM.isEmpty(data)) {
+                let relation = options.rel, rtype, fkey;
+                let pk = await this.getPk();
+                for (let n in relation) {
+                    rtype = relation[n]['type'];
+                    if (relation[n].fkey && rtype && rtype in caseList) {
+                        fkey = (rtype === 'MANYTOMANY') ? ORM.parseName(relation[n].name) : relation[n].fkey;
+                        if (ORM.isArray(data)) {
+                            for (let [k,v] of data.entries()) {
+                                data[k][fkey] = await caseList[rtype](relation[n], data[k]);
+                            }
+                        } else {
+                            data[fkey] = await caseList[rtype](relation[n], data);
                         }
-                    } else {
-                        data[fkey] = await caseList[rtype](relation[n], data);
                     }
                 }
             }
-        }
 
-        return relationData;
+            return relationData;
+        }catch (e){
+            return this.error(e);
+        }
     }
 
     /**
@@ -852,23 +927,33 @@ export default class extends base {
         }
         let model = rel.model;
         let rpk = model.getPk();
-        let mapModel = `${rel.primaryName}${rel.name}Map`;
-        let options = {
-            table: `${model.config.db_prefix}${ORM.parseName(mapModel)}`,
-            name: mapModel,
-            join: [
-                {from: `${rel.model.modelName}`, on: {[rel.rkey]: rpk}, field: rel.field, type: 'inner'}
-            ],
-            where: {
-                [rel.fkey]: data[rel.primaryPk]
-            }
-        };
-        //数据量大的情况下可能有性能问题
-        let regx = new RegExp(`${rel.name}_`, "g");
-        return model.select(options).then(result => {
-            result = JSON.stringify(result).replace(regx, '');
-            return JSON.parse(result);
-        });
+        //let mapModel = `${rel.primaryName}${rel.name}Map`;
+        //if(model.config.db_type === 'mongo'){
+            return rel.mapModel.field(rel.fkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
+                let keys = [];
+                data.map(item => {
+                    item[rel.fkey] && keys.push(item[rel.fkey]);
+                });
+                return model.select({where: {[rpk]: keys}});
+            });
+        //} else {
+        //    let options = {
+        //        table: `${model.config.db_prefix}${ORM.parseName(mapModel)}`,
+        //        name: mapModel,
+        //        join: [
+        //            {from: `${rel.model.modelName}`, on: {[rel.rkey]: rpk}, field: rel.field, type: 'inner'}
+        //        ],
+        //        where: {
+        //            [rel.fkey]: data[rel.primaryPk]
+        //        }
+        //    };
+        //    //数据量大的情况下可能有性能问题
+        //    let regx = new RegExp(`${rel.name}_`, "g");
+        //    return model.select(options).then(result => {
+        //        result = JSON.stringify(result).replace(regx, '');
+        //        return JSON.parse(result);
+        //    });
+        //}
     }
 
     /**
@@ -881,23 +966,27 @@ export default class extends base {
      * @private
      */
     async _postRelationData(result, options, relationData, postType) {
-        let caseList = {
-            HASONE: this._postHasOneRelation,
-            HASMANY: this._postHasManyRelation,
-            MANYTOMANY: this._postManyToManyRelation
-        };
-        if (!ORM.isEmpty(result)) {
-            let relation = this.getRelation(this.modelName, this.config), rtype;
-            let pk = await this.getPk();
-            for (let n in relationData) {
-                rtype = relation[n] ? relation[n]['type'] : null;
-                if (relation[n].fkey && rtype && rtype in caseList) {
-                    relation[n]['clsKey'] = this.clsKey;
-                    await caseList[rtype](result, options, relation[n], relationData[n], postType)
+        try{
+            let caseList = {
+                HASONE: this._postHasOneRelation,
+                HASMANY: this._postHasManyRelation,
+                MANYTOMANY: this._postManyToManyRelation
+            };
+            if (!ORM.isEmpty(result)) {
+                let relation = schema.getRelation(this.modelName, this.config), rtype;
+                let pk = await this.getPk();
+                for (let n in relationData) {
+                    rtype = relation[n] ? relation[n]['type'] : null;
+                    if (relation[n].fkey && rtype && rtype in caseList) {
+                        relation[n]['clsKey'] = this.clsKey;
+                        await caseList[rtype](result, options, relation[n], relationData[n], postType)
+                    }
                 }
             }
+            return;
+        }catch (e){
+            return this.error(e);
         }
-        return;
     }
 
     /**

@@ -123,7 +123,7 @@ let parseKnexWhere = function (knex, optionWhere) {
 
     if (optionWhere.null) {
         optionWhere.null.map(data=> {
-            //this.knex.whereNull(...data);
+            //knex.whereNull(...data);
             data.map(d=> {
                 knex.whereNull(d);
             })
@@ -206,7 +206,7 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
             onCondition[n].forEach(it => {
                 for (let i in it) {
                     //a join b, b join c的情况下,on条件内已经申明alias
-                    if(i.indexOf('.') === -1){
+                    if (i.indexOf('.') === -1) {
                         funcTemp += `.orOn('${alias}.${i}', '=', '${joinAlias}.${it[i]}')`;
                     } else {
                         funcTemp += `.orOn('${i}', '=', '${joinAlias}.${it[i]}')`;
@@ -215,7 +215,7 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
             })
         } else {
             //a join b, b join c的情况下,on条件内已经申明alias
-            if(n.indexOf('.') === -1){
+            if (n.indexOf('.') === -1) {
                 funcTemp += `.on('${alias}.${n}', '=', '${joinAlias}.${onCondition[n]}')`;
             } else {
                 funcTemp += `.on('${n}', '=', '${joinAlias}.${onCondition[n]}')`;
@@ -229,41 +229,43 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
 export default class extends base {
     init(config = {}) {
         this.config = config;
-        this.knex = null;
     }
 
     /**
      *
+     * @param cls
      * @param data
      * @param options
      */
-    parseLimit(data, options) {
+    parseLimit(cls, data, options) {
         if (ORM.isEmpty(options.limit)) {
             return;
         }
-        this.knex.limit(options.limit[1] || 10).offset(options.limit[0] || 0);
+        cls.limit(options.limit[1] || 10).offset(options.limit[0] || 0);
     }
 
     /**
      *
+     * @param cls
      * @param data
      * @param options
      */
-    parseOrder(data, options) {
+    parseOrder(cls, data, options) {
         if (ORM.isEmpty(options.order)) {
             return;
         }
         for (let n in options.order) {
-            this.knex.orderBy(n, options.order[n]);
+            cls.orderBy(n, options.order[n]);
         }
     }
 
     /**
      *
+     * @param cls
      * @param data
      * @param options
      */
-    parseField(data, options) {
+    parseField(cls, data, options) {
         if (ORM.isEmpty(options.field)) {
             return;
         }
@@ -275,15 +277,16 @@ export default class extends base {
                 fds.push(`${options.name}.${item}`);
             }
         });
-        this.knex.column(fds);
+        cls.column(fds);
     }
 
     /**
      *
+     * @param cls
      * @param data
      * @param options
      */
-    parseWhere(data, options) {
+    parseWhere(cls, data, options) {
         if (ORM.isEmpty(options.where)) {
             return;
         }
@@ -319,9 +322,9 @@ export default class extends base {
         //parsed to knex
         for (let n in optionsWhere) {
             if (n === 'where') {
-                parseKnexWhere(this.knex, optionsWhere[n]);
+                parseKnexWhere(cls, optionsWhere[n]);
             } else if (n === 'orwhere') {
-                parseKnexOrWhere(this.knex, optionsWhere[n]);
+                parseKnexOrWhere(cls, optionsWhere[n]);
             }
         }
     }
@@ -329,24 +332,26 @@ export default class extends base {
     /**
      * group('xxx')
      * group(['xxx', 'xxx'])
+     * @param cls
      * @param data
      * @param options
      */
-    parseGroup(data, options) {
+    parseGroup(cls, data, options) {
         if (ORM.isEmpty(options.group)) {
             return;
         }
-        this.knex.groupBy(options.group);
+        cls.groupBy(options.group);
     }
 
     /**
      * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'inner'}])
      * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name'], type: 'left'}])
      * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'right'}])
+     * @param cls
      * @param data
      * @param options
      */
-    parseJoin(data, options) {
+    parseJoin(cls, data, options) {
         //解析后结果
         //.innerJoin('accounts', function() {
         //    this.on('accounts.id', '=', 'users.account_id').on('accounts.owner_id', '=', 'users.id').orOn('accounts.owner_id', '=', 'users.id')
@@ -372,7 +377,7 @@ export default class extends base {
                     func = new Function('', preParseKnexJoin(onCondition, name, joinAlias));
                     //拼装knex
                     type = item.type ? item.type.toLowerCase() : 'inner';
-                    this.knex[`${type}Join`](`${joinTable} AS ${joinAlias}`, func);
+                    cls[`${type}Join`](`${joinTable} AS ${joinAlias}`, func);
                 }
             });
         }
@@ -380,150 +385,56 @@ export default class extends base {
 
     /**
      *
-     * @param data
-     * @param options
-     */
-    parseData(data, options) {
-        return data;
-    }
-
-    /**
-     *
-     * @param data
-     * @param options
-     * @returns {*}
-     */
-    parseTable(data, options) {
-        let optType = options.method;
-        if (optType) {
-            switch (optType) {
-                case 'SELECT':
-                    this.knex.from(`${options.table} AS ${options.name}`);
-                    break;
-                case 'ADD':
-                    this.knex.from(options.table);
-                    break;
-                case 'UPDATE':
-                    this.knex.from(`${options.table} AS ${options.name}`);
-                    break;
-                case 'DELETE':
-                    this.knex.from(`${options.table} AS ${options.name}`);
-                    break;
-                case 'COUNT':
-                    this.knex.from(`${options.table} AS ${options.name}`);
-                    break;
-                case 'SUM':
-                    this.knex.from(`${options.table} AS ${options.name}`);
-                    break;
-            }
-        }
-    }
-
-    /**
-     *
-     * @param data
-     * @param options
-     */
-    parseMethod(data, options) {
-        let caseList = {SELECT: 1, ADD: 1, UPDATE: 1, DELETE: 1, COUNT: 1, SUM: 1};
-        let optType = options.method;
-        if (optType && optType in caseList) {
-            switch (optType) {
-                case 'SELECT':
-                    this.knex = this.knexClient.select();
-                    break;
-                case 'ADD':
-                    this.knex = this.knexClient.insert(data);
-                    break;
-                case 'UPDATE':
-                    this.knex = this.knexClient.update(data);
-                    break;
-                case 'DELETE':
-                    this.knex = this.knexClient.del();
-                    break;
-                case 'COUNT':
-                    this.knex = this.knexClient.count(`${options.count} AS count`);
-                    break;
-                case 'SUM':
-                    this.knex = this.knexClient.sum(`${options.sum} AS sum`);
-                    break;
-            }
-        }
-    }
-
-    /**
-     *
+     * @param cls
      * @param data
      * @param options
      * @returns {string}
      */
-    async parseSql(data, options) {
+    async parseSql(cls, data, options) {
         try {
             let caseList = {
-                SELECT: {table: 1, join: 1, where: 1, field: 1, limit: 1, order: 1, group: 1},
-                ADD: {table: 1},
-                UPDATE: {table: 1, where: 1},
-                DELETE: {table: 1, where: 1},
-                COUNT: {table: 1, join: 1, where: 1, field: 1, limit: 1, group: 1},
-                SUM: {table: 1, join: 1, where: 1, field: 1, limit: 1, group: 1}
+                SELECT: {join: 1, where: 1, field: 1, limit: 1, order: 1, group: 1},
+                ADD: {},
+                UPDATE: {where: 1},
+                DELETE: {where: 1},
+                COUNT: {join: 1, where: 1, limit: 1, group: 1},
+                SUM: {join: 1, where: 1, limit: 1, group: 1}
             };
-            //处理method
-            await this.parseMethod(data, options);
-            if (this.knex) {
+            if (cls) {
                 let optType = options.method;
-                //处理table
-                await this.parseTable(data, options);
-                caseList[optType]['table'] && (caseList[optType]['table'] = 0);
                 //处理join
                 if (options['join'] && caseList[optType]['join']) {
-                    await this.parseJoin(data, options);
+                    await this.parseJoin(cls, data, options);
                     caseList[optType]['join'] && (caseList[optType]['join'] = 0);
                 }
                 //处理其他options
                 for (let n in options) {
                     if (caseList[optType][n]) {
                         let mt = `parse${ORM.ucFirst(n)}`;
-                        mt && ORM.isFunction(this[mt]) && await this[mt](data, options);
+                        mt && ORM.isFunction(this[mt]) && await this[mt](cls, data, options);
                     }
                 }
-                return this.knex.toString();
+                return cls.toString();
             }
         } catch (e) {
+
         }
         return '';
     }
 
     /**
      *
+     * @param cls
      * @param data
      * @param options
-     * @returns {*}
+     * @returns {string}
      */
-    buildSql(data, options) {
+    buildSql(cls, data, options) {
         if (options === undefined) {
             options = data;
-        } else {
-            options.data = data;
         }
-        return this.parseSql(data, options);
-    }
-
-    /**
-     *
-     * @param data
-     * @returns {*}
-     */
-    bufferToString(data) {
-        if (!this.config.buffer_tostring || !ORM.isArray(data)) {
-            return data;
-        }
-        for (let i = 0, length = data.length; i < length; i++) {
-            for (let key in data[i]) {
-                if (ORM.isBuffer(data[i][key])) {
-                    data[i][key] = data[i][key].toString();
-                }
-            }
-        }
-        return data;
+        //防止外部options被更改
+        let parseOptions = ORM.extend({}, options);
+        return this.parseSql(cls, data, parseOptions);
     }
 }

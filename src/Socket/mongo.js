@@ -18,7 +18,6 @@ export default class extends base{
             port: config.db_port || 27017,
             charset: config.db_charset || 'utf8',
             connectTimeoutMS: config.db_timeout || 30,
-            logSql: config.db_ext_config.db_log_sql || false,
             maxPoolSize: config.db_ext_config.db_pool_size || 10,
             replicaSet: config.db_ext_config.db_replicaset || '',
             connect_url: config.db_ext_config.db_conn_url || ''
@@ -69,84 +68,6 @@ export default class extends base{
             }).catch(err => {
                 return Promise.reject(err);
             })
-        });
-    }
-
-    query(options){
-        let startTime = Date.now();
-        let connection, handler, sql;
-        return this.connect().then(conn => {
-            connection = conn;
-            sql = `db.${options.table}`;
-            let col = connection.collection(options.table);
-            switch (options.method){
-                case 'FIND':
-                    sql = `${sql}${options.where ? '.findOne('+ JSON.stringify(options.where) +')' : '.findOne()'}`;
-                    handler = col.findOne(options.where || {});
-                    break;
-                case 'SELECT':
-                    sql = `${sql}${options.where ? '.find('+ JSON.stringify(options.where) +')' : '.find()'}`;
-                    handler = col.find(options.where || {});
-                    break;
-                case 'COUNT':
-                    sql = `${sql}${options.where ? '.count('+ JSON.stringify(options.where) +')' : '.count()'}`;
-                    handler = col.count(options.where || {});
-                    break;
-                case 'SUM':
-                    break;
-            }
-            let caseList = {skip: true, limit: true, sort: true, project: true};
-            for(let c in options){
-                if(caseList[c] && handler && handler[c]){
-                    sql = `${sql}.${c}(${options[c]})`;
-                    handler = handler[c](options[c]);
-                }
-            }
-            if(options.method === 'SELECT'){
-                return handler.toArray();
-            } else {
-                return handler;
-            }
-        }).then((rows = []) => {
-            this.config.logSql && ORM.log(sql, 'MongoDB', startTime);
-            return rows;
-        }).catch(err => {
-            return Promise.reject(err);
-        });
-    }
-
-    execute(options, data){
-        let startTime = Date.now();
-        let connection, handler, sql;
-        return this.connect().then(conn => {
-            connection = conn;
-            sql = `db.${options.table}`;
-            let col = connection.collection(options.table);
-            switch (options.method){
-                case 'ADD':
-                    sql = `${sql}.insertOne(${JSON.stringify(data)})`;
-                    handler = col.insertOne(data);
-                    break;
-                //case 'ADDALL':
-                //    sql = `${sql}.insertMany(${JSON.stringify(data)})`;
-                //    handler = col.insertMany(data);
-                //    break;
-                case 'UPDATE':
-                    sql = `${sql}${options.where ? '.update('+ JSON.stringify(options.where) +', {$set:'+JSON.stringify(data)+'}, false, true))' : '.update({}, {$set:'+JSON.stringify(data)+'})'}`;
-                    handler = col.updateMany(options.where || {}, data);
-                    break;
-                case 'DELETE':
-                    sql = `${sql}${options.where ? '.remove('+ JSON.stringify(options.where) +')' : '.remove()'}`;
-                    handler = col.deleteMany(options.where || {});
-                    break;
-            }
-            return handler;
-        }).then((rows = []) => {
-            this.config.logSql && ORM.log(sql, 'MongoDB', startTime);
-            return rows;
-        }).catch(err => {
-            this.config.logSql && ORM.log(sql, 'MongoDB', startTime);
-            return Promise.reject(err);
         });
     }
 

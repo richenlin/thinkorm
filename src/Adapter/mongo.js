@@ -12,6 +12,7 @@ import socket from '../Socket/mongo';
 export default class extends base {
     init(config = {}) {
         this.config = config;
+        this.logSql = config.db_ext_config.db_log_sql || false;
 
         this.handel = null;
         this.parsercls = null;
@@ -21,7 +22,7 @@ export default class extends base {
         if (this.handel) {
             return this.handel;
         }
-        this.handel = new socket(this.config);
+        this.handel = new socket(this.config).connect();
         return this.handel;
     }
 
@@ -41,38 +42,61 @@ export default class extends base {
     }
 
     /**
-     *
-     * @param sql
+     * 数据迁移
      */
-    query(options) {
-        return this.connect().query(options).then(data => {
-            return this.parsers().bufferToString(data);
-        });
+    migrate() {
+        return;
+    }
+
+    /**
+     *
+     */
+    startTrans() {
+        ORM.log(`Adapter is not support.`);
+        return;
+    }
+
+    /**
+     *
+     */
+    commit() {
+        ORM.log(`Adapter is not support.`);
+        return;
+    }
+
+    /**
+     *
+     */
+    rollback() {
+        ORM.log(`Adapter is not support.`);
+        return;
     }
 
     /**
      *
      * @param sql
      */
-    execute(options, data) {
-        return this.connect().execute(options, data).then(data => {
-            let result = 0;
-            switch (options.method) {
-                case 'ADD':
-                    result = data.insertedId;
-                    break;
-                //case 'ADDALL':
-                //    result = data.insertedCount;
-                //    break;
-                case 'UPDATE':
-                    result = data.modifiedCount;
-                    break;
-                case 'DELETE':
-                    result = data.deletedCount;
-                    break;
-            }
-            return result || null;
+    query(cls) {
+        let startTime = Date.now();
+        if(!cls.col){
+            this.logSql && ORM.log(cls.sql, 'MongoDB', startTime);
+            return Promise.reject('Analytic result is empty');
+        }
+        return cls.col.then(data => {
+            this.logSql && ORM.log(cls.sql, 'MongoDB', startTime);
+            return this.bufferToString(data);
+        }).catch(err => {
+            this.logSql && ORM.log(cls.sql, 'MongoDB', startTime);
+            return Promise.reject(err);
         });
+    }
+
+    /**
+     *
+     * @param cls
+     */
+    execute(cls) {
+        return this.query(cls);
     }
 
     /**
@@ -83,10 +107,12 @@ export default class extends base {
      */
     add(data, options = {}) {
         options.method = 'ADD';
-        return this.parsers().buildSql(data, options).then(sql => {
-            return this.execute(sql, data);
+        return this.connect().then(conn => {
+            return this.parsers().buildSql(conn, data, options);
+        }).then(res => {
+            return this.execute(res);
         }).then(data => {
-            return data;
+            return data.insertedId || 0;
         });
     }
 
@@ -96,10 +122,12 @@ export default class extends base {
      */
     delete(options = {}) {
         options.method = 'DELETE';
-        return this.parsers().buildSql(options).then(sql => {
-            return this.execute(sql);
+        return this.connect().then(conn => {
+            return this.parsers().buildSql(conn, options);
+        }).then(res => {
+            return this.execute(res);
         }).then(data => {
-            return data;
+            return data.deletedCount || 0;
         });
     }
 
@@ -109,10 +137,12 @@ export default class extends base {
      */
     update(data, options = {}) {
         options.method = 'UPDATE';
-        return this.parsers().buildSql(data, options).then(sql => {
-            return this.execute(sql, data);
+        return this.connect().then(conn => {
+            return this.parsers().buildSql(conn, data, options);
+        }).then(res => {
+            return this.execute(res);
         }).then(data => {
-            return data;
+            return data.modifiedCount || 0;
         });
     }
 
@@ -126,10 +156,10 @@ export default class extends base {
         options.method = 'COUNT';
         options.count = field;
         options.limit = [0, 1];
-        return this.parsers().buildSql(options).then(sql => {
-            return this.query(sql);
-        }).then(data => {
-            return ORM.isEmpty(data) ? 0 : data || 0;
+        return this.connect().then(conn => {
+            return this.parsers().buildSql(conn, options);
+        }).then(res => {
+            return this.query(res);
         });
     }
 
@@ -143,8 +173,11 @@ export default class extends base {
         options.method = 'SUM';
         options.sum = field;
         options.limit = [0, 1];
-        //未实现
-        return Promise.reject('not support');
+        return this.connect().then(conn => {
+            return this.parsers().buildSql(conn, options);
+        }).then(res => {
+            return this.query(res);
+        });
     }
 
     /**
@@ -154,10 +187,10 @@ export default class extends base {
     find(options = {}) {
         options.method = 'FIND';
         options.limit = [0, 1];
-        return this.parsers().buildSql(options).then(sql => {
-            return this.query(sql);
-        }).then(data => {
-            return ORM.isEmpty(data) ? {} : data || {};
+        return this.connect().then(conn => {
+            return this.parsers().buildSql(conn, options);
+        }).then(res => {
+            return this.query(res);
         });
     }
 
@@ -167,10 +200,29 @@ export default class extends base {
      */
     select(options = {}) {
         options.method = 'SELECT';
-        return this.parsers().buildSql(options).then(sql => {
-            return this.query(sql);
-        }).then(data => {
-            return ORM.isEmpty(data) ? [] : data || [];
+        return this.connect().then(conn => {
+            return this.parsers().buildSql(conn, options);
+        }).then(res => {
+            return this.query(res);
         });
+    }
+
+    /**
+     *
+     * @param data
+     * @returns {*}
+     */
+    bufferToString(data) {
+        if (!this.config.buffer_tostring || !ORM.isArray(data)) {
+            return data;
+        }
+        for (let i = 0, length = data.length; i < length; i++) {
+            for (let key in data[i]) {
+                if (ORM.isBuffer(data[i][key])) {
+                    data[i][key] = data[i][key].toString();
+                }
+            }
+        }
+        return data;
     }
 }

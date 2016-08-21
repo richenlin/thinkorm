@@ -5,16 +5,22 @@
  * @license    MIT
  * @version    16/7/25
  */
+import knex from 'knex';
 import base from '../base';
-import parser from '../Parser/mysql';
+import parser from '../Parser/base';
 import socket from '../Socket/mysql';
 
 export default class extends base {
 
     init(config = {}) {
         this.config = config;
+        this.logSql = config.db_ext_config.db_log_sql || false;
         this.transTimes = 0; //transaction times
         this.lastInsertId = 0;
+
+        this.knexClient = knex({
+            client: 'mysql'
+        });
 
         this.handel = null;
         this.parsercls = null;
@@ -24,7 +30,7 @@ export default class extends base {
         if (this.handel) {
             return this.handel;
         }
-        this.handel = new socket(this.config);
+        this.handel = new socket(this.config).connect();
         return this.handel;
     }
 
@@ -44,12 +50,38 @@ export default class extends base {
     }
 
     /**
+     * 数据迁移
+     */
+    migrate() {
+        return;
+    }
+
+    /**
      *
      * @param sql
      */
     query(sql) {
-        return this.connect().query(sql).then(data => {
-            return this.parsers().bufferToString(data);
+        if (ORM.isEmpty(sql)) {
+            return Promise.reject('SQL analytic result is empty');
+        }
+        let startTime = Date.now();
+        let connection;
+        return this.connect().then(conn => {
+            connection = conn;
+            let fn = ORM.promisify(connection.query, connection);
+            return fn(sql);
+        }).then((rows = []) => {
+            this.logSql && ORM.log(sql, 'MySQL', startTime);
+            return this.bufferToString(rows);
+        }).catch(err => {
+            //when socket is closed, try it
+            if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'EPIPE') {
+                return this.close().then(() => {
+                    return this.query(sql);
+                });
+            }
+            this.logSql && ORM.log(sql, 'MySQL', startTime);
+            return Promise.reject(err);
         });
     }
 
@@ -58,7 +90,7 @@ export default class extends base {
      * @param sql
      */
     execute(sql) {
-        return this.connect().execute(sql).then(data => {
+        return this.query(sql).then(data => {
             if (data.insertId) {
                 this.lastInsertId = data.insertId;
             }
@@ -109,7 +141,8 @@ export default class extends base {
      */
     add(data, options = {}) {
         options.method = 'ADD';
-        return this.parsers().buildSql(data, options).then(sql => {
+        let knexCls = this.knexClient.insert(data).from(options.table);
+        return this.parsers().buildSql(knexCls, data, options).then(sql => {
             return this.execute(sql);
         }).then(data => {
             //
@@ -123,7 +156,8 @@ export default class extends base {
      */
     delete(options = {}) {
         options.method = 'DELETE';
-        return this.parsers().buildSql(options).then(sql => {
+        let knexCls = this.knexClient.del().from(`${options.table} AS ${options.name}`);
+        return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.execute(sql);
         }).then(data => {
             //
@@ -137,7 +171,8 @@ export default class extends base {
      */
     update(data, options = {}) {
         options.method = 'UPDATE';
-        return this.parsers().buildSql(data, options).then(sql => {
+        let knexCls = this.knexClient.update(data).from(`${options.table} AS ${options.name}`);
+        return this.parsers().buildSql(knexCls, data, options).then(sql => {
             return this.execute(sql);
         }).then(data => {
             //
@@ -153,9 +188,9 @@ export default class extends base {
      */
     count(field, options = {}) {
         options.method = 'COUNT';
-        options.count = field;
         options.limit = [0, 1];
-        return this.parsers().buildSql(options).then(sql => {
+        let knexCls = this.knexClient.count(`${field} AS count`).from(`${options.table} AS ${options.name}`);
+        return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
             if (ORM.isArray(data)) {
@@ -178,9 +213,9 @@ export default class extends base {
      */
     sum(field, options = {}) {
         options.method = 'SUM';
-        options.sum = field;
         options.limit = [0, 1];
-        return this.parsers().buildSql(options).then(sql => {
+        let knexCls = this.knexClient.sum(`${options.sum} AS sum`).from(`${options.table} AS ${options.name}`);
+        return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
             if (ORM.isArray(data)) {
@@ -202,7 +237,8 @@ export default class extends base {
     find(options = {}) {
         options.method = 'SELECT';
         options.limit = [0, 1];
-        return this.parsers().buildSql(options).then(sql => {
+        let knexCls = this.knexClient.select().from(`${options.table} AS ${options.name}`);
+        return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
             //
@@ -216,11 +252,31 @@ export default class extends base {
      */
     select(options = {}) {
         options.method = 'SELECT';
-        return this.parsers().buildSql(options).then(sql => {
+        let knexCls = this.knexClient.select().from(`${options.table} AS ${options.name}`);
+        return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
             //
             return data;
         });
+    }
+
+    /**
+     *
+     * @param data
+     * @returns {*}
+     */
+    bufferToString(data) {
+        if (!this.config.buffer_tostring || !ORM.isArray(data)) {
+            return data;
+        }
+        for (let i = 0, length = data.length; i < length; i++) {
+            for (let key in data[i]) {
+                if (ORM.isBuffer(data[i][key])) {
+                    data[i][key] = data[i][key].toString();
+                }
+            }
+        }
+        return data;
     }
 }

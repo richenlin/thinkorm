@@ -5,68 +5,61 @@
  * @license    MIT
  * @version    16/7/26
  */
+var path = require('path');
 var thinkorm = require('../index.js');
-function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var config = {
     db_type: 'mysql',
+    //db_type: 'postgresql',
+    //db_type: 'mongo',
     db_host: '192.168.99.100',
     db_port: 3306,
+    //db_port: 5432,
+    //db_port: 27017,
     db_name: 'test',
     db_user: 'root',
+    //db_user: '',
     db_pwd: 'richenlin',
+    //db_pwd: '',
     db_prefix: 'think_',
     db_charset: 'utf8',
     db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
 };
-var User = requireDefault(require('../lib/model/User.js')).default;
-var Profile = requireDefault(require('../lib/model/Profile.js')).default;
-var Pet = requireDefault(require('../lib/model/Pet.js')).default;
-var Group = requireDefault(require('../lib/model/Group.js')).default;
+var User = ORM.safeRequire(path.dirname(__dirname) + '/lib/model/User.js');
+var Profile = ORM.safeRequire(path.dirname(__dirname) + '/lib/model/Profile.js');
+var Pet = ORM.safeRequire(path.dirname(__dirname) + '/lib/model/Pet.js');
+var Group = ORM.safeRequire(path.dirname(__dirname) + '/lib/model/Group.js');
+
 //加载模型类
-thinkorm.setCollection('User', config, User);
-thinkorm.setCollection('Profile', config, Profile);
-thinkorm.setCollection('Pet', config, Pet);
-thinkorm.setCollection('Group', config, Group);
+thinkorm.load('User', config, User);
+thinkorm.load('Profile', config, Profile);
+thinkorm.load('Pet', config, Pet);
+thinkorm.load('Group', config, Group);
 
 let model = new User('User', config);
 
-function test(){
+function test() {
     "use strict";
     return model
-        //.where({id: {'<>': 1, '>=': 0}}).find()
-        //.where({id: {'>=': 0}}).count()
-        //.where({id: {'>=': 0}}).sum('id')
-        //.where({id: {'>=': 0}}).select('id')
-        .where({id: {'>=': 0}}).countSelect()
-        //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
-        //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], sex: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
-        //.rel(true).find()
-        //.add({username: 'rrrrrrr',Profile: {test: 'rrrtest'}})
-        //.where({id: 60}).update({username: 'tttttt',Profile: {test: 'ttttttt'}})
-        //.add({username: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
-        //.where({id: 99}).update({username: 'tttttt',Pet: [{id: 7,types: 'ttttttt'}]})
-        //.add({username: 'rrrrrrr',Group: [{name: 'ssfsssss'}]})
-        //.where({id: 115}).update({username: 'tttttt',Group: [{id: 15,name: 'ttttttt'}]})
-        //.where({id: 115}).update({username: 'tttttt',Group: [{userid: 115, groupid: 15}]})
+    //.where({id: {'<>': 1, '>=': 0}}).find()
+    //.where({id: {'>=': 0}}).count()
+    //.where({id: {'>=': 0}}).sum('id')
+    //.where({id: {'>=': 0}}).select()
+    //.where({id: {'>=': 0}}).countSelect()
+    //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+    //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+    //.where({id: {'>=': 0}}).group(['id','username']).find()
+    .rel(true).find()
+    //.add({username: 'rrrrrrr',Profile: {test: 'rrrtest'}})
+    //.where({id: 60}).update({username: 'tttttt',Profile: {test: 'ttttttt'}})
+    //.add({username: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
+    //.where({id: 99}).update({username: 'tttttt',Pet: [{id: 7,types: 'ttttttt'}]})
+    //.add({username: 'rrrrrrr',Group: [{name: 'ssfsssss'}]})
+    //.where({id: 115}).update({username: 'tttttt',Group: [{id: 15,name: 'ttttttt'}]})
+    //.where({id: 115}).update({username: 'tttttt',Group: [{userid: 115, groupid: 15}]})
         .then(res => {
-        console.log(res);
-    });
+            console.log(res);
+        });
 }
 test();
-
-
-
-//function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-//var analyze = requireDefault(require('../lib/Util/analyze.js')).default;
-//var sequelizer = requireDefault(require('../lib/Util/sequelizer.js')).default;
-//var seqs = analyze({
-//    insert: {x: 10, y: 20},
-//    into: 'coords'
-//});
-//var builder =  sequelizer({
-//    dialect: 'mysql',
-//    tree: seqs
-//});
-//console.log(builder);
 
