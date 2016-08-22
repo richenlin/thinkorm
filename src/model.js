@@ -465,7 +465,7 @@ export default class extends base {
             let pk = await this.getPk();
             this.__data[pk] = this.__data[pk] ? this.__data[pk] : result;
             if (!lib.isEmpty(this.__relationData)) {
-                await this._postRelationData(result, parsedOptions, this.__relationData, 'ADD');
+                await this.__postRelationData(result, parsedOptions, this.__relationData, 'ADD');
             }
             await this._afterAdd(this.__data, parsedOptions);
             result = await this._parseData(this.__data[pk] || 0, parsedOptions, false);
@@ -588,7 +588,7 @@ export default class extends base {
             }
             let result = await model.update(this.__data, parsedOptions);
             if (!lib.isEmpty(this.__relationData)) {
-                await this._postRelationData(result, parsedOptions, this.__relationData, 'UPDATE');
+                await this.__postRelationData(result, parsedOptions, this.__relationData, 'UPDATE');
             }
             await this._afterUpdate(this.__data, parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
@@ -663,7 +663,7 @@ export default class extends base {
             result = await this._parseData(result, parsedOptions, false);
             result = (lib.isArray(result) ? result[0] : result) || {};
             if (!lib.isEmpty(parsedOptions.rel)) {
-                result = await this._getRelationData(parsedOptions, result);
+                result = await this.__getRelationData(parsedOptions, result);
             }
             await this._afterFind(result, parsedOptions);
             return result;
@@ -692,7 +692,7 @@ export default class extends base {
             let result = await model.select(parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
             if (!lib.isEmpty(parsedOptions.rel)) {
-                result = await this._getRelationData(parsedOptions, result);
+                result = await this.__getRelationData(parsedOptions, result);
             }
             await this._afterSelect(result, parsedOptions);
             return result;
@@ -843,12 +843,12 @@ export default class extends base {
      * @returns {*}
      * @private
      */
-    async _getRelationData(options, data) {
+    async __getRelationData(options, data) {
         try{
             let caseList = {
-                HASONE: this._getHasOneRelation,
-                HASMANY: this._getHasManyRelation,
-                MANYTOMANY: this._getManyToManyRelation
+                HASONE: this.__getHasOneRelation,
+                HASMANY: this.__getHasManyRelation,
+                MANYTOMANY: this.__getManyToManyRelation
             };
             let relationData = data;
             if (!lib.isEmpty(data)) {
@@ -882,7 +882,7 @@ export default class extends base {
      * @returns {*}
      * @private
      */
-    _getHasOneRelation(rel, data) {
+    __getHasOneRelation(rel, data) {
         if (lib.isEmpty(data) || lib.isEmpty(data[rel.fkey])) {
             return {};
         }
@@ -897,7 +897,7 @@ export default class extends base {
      * @returns {{}}
      * @private
      */
-    _getHasManyRelation(rel, data) {
+    __getHasManyRelation(rel, data) {
         if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
             return [];
         }
@@ -913,7 +913,7 @@ export default class extends base {
      * @returns {{}}
      * @private
      */
-    _getManyToManyRelation(rel, data) {
+    __getManyToManyRelation(rel, data) {
         if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
             return [];
         }
@@ -957,12 +957,12 @@ export default class extends base {
      * @returns {*}
      * @private
      */
-    async _postRelationData(result, options, relationData, postType) {
+    async __postRelationData(result, options, relationData, postType) {
         try{
             let caseList = {
-                HASONE: this._postHasOneRelation,
-                HASMANY: this._postHasManyRelation,
-                MANYTOMANY: this._postManyToManyRelation
+                HASONE: this.__postHasOneRelation,
+                HASMANY: this.__postHasManyRelation,
+                MANYTOMANY: this.__postManyToManyRelation
             };
             if (!lib.isEmpty(result)) {
                 let relation = schema.getRelation(this.modelName, this.config), rtype;
@@ -990,7 +990,7 @@ export default class extends base {
      * @param postType
      * @private
      */
-    async _postHasOneRelation(result, options, rel, relationData, postType) {
+    async __postHasOneRelation(result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }
@@ -1027,7 +1027,7 @@ export default class extends base {
      * @param postType
      * @private
      */
-    async _postHasManyRelation(result, options, rel, relationData, postType) {
+    async __postHasManyRelation(result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }
@@ -1059,7 +1059,7 @@ export default class extends base {
      * @param postType
      * @private
      */
-    async _postManyToManyRelation(result, options, rel, relationData, postType) {
+    async __postManyToManyRelation(result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }

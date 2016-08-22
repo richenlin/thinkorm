@@ -119,10 +119,13 @@ function getRelation(name, config) {
                             this.validations = {};
                             // 关联关系
                             this.relation = {};
+
+                            this.modelName = mapName;
+                            this.tableName = `${cls.config.db_prefix}${lib.parseName(mapName)}`;
                         }
                     };
                     //初始化map模型
-                    this.setCollection(mapName, cls.config, _class);
+                    this.setCollection(_class, cls.config);
                 }
                 ORM.collections[key][name].relationShip[n]['mapModel'] = ORM.collections[key][mapName];
             }

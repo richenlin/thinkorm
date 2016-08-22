@@ -29,12 +29,6 @@ if(!Date.prototype.Format){
 //Object上toString方法
 global.toString = Object.prototype.toString;
 
-//define ORM object
-global.ORM = {};
-ORM.collections = {};
-ORM.connections = {};
-
-
 /**
  * 是否是buffer
  * @type {Boolean}
@@ -430,6 +424,7 @@ module.exports = {
     isArray: isArray,
     isBoolean: isBoolean,
     isNumber: isNumber,
+    isString: isString,
     isObject: isObject,
     isNumberString: isNumberString,
     isJSONObj: isJSONObj,

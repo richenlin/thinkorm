@@ -1,10 +1,28 @@
-/**
- *
- * @author     richen
- * @copyright  Copyright (c) 2016 - <richenlin(at)gmail.com>
- * @license    MIT
- * @version    16/7/26
- */
+# 介绍
+-----
+
+ThinkORM, A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
+
+# 特性
+-----
+
+1. 支持 Mysql,MongoDB,postgresSql 等数据库,且书写语法一致
+2. 支持hasone,hasmany,manytomany关联查询,新增,更新
+3. 支持left,right,inner join查询(mongo暂不支持)
+4. 支持连接池配置
+5. 支持事务操作(mysql, postgresql)
+6. 支持 __before，_after等多种魔术方法
+
+# 下版计划
+-----
+
+1. mongodb的join查询
+2. 数据迁移(自动建表,自动迁移已有数据)
+3. mongodb的数据严格数据检查
+
+# 示例
+-----
+```
 var path = require('path');
 var thinkorm = require('../index.js');
 
@@ -19,7 +37,7 @@ var config = {
     db_name: 'test',
     db_user: 'root',
     //db_user: '',
-    db_pwd: 'richenlin',
+    db_pwd: '',
     //db_pwd: '',
     db_prefix: 'think_',
     db_charset: 'utf8',
@@ -35,7 +53,8 @@ thinkorm.setCollection(User, config);
 thinkorm.setCollection(Profile, config);
 thinkorm.setCollection(Pet, config);
 thinkorm.setCollection(Group, config);
-//
+
+//实例化模型
 let model = new User(config);
 
 function test() {
@@ -63,3 +82,17 @@ function test() {
 }
 test();
 
+```
+
+
+
+# 贡献者
+-----
+
+richenlin
+richerdlee
+
+# 协议
+-----
+
+MIT
