@@ -41,11 +41,11 @@ let model = new User('User', config);
 function test() {
     "use strict";
     return model
-    .where({id: {'<>': 1, '>=': 0}, name: '', or: [{name: 'aa'}, {name: 'aaa'}]}).find()
+    //.where({id: {'<>': 1, '>=': 0}, name: '', or: [{name: 'aa'}, {name: 'aaa'}]}).find()
     //.where({id: {'>=': 0}}).count()
     //.where({id: {'>=': 0}}).sum('id')
     //.where({id: {'>=': 0}}).select()
-    //.where({id: {'>=': 0}}).countSelect()
+    .countSelect()
     //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.where({id: {'>=': 0}}).group(['id','username']).find()

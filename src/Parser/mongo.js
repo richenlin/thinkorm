@@ -268,7 +268,7 @@ export default class extends base {
                         pipe.push({
                             $group: {
                                 _id: 1,
-                                count: {$sum: `$${options.sum}`}
+                                sum: {$sum: `$${options.sum}`}
                             }
                         })
                         this.sql = `${this.sql}.aggregate(${JSON.stringify(pipe)})`;

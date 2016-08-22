@@ -74,10 +74,12 @@ export default class extends base {
 
     /**
      *
-     * @param sql
+     * @param cls
+     * @param startTime
+     * @returns {*}
      */
-    query(cls) {
-        let startTime = Date.now();
+    query(cls, startTime) {
+        startTime = startTime || Date.now();
         if(!cls.col){
             this.logSql && ORM.log(cls.sql, 'MongoDB', startTime);
             return Promise.reject('Analytic result is empty');
@@ -94,9 +96,11 @@ export default class extends base {
     /**
      *
      * @param cls
+     * @param startTime
+     * @returns {*}
      */
-    execute(cls) {
-        return this.query(cls);
+    execute(cls, startTime) {
+        return this.query(cls, startTime);
     }
 
     /**
@@ -107,10 +111,11 @@ export default class extends base {
      */
     add(data, options = {}) {
         options.method = 'ADD';
+        let startTime = Date.now();
         return this.connect().then(conn => {
             return this.parsers().buildSql(conn, data, options);
         }).then(res => {
-            return this.execute(res);
+            return this.execute(res, startTime);
         }).then(data => {
             return data.insertedId || 0;
         });
@@ -122,10 +127,11 @@ export default class extends base {
      */
     delete(options = {}) {
         options.method = 'DELETE';
+        let startTime = Date.now();
         return this.connect().then(conn => {
             return this.parsers().buildSql(conn, options);
         }).then(res => {
-            return this.execute(res);
+            return this.execute(res, startTime);
         }).then(data => {
             return data.deletedCount || 0;
         });
@@ -137,10 +143,11 @@ export default class extends base {
      */
     update(data, options = {}) {
         options.method = 'UPDATE';
+        let startTime = Date.now();
         return this.connect().then(conn => {
             return this.parsers().buildSql(conn, data, options);
         }).then(res => {
-            return this.execute(res);
+            return this.execute(res, startTime);
         }).then(data => {
             return data.modifiedCount || 0;
         });
@@ -156,10 +163,21 @@ export default class extends base {
         options.method = 'COUNT';
         options.count = field;
         options.limit = [0, 1];
+        let startTime = Date.now();
         return this.connect().then(conn => {
             return this.parsers().buildSql(conn, options);
         }).then(res => {
-            return this.query(res);
+            return this.query(res, startTime);
+        }).then(data => {
+            if (ORM.isArray(data)) {
+                if (data[0]) {
+                    return data[0]['count'] ? (data[0]['count'] || 0) : 0;
+                } else {
+                    return 0;
+                }
+            } else {
+                return data['count'] || 0;
+            }
         });
     }
 
@@ -173,10 +191,21 @@ export default class extends base {
         options.method = 'SUM';
         options.sum = field;
         options.limit = [0, 1];
+        let startTime = Date.now();
         return this.connect().then(conn => {
             return this.parsers().buildSql(conn, options);
         }).then(res => {
-            return this.query(res);
+            return this.query(res, startTime);
+        }).then(data => {
+            if (ORM.isArray(data)) {
+                if (data[0]) {
+                    return data[0]['sum'] ? (data[0]['sum'] || 0) : 0;
+                } else {
+                    return 0;
+                }
+            } else {
+                return data['sum'] || 0;
+            }
         });
     }
 
@@ -187,10 +216,11 @@ export default class extends base {
     find(options = {}) {
         options.method = 'FIND';
         options.limit = [0, 1];
+        let startTime = Date.now();
         return this.connect().then(conn => {
             return this.parsers().buildSql(conn, options);
         }).then(res => {
-            return this.query(res);
+            return this.query(res, startTime);
         });
     }
 
@@ -200,10 +230,11 @@ export default class extends base {
      */
     select(options = {}) {
         options.method = 'SELECT';
+        let startTime = Date.now();
         return this.connect().then(conn => {
             return this.parsers().buildSql(conn, options);
         }).then(res => {
-            return this.query(res);
+            return this.query(res, startTime);
         });
     }
 
