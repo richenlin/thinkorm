@@ -259,7 +259,7 @@ export default function (data) {
             //自定义检测方法
             if (typeof validItem === 'function') {
                 flag = validItem(item.value, item);
-                if (isString(flag)) {
+                if (Object.prototype.toString.call(flag) === '[object String]') {
                     result[item.name] = flag;
                     flag = false;
                 }

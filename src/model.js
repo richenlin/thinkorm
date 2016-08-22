@@ -7,21 +7,8 @@
  */
 import base from './base';
 import schema from './schema';
+import lib from './Util/lib';
 import vaild from './Util/valid';
-
-var parseType = function (type) {
-    type = type || 'HASONE';
-    if (type == 1) {
-        type = 'HASONE';
-    } else if (type == 2) {
-        type = 'HASMANY';
-    } else if (type == 3) {
-        type = 'MANYTOMANY';
-    } else {
-        type = (type + '').toUpperCase();
-    }
-    return type
-};
 
 export default class extends base {
     /**
@@ -29,7 +16,7 @@ export default class extends base {
      * @param name
      * @param config
      */
-    init(name, config = {}) {
+    init(config = {}) {
         // 主键名称
         this.pk = 'id';
         // 数据库配置信息
@@ -47,13 +34,13 @@ export default class extends base {
         // 关联关系
         this.relation = {};
         // 参数
-        this._options = {};
+        this.__options = {};
         // 数据
-        this._data = {};
+        this.__data = {};
         // 关联模型数据
-        this._relationData = {};
+        this.__relationData = {};
         // 验证规则
-        this._valid = vaild;
+        this.__valid = vaild;
 
         // 配置
         this.config = {
@@ -68,17 +55,13 @@ export default class extends base {
             db_ext_config: config.db_ext_config
         };
         // 模型名
-        if (name) {
-            this.modelName = name;
-        } else {
-            this.modelName = this.getModelName();
-        }
+        this.modelName = this.getModelName();
         // 表名
         this.tableName = this.getTableName();
         // 安全模式
         this.safe = (this.config.db_ext_config.safe === true);
         // colleciton key
-        this.clsKey = `${config.db_type}_${config.db_host}_${config.db_port}_${config.db_name}`;
+        this.clsKey = schema.getKey(config);
         // collection instance
         this.instances = null;
     }
@@ -86,9 +69,18 @@ export default class extends base {
     /**
      *
      * @param args
+     * @returns {type[]}
+     */
+    static require(...args){
+        return lib.thinkRequire(...args);
+    }
+
+    /**
+     *
+     * @param args
      * @returns {*}
      */
-    static load(...args){
+    static setCollection(...args){
         return schema.setCollection(...args);
     }
 
@@ -121,8 +113,8 @@ export default class extends base {
     error(err) {
         if (err) {
             let msg = err;
-            if (!ORM.isError(msg)) {
-                if (!ORM.isString(msg)) {
+            if (!lib.isError(msg)) {
+                if (!lib.isString(msg)) {
                     msg = JSON.stringify(msg);
                 }
                 msg = new Error(msg);
@@ -132,9 +124,9 @@ export default class extends base {
             if (~stack.indexOf('connect') || ~stack.indexOf('refused')) {
                 this.instances && this.instances.close && this.instances.close();
             }
-            ORM.log(msg);
+            lib.log(msg);
         }
-        return ORM.getDefer().promise;
+        return lib.getDefer().promise;
     }
 
     /**
@@ -197,7 +189,7 @@ export default class extends base {
         try{
             if (!this.tableName) {
                 let tableName = this.config.db_prefix || '';
-                tableName += ORM.parseName(this.getModelName());
+                tableName += lib.parseName(this.getModelName());
                 this.tableName = tableName.toLowerCase();
             }
             return this.tableName;
@@ -231,7 +223,7 @@ export default class extends base {
      */
     getPk() {
         try{
-            if (!ORM.isEmpty(this.fields)) {
+            if (!lib.isEmpty(this.fields)) {
                 for (let v in this.fields) {
                     if (this.fields[v].hasOwnProperty('primaryKey') && this.fields[v].primaryKey === true) {
                         this.pk = v;
@@ -257,7 +249,7 @@ export default class extends base {
             if (page === undefined) {
                 return this;
             }
-            this._options.page = listRows === undefined ? page : page + ',' + listRows;
+            this.__options.page = listRows === undefined ? page : page + ',' + listRows;
             return this;
         }catch (e){
             return this.error(e);
@@ -275,23 +267,23 @@ export default class extends base {
                 //获取关联关系
                 let rels = schema.getRelation(this.modelName, this.config);
                 if (table === true) {
-                    this._options.rel = rels;
+                    this.__options.rel = rels;
                 } else {
-                    if (ORM.isString(table)) {
+                    if (lib.isString(table)) {
                         table = table.replace(/ +/g, '').split(',');
                     }
-                    if (ORM.isArray(table)) {
-                        this._options.rel = {};
+                    if (lib.isArray(table)) {
+                        this.__options.rel = {};
                         table.forEach(item => {
-                            rels[item] && (this._options.rel[item] = rels[item]);
+                            rels[item] && (this.__options.rel[item] = rels[item]);
                         });
                     }
                 }
                 //关联表字段
-                if (!ORM.isEmpty(field)) {
+                if (!lib.isEmpty(field)) {
                     for (let n in field) {
-                        if (n in this._options.rel) {
-                            this._options.rel[n]['field'] = field[n];
+                        if (n in this.__options.rel) {
+                            this.__options.rel[n]['field'] = field[n];
                         }
                     }
                 }
@@ -313,7 +305,7 @@ export default class extends base {
             if (offset === undefined) {
                 return this;
             }
-            if (ORM.isArray(offset)) {
+            if (lib.isArray(offset)) {
                 length = offset[1] || length;
                 offset = offset[0];
             } else if (length === undefined) {
@@ -324,7 +316,7 @@ export default class extends base {
             if (length) {
                 length = Math.max(parseInt(length) || 0, 0);
             }
-            this._options.limit = [offset, length];
+            this.__options.limit = [offset, length];
             return this;
         }catch (e){
             return this.error(e);
@@ -341,9 +333,9 @@ export default class extends base {
             if (order === undefined) {
                 return this;
             }
-            if (ORM.isObject(order)) {
-                this._options.order = order;
-            } else if (ORM.isString(order)) {
+            if (lib.isObject(order)) {
+                this.__options.order = order;
+            } else if (lib.isString(order)) {
                 let strToObj = function (_str) {
                     return _str.replace(/^ +/, '').replace(/ +$/, '')
                         .replace(/( +, +)+|( +,)+|(, +)/, ',')
@@ -351,7 +343,7 @@ export default class extends base {
                         .replace(/^/, '{"').replace(/$/, '"}')
                         .replace(/:/g, '":"').replace(/,/g, '","');
                 };
-                this._options.order = JSON.parse(strToObj(order));
+                this.__options.order = JSON.parse(strToObj(order));
             }
             return this;
         }catch (e){
@@ -366,13 +358,13 @@ export default class extends base {
      */
     field(field) {
         try{
-            if (ORM.isEmpty(field)) {
+            if (lib.isEmpty(field)) {
                 return this;
             }
-            if (ORM.isString(field)) {
+            if (lib.isString(field)) {
                 field = field.replace(/ +/g, '').split(',');
             }
-            this._options.field = field;
+            this.__options.field = field;
             return this;
         }catch (e){
             return this.error(e);
@@ -395,7 +387,7 @@ export default class extends base {
             if (!where) {
                 return this;
             }
-            this._options.where = ORM.extend(false, this._options.where || {}, where);
+            this.__options.where = lib.extend(false, this.__options.where || {}, where);
             return this;
         }catch (e){
             return this.error(e);
@@ -413,7 +405,7 @@ export default class extends base {
             if (!group) {
                 return this;
             }
-            this._options.group = group;
+            this.__options.group = group;
             return this;
         }catch (e){
             return this.error(e);
@@ -428,10 +420,10 @@ export default class extends base {
      */
     join(join) {
         try{
-            if (!join || !ORM.isArray(join) || join.length === 0) {
+            if (!join || !lib.isArray(join) || join.length === 0) {
                 return this;
             }
-            this._options.join = join;
+            this.__options.join = join;
             return this;
         }catch (e){
             return this.error(e);
@@ -456,27 +448,27 @@ export default class extends base {
      */
     async add(data, options) {
         try {
-            if (ORM.isEmpty(data)) {
+            if (lib.isEmpty(data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
             let parsedOptions = await this._parseOptions(options);
             // init model
             let model = await this.initModel();
             //copy data
-            this._data = ORM.extend({}, data);
-            this._data = await this._beforeAdd(this._data, parsedOptions);
-            this._data = await this._parseData(this._data, parsedOptions);
-            if (ORM.isEmpty(this._data)) {
+            this.__data = lib.extend({}, data);
+            this.__data = await this._beforeAdd(this.__data, parsedOptions);
+            this.__data = await this._parseData(this.__data, parsedOptions);
+            if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
-            let result = await model.add(this._data, parsedOptions);
+            let result = await model.add(this.__data, parsedOptions);
             let pk = await this.getPk();
-            this._data[pk] = this._data[pk] ? this._data[pk] : result;
-            if (!ORM.isEmpty(this._relationData)) {
-                await this._postRelationData(result, parsedOptions, this._relationData, 'ADD');
+            this.__data[pk] = this.__data[pk] ? this.__data[pk] : result;
+            if (!lib.isEmpty(this.__relationData)) {
+                await this._postRelationData(result, parsedOptions, this.__relationData, 'ADD');
             }
-            await this._afterAdd(this._data, parsedOptions);
-            result = await this._parseData(this._data[pk] || 0, parsedOptions, false);
+            await this._afterAdd(this.__data, parsedOptions);
+            result = await this._parseData(this.__data[pk] || 0, parsedOptions, false);
             return result;
         } catch (e) {
             return this.error(e);
@@ -500,11 +492,11 @@ export default class extends base {
      */
     async thenAdd(data, options) {
         try {
-            if (ORM.isEmpty(data)) {
+            if (lib.isEmpty(data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
             let record = await this.find(options);
-            if (ORM.isEmpty(record)) {
+            if (lib.isEmpty(record)) {
                 return this.add(data, options);
             }
             return null;
@@ -530,7 +522,7 @@ export default class extends base {
     async delete(options) {
         try {
             let parsedOptions = await this._parseOptions(options);
-            if (ORM.isEmpty(parsedOptions.where)) {
+            if (lib.isEmpty(parsedOptions.where)) {
                 return this.error('_OPERATION_WRONG_');
             }
             // init model
@@ -573,32 +565,32 @@ export default class extends base {
             // init model
             let model = await this.initModel();
             //copy data
-            this._data = ORM.extend({}, data);
-            this._data = await this._beforeUpdate(this._data, parsedOptions);
-            this._data = await this._parseData(this._data, parsedOptions);
-            if (ORM.isEmpty(this._data)) {
+            this.__data = lib.extend({}, data);
+            this.__data = await this._beforeUpdate(this.__data, parsedOptions);
+            this.__data = await this._parseData(this.__data, parsedOptions);
+            if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
             let pk = await this.getPk();
             // 如果存在主键数据 则自动作为更新条件
-            if (ORM.isEmpty(parsedOptions.where)) {
-                if (!ORM.isEmpty(this._data[pk])) {
+            if (lib.isEmpty(parsedOptions.where)) {
+                if (!lib.isEmpty(this.__data[pk])) {
                     parsedOptions.where = {};
-                    parsedOptions.where[pk] = this._data[pk];
-                    delete this._data[pk];
+                    parsedOptions.where[pk] = this.__data[pk];
+                    delete this.__data[pk];
                 } else {
                     return this.error('_OPERATION_WRONG_');
                 }
             } else {
-                if (!ORM.isEmpty(this._data[pk])) {
-                    delete this._data[pk];
+                if (!lib.isEmpty(this.__data[pk])) {
+                    delete this.__data[pk];
                 }
             }
-            let result = await model.update(this._data, parsedOptions);
-            if (!ORM.isEmpty(this._relationData)) {
-                await this._postRelationData(result, parsedOptions, this._relationData, 'UPDATE');
+            let result = await model.update(this.__data, parsedOptions);
+            if (!lib.isEmpty(this.__relationData)) {
+                await this._postRelationData(result, parsedOptions, this.__relationData, 'UPDATE');
             }
-            await this._afterUpdate(this._data, parsedOptions);
+            await this._afterUpdate(this.__data, parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
             return result;
         } catch (e) {
@@ -669,8 +661,8 @@ export default class extends base {
             let model = await this.initModel();
             let result = await model.find(parsedOptions);
             result = await this._parseData(result, parsedOptions, false);
-            result = (ORM.isArray(result) ? result[0] : result) || {};
-            if (!ORM.isEmpty(parsedOptions.rel)) {
+            result = (lib.isArray(result) ? result[0] : result) || {};
+            if (!lib.isEmpty(parsedOptions.rel)) {
                 result = await this._getRelationData(parsedOptions, result);
             }
             await this._afterFind(result, parsedOptions);
@@ -699,7 +691,7 @@ export default class extends base {
             let model = await this.initModel();
             let result = await model.select(parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
-            if (!ORM.isEmpty(parsedOptions.rel)) {
+            if (!lib.isEmpty(parsedOptions.rel)) {
                 result = await this._getRelationData(parsedOptions, result);
             }
             await this._afterSelect(result, parsedOptions);
@@ -727,7 +719,7 @@ export default class extends base {
      */
     async countSelect(options, pageFlag) {
         try {
-            if (ORM.isBoolean(options)) {
+            if (lib.isBoolean(options)) {
                 pageFlag = options;
                 options = {};
             }
@@ -735,7 +727,7 @@ export default class extends base {
             let countNum = await this.count(parsedOptions);
             let pageOptions = parsedOptions.page;
             let totalPage = Math.ceil(countNum / pageOptions.num);
-            if (ORM.isBoolean(pageFlag)) {
+            if (lib.isBoolean(pageFlag)) {
                 if (pageOptions.page > totalPage) {
                     pageOptions.page = pageFlag === true ? 1 : totalPage;
                 }
@@ -744,7 +736,7 @@ export default class extends base {
             //传入分页参数
             let offset = (pageOptions.page - 1) < 0 ? 0 : (pageOptions.page - 1) * pageOptions.num;
             parsedOptions.limit = [offset, pageOptions.num];
-            let result = ORM.extend(false, {count: countNum, total: totalPage}, pageOptions);
+            let result = lib.extend(false, {count: countNum, total: totalPage}, pageOptions);
             result.data = await this.select(parsedOptions);
             result = await this._parseData(result, parsedOptions, false);
             return result;
@@ -762,20 +754,20 @@ export default class extends base {
      */
     _parseOptions(oriOpts, extraOptions) {
         let options;
-        if (ORM.isScalar(oriOpts)) {
-            options = ORM.extend({}, this._options);
+        if (lib.isScalar(oriOpts)) {
+            options = lib.extend({}, this.__options);
         } else {
-            options = ORM.extend({}, this._options, oriOpts, extraOptions);
+            options = lib.extend({}, this.__options, oriOpts, extraOptions);
         }
         //查询过后清空sql表达式组装 避免影响下次查询
-        this._options = {};
+        this.__options = {};
         //获取表名
         options.table = options.table || this.getTableName();
         //模型名称
         options.name = options.name || this.modelName;
         //解析field,根据model的fields进行过滤
         let field = [];
-        if (ORM.isEmpty(options.field) && !ORM.isEmpty(options.fields)) options.field = options.fields;
+        if (lib.isEmpty(options.field) && !lib.isEmpty(options.fields)) options.field = options.fields;
         //解析分页
         if (options['page']) {
             let page = options.page + '';
@@ -809,8 +801,8 @@ export default class extends base {
             for (let field in data) {
                 //分离关联模型数据
                 if (this.relation[field]) {
-                    !this._relationData[field] && (this._relationData[field] = {});
-                    this._relationData[field] = data[field];
+                    !this.__relationData[field] && (this.__relationData[field] = {});
+                    this.__relationData[field] = data[field];
                     delete data[field];
                 }
                 //移除未定义的字段
@@ -819,25 +811,25 @@ export default class extends base {
                 }
             }
             //根据规则自动验证数据
-            if (ORM.isEmpty(this.validations)) {
+            if (lib.isEmpty(this.validations)) {
                 return data;
             }
             let field, value, checkData = [];
             for (field in this.validations) {
-                value = ORM.extend(this.validations[field], {name: field, value: data[field]});
+                value = lib.extend(this.validations[field], {name: field, value: data[field]});
                 checkData.push(value);
             }
-            if (ORM.isEmpty(checkData)) {
+            if (lib.isEmpty(checkData)) {
                 return data;
             }
             result = {};
-            result = this._valid(checkData);
-            if (ORM.isEmpty(result)) {
+            result = this.__valid(checkData);
+            if (lib.isEmpty(result)) {
                 return data;
             }
             return this.error(Object.values(result)[0]);
         } else {
-            if (ORM.isJSONObj(data)) {
+            if (lib.isJSONObj(data)) {
                 return data;
             } else {
                 return JSON.parse(JSON.stringify(data));
@@ -859,14 +851,14 @@ export default class extends base {
                 MANYTOMANY: this._getManyToManyRelation
             };
             let relationData = data;
-            if (!ORM.isEmpty(data)) {
+            if (!lib.isEmpty(data)) {
                 let relation = options.rel, rtype, fkey;
                 let pk = await this.getPk();
                 for (let n in relation) {
                     rtype = relation[n]['type'];
                     if (relation[n].fkey && rtype && rtype in caseList) {
-                        fkey = (rtype === 'MANYTOMANY') ? ORM.parseName(relation[n].name) : relation[n].fkey;
-                        if (ORM.isArray(data)) {
+                        fkey = (rtype === 'MANYTOMANY') ? lib.parseName(relation[n].name) : relation[n].fkey;
+                        if (lib.isArray(data)) {
                             for (let [k,v] of data.entries()) {
                                 data[k][fkey] = await caseList[rtype](relation[n], data[k]);
                             }
@@ -891,7 +883,7 @@ export default class extends base {
      * @private
      */
     _getHasOneRelation(rel, data) {
-        if (ORM.isEmpty(data) || ORM.isEmpty(data[rel.fkey])) {
+        if (lib.isEmpty(data) || lib.isEmpty(data[rel.fkey])) {
             return {};
         }
         let model = rel.model;
@@ -906,7 +898,7 @@ export default class extends base {
      * @private
      */
     _getHasManyRelation(rel, data) {
-        if (ORM.isEmpty(data) || ORM.isEmpty(data[rel.primaryPk])) {
+        if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
             return [];
         }
         let model = rel.model;
@@ -922,7 +914,7 @@ export default class extends base {
      * @private
      */
     _getManyToManyRelation(rel, data) {
-        if (ORM.isEmpty(data) || ORM.isEmpty(data[rel.primaryPk])) {
+        if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
             return [];
         }
         let model = rel.model;
@@ -938,7 +930,7 @@ export default class extends base {
             });
         //} else {
         //    let options = {
-        //        table: `${model.config.db_prefix}${ORM.parseName(mapModel)}`,
+        //        table: `${model.config.db_prefix}${lib.parseName(mapModel)}`,
         //        name: mapModel,
         //        join: [
         //            {from: `${rel.model.modelName}`, on: {[rel.rkey]: rpk}, field: rel.field, type: 'inner'}
@@ -972,7 +964,7 @@ export default class extends base {
                 HASMANY: this._postHasManyRelation,
                 MANYTOMANY: this._postManyToManyRelation
             };
-            if (!ORM.isEmpty(result)) {
+            if (!lib.isEmpty(result)) {
                 let relation = schema.getRelation(this.modelName, this.config), rtype;
                 let pk = await this.getPk();
                 for (let n in relationData) {
@@ -999,7 +991,7 @@ export default class extends base {
      * @private
      */
     async _postHasOneRelation(result, options, rel, relationData, postType) {
-        if (ORM.isEmpty(result) || ORM.isEmpty(relationData)) {
+        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }
         let model  = rel.model;
@@ -1036,7 +1028,7 @@ export default class extends base {
      * @private
      */
     async _postHasManyRelation(result, options, rel, relationData, postType) {
-        if (ORM.isEmpty(result) || ORM.isEmpty(relationData)) {
+        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }
         let model  = rel.model, rpk = model.getPk();
@@ -1068,7 +1060,7 @@ export default class extends base {
      * @private
      */
     async _postManyToManyRelation(result, options, rel, relationData, postType) {
-        if (ORM.isEmpty(result) || ORM.isEmpty(relationData)) {
+        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }
         //子表主键

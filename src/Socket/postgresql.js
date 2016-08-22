@@ -6,6 +6,7 @@
  * @version    16/7/25
  */
 import base from '../base';
+import lib from '../Util/lib';
 
 export default class extends base{
 
@@ -35,8 +36,8 @@ export default class extends base{
         }
         driver.defaults.poolIdleTimeout = this.config.poolIdleTimeout;
         let connectKey = `postgres://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}`;
-        return ORM.await(connectKey, () => {
-            let deferred = ORM.getDefer();
+        return lib.await(connectKey, () => {
+            let deferred = lib.getDefer();
             let connection = driver;
             connection.connect(this.config, (err, client, done) => {
                 if(err){

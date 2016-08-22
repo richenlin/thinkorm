@@ -6,7 +6,7 @@
  * @version    16/8/17
  */
 "use strict";
-
+var lib = require('./Util/lib.js');
 /**
  *
  * @param type
@@ -27,23 +27,32 @@ let parseType = function (type) {
 };
 /**
  *
- * @param name
  * @param config
- * @param collection
  * @returns {*}
  */
-let setCollection = function (name, config, collection = {}) {
-    if(!collection.modelName){
-        collection = new collection(name, config);
+let getKey = function (config) {
+   return `${config.db_type}_${config.db_host}_${config.db_port}_${config.db_name}`;
+};
+/**
+ *
+ * @param func
+ * @param config
+ * @returns {*}
+ */
+let setCollection = function (func, config) {
+    let collection = func, name = func.modelName;
+    if(!name){
+        collection = new collection(config);
+        name = collection.modelName;
     }
-    let key = `${config.db_type}_${config.db_host}_${config.db_port}_${config.db_name}`;
+    let key = getKey(config);
     if(!ORM.collections[key]){
         ORM.collections[key] = {};
     }
     if(!ORM.collections[key][name]){
         ORM.collections[key][name] = collection;
         ORM.collections[key][name].schema = {
-            name: collection.modelName,
+            name: name,
             tableName: collection.getTableName(),
             fields: collection.fields,
             autoCreatedAt: false,
@@ -60,7 +69,7 @@ let setCollection = function (name, config, collection = {}) {
  * @returns {*}
  */
 function getRelation(name, config) {
-    let key = `${config.db_type}_${config.db_host}_${config.db_port}_${config.db_name}`;
+    let key = getKey(config);
     if(!ORM.collections[key]){
         ORM.collections[key] = {};
     }
@@ -90,7 +99,7 @@ function getRelation(name, config) {
             //MANYTOMANY map
             if(type === 'MANYTOMANY'){
                 let mapName = `${cls.modelName}${n}Map`;
-                let model = ORM.safeRequire(__dirname + '/model.js');
+                let model = lib.thinkRequire(__dirname + '/model.js');
                 if(!ORM.collections[key][mapName]){
                     let _class = class extends model{
                         init(name, config){
@@ -128,7 +137,7 @@ function getRelation(name, config) {
  * @returns {*}
  */
 function setConnection(config){
-    let key = `${config.db_type}_${config.db_host}_${config.db_port}_${config.db_name}`;
+    let key = getKey(config);
     if(!ORM.connections[key]){
         let adapterList = {
             mysql: __dirname + '/Adapter/mysql.js',
@@ -139,12 +148,13 @@ function setConnection(config){
             throw new Error(`adapter is not support.`);
             return;
         }
-        ORM.connections[key] = new (ORM.safeRequire(adapterList[config.db_type]))(config);
+        ORM.connections[key] = new (lib.thinkRequire(adapterList[config.db_type]))(config);
     }
     return ORM.connections[key];
 }
 
 module.exports = {
+    getKey: getKey,
     setCollection: setCollection,
     setConnection: setConnection,
     getRelation: getRelation

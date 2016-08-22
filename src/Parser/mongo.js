@@ -6,6 +6,7 @@
  * @version    16/7/25
  */
 import base from '../base';
+import lib from '../Util/lib';
 
 const identifiers = {
     '>': '$gt',
@@ -47,10 +48,10 @@ let whereParse = function (key, value, item) {
             return {$or: temp};
             break;
         default:
-            if (ORM.isObject(value)) {
+            if (lib.isObject(value)) {
                 temp = {};
                 for (let k in value) {
-                    temp = ORM.extend(temp, whereParse(k, value[k], key));
+                    temp = lib.extend(temp, whereParse(k, value[k], key));
                 }
                 return temp;
             } else {
@@ -116,7 +117,7 @@ export default class extends base {
         let where = {};
         if (options.where) {
             for (let key in options.where) {
-                where = ORM.extend(where, whereParse(key, options.where[key], key));
+                where = lib.extend(where, whereParse(key, options.where[key], key));
             }
             options.where = where || {};
         }
@@ -145,7 +146,7 @@ export default class extends base {
         //});
         if(options.group){
             let group = {};
-            if(ORM.isArray(options.group)){
+            if(lib.isArray(options.group)){
                 options.group.map(item => {
                     group[item] = true;
                 });
@@ -204,7 +205,7 @@ export default class extends base {
         if (optType && optType in caseList) {
             switch (optType) {
                 case 'FIND':
-                    if(ORM.isEmpty(options.group)){
+                    if(lib.isEmpty(options.group)){
                         this.sql = `${this.sql}${options.where ? '.findOne(' + JSON.stringify(options.where) + ')' : '.findOne()'}`;
                         handler = collection.findOne(options.where || {});
                     } else {
@@ -214,7 +215,7 @@ export default class extends base {
                     }
                     break;
                 case 'SELECT':
-                    if(ORM.isEmpty(options.group)){
+                    if(lib.isEmpty(options.group)){
                         this.sql = `${this.sql}${options.where ? '.find(' + JSON.stringify(options.where) + ')' : '.find()'}`;
                         handler = collection.find(options.where || {});
                     } else {
@@ -240,9 +241,9 @@ export default class extends base {
                     handler = collection.deleteMany(options.where || {});
                     break;
                 case 'COUNT':
-                    if(ORM.isEmpty(options.group)){
-                        fn = ORM.promisify(collection.aggregate, collection);
-                        !ORM.isEmpty(options.where) && pipe.push({$match: options.where});
+                    if(lib.isEmpty(options.group)){
+                        fn = lib.promisify(collection.aggregate, collection);
+                        !lib.isEmpty(options.where) && pipe.push({$match: options.where});
                         pipe.push({
                             $group: {
                                 _id: null,
@@ -262,9 +263,9 @@ export default class extends base {
                     }
                     break;
                 case 'SUM':
-                    if(ORM.isEmpty(options.group)){
-                        fn = ORM.promisify(collection.aggregate, collection);
-                        !ORM.isEmpty(options.where) && pipe.push({$match: options.where});
+                    if(lib.isEmpty(options.group)){
+                        fn = lib.promisify(collection.aggregate, collection);
+                        !lib.isEmpty(options.where) && pipe.push({$match: options.where});
                         pipe.push({
                             $group: {
                                 _id: 1,
@@ -345,8 +346,8 @@ export default class extends base {
                 //处理其他options
                 for (let n in options) {
                     if (caseList[optType][n]) {
-                        let mt = `parse${ORM.ucFirst(n)}`;
-                        if (mt && ORM.isFunction(this[mt])) {
+                        let mt = `parse${lib.ucFirst(n)}`;
+                        if (mt && lib.isFunction(this[mt])) {
                             await this[mt](data, options);
                         }
                     }
@@ -375,7 +376,7 @@ export default class extends base {
             options = data;
         }
         //防止外部options被更改
-        let parseOptions = ORM.extend({}, options);
+        let parseOptions = lib.extend({}, options);
         return this.parseSql(conn, data, parseOptions);
     }
 }

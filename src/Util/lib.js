@@ -33,22 +33,24 @@ global.toString = Object.prototype.toString;
 global.ORM = {};
 ORM.collections = {};
 ORM.connections = {};
+
+
 /**
  * 是否是buffer
  * @type {Boolean}
  */
-ORM.isBuffer = Buffer.isBuffer;
+var isBuffer = Buffer.isBuffer;
 /**
  * 是否是个数组
  * @type {Boolean}
  */
-ORM.isArray = Array.isArray;
+var isArray = Array.isArray;
 /**
  * 是否是boolean
  * @param  {[type]}  obj
  * @return {Boolean}
  */
-ORM.isBoolean = function (obj) {
+var isBoolean = function (obj) {
     'use strict';
     return toString.call(obj) === '[object Boolean]';
 };
@@ -57,46 +59,37 @@ ORM.isBoolean = function (obj) {
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-ORM.isNumber = function (obj) {
+var isNumber = function (obj) {
     'use strict';
     return toString.call(obj) === '[object Number]';
-};
-/**
- * 是否是个对象
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
- */
-ORM.isObject = function (obj) {
-    'use strict';
-    if (Buffer.isBuffer(obj)) {
-        return false;
-    }
-    return toString.call(obj) === '[object Object]';
-};
-ORM.getDefer = function () {
-    'use strict';
-    let deferred = {};
-    deferred.promise = new Promise(function (resolve, reject) {
-        deferred.resolve = resolve;
-        deferred.reject = reject;
-    });
-    return deferred;
 };
 /**
  * 是否是字符串
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-ORM.isString = function (obj) {
+var isString = function (obj) {
     'use strict';
     return toString.call(obj) === '[object String]';
+};
+/**
+ * 是否是个对象
+ * @param  {[type]}  obj [description]
+ * @return {Boolean}     [description]
+ */
+var isObject = function (obj) {
+    'use strict';
+    if (Buffer.isBuffer(obj)) {
+        return false;
+    }
+    return toString.call(obj) === '[object Object]';
 };
 /**
  * 是否是个数字的字符串
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-ORM.isNumberString = function (obj) {
+var isNumberString = function (obj) {
     'use strict';
     let numberReg = /^((\-?\d*\.?\d*(?:e[+-]?\d*(?:\d?\.?|\.?\d?)\d*)?)|(0[0-7]+)|(0x[0-9a-f]+))$/i;
     return numberReg.test(obj);
@@ -106,7 +99,7 @@ ORM.isNumberString = function (obj) {
  * @param obj
  * @returns {boolean}
  */
-ORM.isJSONObj = function (obj) {
+var isJSONObj = function (obj) {
     'use strict';
     return typeof obj === 'object' && Object.prototype.toString.call(obj).toLowerCase() === '[object object]' && !obj.length;
 };
@@ -115,7 +108,7 @@ ORM.isJSONObj = function (obj) {
  * @param str
  * @returns {boolean}
  */
-ORM.isJSONStr = function (str) {
+var isJSONStr = function (str) {
     'use strict';
     try {
         JSON.parse(str);
@@ -129,7 +122,7 @@ ORM.isJSONStr = function (str) {
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-ORM.isFunction = function (obj) {
+var isFunction = function (obj) {
     'use strict';
     return typeof obj === 'function';
 };
@@ -137,7 +130,7 @@ ORM.isFunction = function (obj) {
  * 是否是日期
  * @return {Boolean} [description]
  */
-ORM.isDate = function (obj) {
+var isDate = function (obj) {
     'use strict';
     return util.isDate(obj);
 };
@@ -146,7 +139,7 @@ ORM.isDate = function (obj) {
  * @param  {[type]}  reg [description]
  * @return {Boolean}     [description]
  */
-ORM.isRegexp = function (obj) {
+var isRegexp = function (obj) {
     'use strict';
     return util.isRegExp(obj);
 };
@@ -155,16 +148,16 @@ ORM.isRegexp = function (obj) {
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-ORM.isScalar = function (obj) {
+var isScalar = function (obj) {
     'use strict';
-    return ORM.isBoolean(obj) || ORM.isNumber(obj) || ORM.isString(obj);
+    return isBoolean(obj) || isNumber(obj) || isString(obj);
 };
 /**
  * 是否是个文件
  * @param  {[type]}  p [description]
  * @return {Boolean}   [description]
  */
-ORM.isFile = function (p) {
+var isFile = function (p) {
     'use strict';
     if (!fs.existsSync(p)) {
         return false;
@@ -177,7 +170,7 @@ ORM.isFile = function (p) {
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-ORM.isError = function (obj) {
+var isError = function (obj) {
     'use strict';
     return util.isError(obj);
 };
@@ -186,17 +179,17 @@ ORM.isError = function (obj) {
  * @param  {[type]}  obj
  * @return {Boolean}
  */
-ORM.isEmpty = function (obj) {
+var isEmpty = function (obj) {
     'use strict';
 
     if (obj === null || obj === undefined || obj === '') {
         return true;
-    } else if (ORM.isString(obj)) {
+    } else if (isString(obj)) {
         //\s 匹配任何空白字符，包括空格、制表符、换页符等等。等价于 [ \f\n\r\t\v]。
         return obj.replace(/(^\s*)|(\s*$)/g, '').length === 0;
-    } else if (ORM.isArray(obj)) {
+    } else if (isArray(obj)) {
         return obj.length === 0;
-    } else if (ORM.isObject(obj)) {
+    } else if (isObject(obj)) {
         for (let key in obj) {
             return false;
         }
@@ -211,7 +204,7 @@ ORM.isEmpty = function (obj) {
  * @param haystack 数组
  * @returns {boolean}
  */
-ORM.inArray = function (needle, haystack) {
+var inArray = function (needle, haystack) {
     'use strict';
     let length = haystack.length;
     for (let i = 0; i < length; i++) {
@@ -224,9 +217,23 @@ ORM.inArray = function (needle, haystack) {
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-ORM.isPromise = function (obj) {
+var isPromise = function (obj) {
     'use strict';
     return !!(obj && typeof obj.then === 'function');
+};
+
+/**
+ *
+ * @returns {{}}
+ */
+var getDefer = function () {
+    'use strict';
+    let deferred = {};
+    deferred.promise = new Promise(function (resolve, reject) {
+        deferred.resolve = resolve;
+        deferred.reject = reject;
+    });
+    return deferred;
 };
 /**
  * make callback function to promise
@@ -234,7 +241,7 @@ ORM.isPromise = function (obj) {
  * @param  {Object}   receiver []
  * @return {Promise}            []
  */
-ORM.promisify = function (fn, receiver) {
+var promisify = function (fn, receiver) {
     'use strict';
     return function (...args) {
         return new Promise(function (resolve, reject) {
@@ -245,36 +252,11 @@ ORM.promisify = function (fn, receiver) {
     };
 };
 /**
- * 执行等待，避免一个耗时的操作多次被执行。 callback 需要返回一个 Promise 。
- * @param  {String}   key      []
- * @param  {Function} callback []
- * @return {Promise}            []
- */
-var _ormAwaitInstance = new (_interopSafeRequire(require('./await.js')))();
-ORM.await = function (key, callback) {
-    return _ormAwaitInstance.run(key, callback);
-};
-/**
- * 安全方式加载文件
- * @param  {[type]} file [description]
- * @return {[type]}      [description]
- */
-ORM.safeRequire = function (file) {
-    'use strict';
-    try {
-        var obj = require(file);
-        return _interopSafeRequire(obj);
-    } catch (err) {
-        console.log(err)
-        return null;
-    }
-};
-/**
  * 大写首字符
  * @param  {[type]} name [description]
  * @return {[type]}      [description]
  */
-ORM.ucFirst = function (name) {
+var ucFirst = function (name) {
     'use strict';
     name = (name || '') + '';
     return name.substr(0, 1).toUpperCase() + name.substr(1).toLowerCase();
@@ -285,7 +267,7 @@ ORM.ucFirst = function (name) {
  * @param  {[type]} type [description]
  * @return {[type]}      [description]
  */
-ORM.parseName = function (name) {
+var parseName = function (name) {
     name = name.trim();
     if (!name) {
         return name;
@@ -301,7 +283,7 @@ ORM.parseName = function (name) {
  * @param input
  * @returns {string}
  */
-ORM.hash = function (input) {
+var hash = function (input) {
     'use strict';
     let _hash = 5381;
     let I64BIT_TABLE =
@@ -333,7 +315,7 @@ ORM.hash = function (input) {
  * @param showTime
  * @constructor
  */
-ORM.log = function (msg, type, showTime) {
+var log = function (msg, type, showTime) {
     'use strict';
     let d = new Date();
     let date = d.Format('yyyy-mm-dd');
@@ -364,21 +346,48 @@ ORM.log = function (msg, type, showTime) {
     console.log(`${dateTime}[${type}] ${message}`);
     return;
 };
-
+/**
+ * 执行等待，避免一个耗时的操作多次被执行。 callback 需要返回一个 Promise 。
+ * @param  {String}   key      []
+ * @param  {Function} callback []
+ * @return {Promise}            []
+ */
+var _ormAwaitInstance = new (_interopSafeRequire(require('./await.js')))();
+var _await = function (key, callback) {
+    return _ormAwaitInstance.run(key, callback);
+};
+/**
+ * 加载文件
+ * @param  {[type]} file [description]
+ * @return {[type]}      [description]
+ */
+var thinkRequire = function (file) {
+    'use strict';
+    try {
+        var obj = require(file);
+        obj = _interopSafeRequire(obj);
+        if(isFunction(obj)){
+            obj.prototype.__filename = file;
+        }
+        return obj;
+    } catch (err) {
+        return null;
+    }
+};
 /**
  * extend, from jquery，具有深度复制功能
  * @return {[type]} [description]
  */
-ORM.extend = function () {
+var extend = function () {
     'use strict';
     let args = [].slice.call(arguments);
     let deep = true;
     let target;
-    if (ORM.isBoolean(args[0])) {
+    if (isBoolean(args[0])) {
         deep = args.shift();
     }
     if (deep) {
-        target = ORM.isArray(args[0]) ? [] : {};
+        target = isArray(args[0]) ? [] : {};
     } else {
         target = args.shift();
     }
@@ -401,10 +410,10 @@ ORM.extend = function () {
                 continue;
             }
             if (deep) {
-                if (ORM.isObject(copy)) {
-                    target[name] = ORM.extend(src && ORM.isObject(src) ? src : {}, copy);
-                } else if (ORM.isArray(copy)) {
-                    target[name] = ORM.extend([], copy);
+                if (isObject(copy)) {
+                    target[name] = extend(src && isObject(src) ? src : {}, copy);
+                } else if (isArray(copy)) {
+                    target[name] = extend([], copy);
                 } else {
                     target[name] = copy;
                 }
@@ -414,4 +423,33 @@ ORM.extend = function () {
         }
     }
     return target;
+};
+
+module.exports = {
+    isBuffer: isBuffer,
+    isArray: isArray,
+    isBoolean: isBoolean,
+    isNumber: isNumber,
+    isObject: isObject,
+    isNumberString: isNumberString,
+    isJSONObj: isJSONObj,
+    isJSONStr: isJSONStr,
+    isFunction: isFunction,
+    isDate: isDate,
+    isRegexp: isRegexp,
+    isScalar: isScalar,
+    isFile: isFile,
+    isError: isError,
+    isEmpty: isEmpty,
+    inArray: inArray,
+    isPromise: isPromise,
+    getDefer: getDefer,
+    promisify: promisify,
+    ucFirst: ucFirst,
+    parseName: parseName,
+    hash: hash,
+    log: log,
+    await: _await,
+    extend: extend,
+    thinkRequire: thinkRequire
 };

@@ -9,34 +9,34 @@ var path = require('path');
 var thinkorm = require('../index.js');
 
 var config = {
-    //db_type: 'mysql',
+    db_type: 'mysql',
     //db_type: 'postgresql',
-    db_type: 'mongo',
+    //db_type: 'mongo',
     db_host: '192.168.99.100',
-    //db_port: 3306,
+    db_port: 3306,
     //db_port: 5432,
-    db_port: 27017,
+    //db_port: 27017,
     db_name: 'test',
-    //db_user: 'root',
-    db_user: '',
-    //db_pwd: 'richenlin',
-    db_pwd: '',
+    db_user: 'root',
+    //db_user: '',
+    db_pwd: 'richenlin',
+    //db_pwd: '',
     db_prefix: 'think_',
     db_charset: 'utf8',
     db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
 };
-var User = ORM.safeRequire(path.dirname(__dirname) + '/exmple/model/lib/User.js');
-var Profile = ORM.safeRequire(path.dirname(__dirname) + '/exmple/model/lib/Profile.js');
-var Pet = ORM.safeRequire(path.dirname(__dirname) + '/exmple/model/lib/Pet.js');
-var Group = ORM.safeRequire(path.dirname(__dirname) + '/exmple/model/lib/Group.js');
+var User = thinkorm.require(path.dirname(__dirname) + '/exmple/model/lib/User.js');
+var Profile = thinkorm.require(path.dirname(__dirname) + '/exmple/model/lib/Profile.js');
+var Pet = thinkorm.require(path.dirname(__dirname) + '/exmple/model/lib/Pet.js');
+var Group = thinkorm.require(path.dirname(__dirname) + '/exmple/model/lib/Group.js');
 
 //加载模型类
-thinkorm.load('User', config, User);
-thinkorm.load('Profile', config, Profile);
-thinkorm.load('Pet', config, Pet);
-thinkorm.load('Group', config, Group);
-
-let model = new User('User', config);
+thinkorm.setCollection(User, config);
+thinkorm.setCollection(Profile, config);
+thinkorm.setCollection(Pet, config);
+thinkorm.setCollection(Group, config);
+//
+let model = new User(config);
 
 function test() {
     "use strict";

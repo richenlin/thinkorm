@@ -7,6 +7,7 @@
  */
 import knex from 'knex';
 import base from '../base';
+import lib from '../Util/lib';
 import parser from '../Parser/base';
 import socket from '../Socket/postgresql';
 
@@ -65,11 +66,11 @@ export default class extends base {
         let connection;
         return this.connect().then(conn => {
             connection = conn;
-            let fn = ORM.promisify(connection.query, connection);
+            let fn = lib.promisify(connection.query, connection);
             return fn(sql);
         }).then((rows = []) => {
             connection.release && connection.release();
-            this.logSql && ORM.log(sql, 'PostgreSQL', startTime);
+            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
             return this.bufferToString(rows);
         }).catch(err => {
             this.release && this.release();
@@ -78,7 +79,7 @@ export default class extends base {
                 this.close();
                 return this.query(sql);
             }
-            this.logSql && ORM.log(sql, 'PostgreSQL', startTime);
+            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
             return Promise.reject(err);
         });
     }
@@ -191,7 +192,7 @@ export default class extends base {
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            if (ORM.isArray(data)) {
+            if (lib.isArray(data)) {
                 if (data[0]) {
                     return data[0]['count'] ? (data[0]['count'] || 0) : 0;
                 } else {
@@ -216,7 +217,7 @@ export default class extends base {
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
-            if (ORM.isArray(data)) {
+            if (lib.isArray(data)) {
                 if (data[0]) {
                     return data[0]['sum'] ? (data[0]['sum'] || 0) : 0;
                 } else {
@@ -265,12 +266,12 @@ export default class extends base {
      * @returns {*}
      */
     bufferToString(data) {
-        if (!this.config.buffer_tostring || !ORM.isArray(data)) {
+        if (!this.config.buffer_tostring || !lib.isArray(data)) {
             return data;
         }
         for (let i = 0, length = data.length; i < length; i++) {
             for (let key in data[i]) {
-                if (ORM.isBuffer(data[i][key])) {
+                if (lib.isBuffer(data[i][key])) {
                     data[i][key] = data[i][key].toString();
                 }
             }

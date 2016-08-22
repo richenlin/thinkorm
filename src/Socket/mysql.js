@@ -6,6 +6,7 @@
  * @version    16/7/25
  */
 import base from '../base';
+import lib from '../Util/lib';
 
 export default class extends base{
 
@@ -40,8 +41,8 @@ export default class extends base{
         }
 
         let connectKey = `mysql://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}`;
-        return ORM.await(connectKey, () => {
-            let deferred = ORM.getDefer();
+        return lib.await(connectKey, () => {
+            let deferred = lib.getDefer();
             let connection = driver.createConnection(this.config);
             connection.connect(err => {
                 if(err){
@@ -70,10 +71,10 @@ export default class extends base{
 
     close(){
         if(this.pool){
-            let fn = ORM.promisify(this.pool.end, this.pool);
+            let fn = lib.promisify(this.pool.end, this.pool);
             return fn().then(() => this.pool = null);
         } else {
-            let fn = ORM.promisify(this.connection.end, this.connection);
+            let fn = lib.promisify(this.connection.end, this.connection);
             return fn().then(() => this.connection = null);
         }
     }

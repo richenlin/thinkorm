@@ -6,6 +6,7 @@
  * @version    16/7/25
  */
 import base from '../base';
+import lib from '../Util/lib';
 import parser from '../Parser/mongo';
 import socket from '../Socket/mongo';
 
@@ -52,7 +53,7 @@ export default class extends base {
      *
      */
     startTrans() {
-        ORM.log(`Adapter is not support.`, 'WARNING');
+        lib.log(`Adapter is not support.`, 'WARNING');
         return;
     }
 
@@ -60,7 +61,7 @@ export default class extends base {
      *
      */
     commit() {
-        ORM.log(`Adapter is not support.`, 'WARNING');
+        lib.log(`Adapter is not support.`, 'WARNING');
         return;
     }
 
@@ -68,7 +69,7 @@ export default class extends base {
      *
      */
     rollback() {
-        ORM.log(`Adapter is not support.`, 'WARNING');
+        lib.log(`Adapter is not support.`, 'WARNING');
         return;
     }
 
@@ -81,14 +82,14 @@ export default class extends base {
     query(cls, startTime) {
         startTime = startTime || Date.now();
         if(!cls.col){
-            this.logSql && ORM.log(cls.sql, 'MongoDB', startTime);
+            this.logSql && lib.log(cls.sql, 'MongoDB', startTime);
             return Promise.reject('Analytic result is empty');
         }
         return cls.col.then(data => {
-            this.logSql && ORM.log(cls.sql, 'MongoDB', startTime);
+            this.logSql && lib.log(cls.sql, 'MongoDB', startTime);
             return this.bufferToString(data);
         }).catch(err => {
-            this.logSql && ORM.log(cls.sql, 'MongoDB', startTime);
+            this.logSql && lib.log(cls.sql, 'MongoDB', startTime);
             return Promise.reject(err);
         });
     }
@@ -169,7 +170,7 @@ export default class extends base {
         }).then(res => {
             return this.query(res, startTime);
         }).then(data => {
-            if (ORM.isArray(data)) {
+            if (lib.isArray(data)) {
                 if (data[0]) {
                     return data[0]['count'] ? (data[0]['count'] || 0) : 0;
                 } else {
@@ -197,7 +198,7 @@ export default class extends base {
         }).then(res => {
             return this.query(res, startTime);
         }).then(data => {
-            if (ORM.isArray(data)) {
+            if (lib.isArray(data)) {
                 if (data[0]) {
                     return data[0]['sum'] ? (data[0]['sum'] || 0) : 0;
                 } else {
@@ -244,12 +245,12 @@ export default class extends base {
      * @returns {*}
      */
     bufferToString(data) {
-        if (!this.config.buffer_tostring || !ORM.isArray(data)) {
+        if (!this.config.buffer_tostring || !lib.isArray(data)) {
             return data;
         }
         for (let i = 0, length = data.length; i < length; i++) {
             for (let key in data[i]) {
-                if (ORM.isBuffer(data[i][key])) {
+                if (lib.isBuffer(data[i][key])) {
                     data[i][key] = data[i][key].toString();
                 }
             }

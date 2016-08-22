@@ -6,6 +6,7 @@
  * @version    16/8/14
  */
 import base from '../base';
+import lib from '../Util/lib';
 
 const identifiers = {
     OR: 'OR',
@@ -40,7 +41,7 @@ let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
         let idt = key.toUpperCase();
         switch (identifiers[idt]) {
             case 'OR':
-                if (ORM.isArray(value)) {
+                if (lib.isArray(value)) {
                     for (let n of value) {
                         for (let orKey in n) {
                             preParseKnexWhere(options, orKey, n[orKey], orKey, alias, true);
@@ -50,21 +51,21 @@ let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
                 break;
             case 'IN':
                 for (let n in value) {
-                    if (ORM.isArray(value[n])) {
+                    if (lib.isArray(value[n])) {
                         isor ? options.orwhere.in.push([`${alias}.${n}`, value[n]]) : options.where.in.push([`${alias}.${n}`, value[n]]);
                     }
                 }
                 break;
             case 'NOTIN':
                 for (let n in value) {
-                    if (ORM.isArray(value[n])) {
+                    if (lib.isArray(value[n])) {
                         isor ? options.orwhere.notin.push([`${alias}.${n}`, value[n]]) : options.where.notin.push([`${alias}.${n}`, value[n]]);
                     }
                 }
                 break;
             case 'NOT':
                 for (let n in value) {
-                    if (ORM.isArray(value[n])) {
+                    if (lib.isArray(value[n])) {
                         isor ? options.orwhere.notin.push([`${alias}.${n}`, value[n]]) : options.where.notin.push([`${alias}.${n}`, value[n]]);
                     } else {
                         isor ? options.orwhere.not.push([`${alias}.${n}`, value[n]]) : options.where.not.push([`${alias}.${n}`, value[n]]);
@@ -76,9 +77,9 @@ let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
                 break;
             case 'AND':
             default:
-                if (ORM.isArray(value)) {
+                if (lib.isArray(value)) {
                     isor ? options.orwhere.in.push([`${alias}.${key}`, value]) : options.where.in.push([`${alias}.${key}`, value]);
-                } else if (ORM.isObject(value)) {
+                } else if (lib.isObject(value)) {
                     for (let n in value) {
                         preParseKnexWhere(options, n, value[n], key, alias, isor);
                     }
@@ -200,7 +201,7 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
     //解析on
     for (let n in onCondition) {
         if (n === 'or' || n === 'OR') {
-            if (!ORM.isArray(onCondition[n])) {
+            if (!lib.isArray(onCondition[n])) {
                 continue;
             }
             onCondition[n].forEach(it => {
@@ -238,7 +239,7 @@ export default class extends base {
      * @param options
      */
     parseLimit(cls, data, options) {
-        if (ORM.isEmpty(options.limit)) {
+        if (lib.isEmpty(options.limit)) {
             return;
         }
         cls.limit(options.limit[1] || 10).offset(options.limit[0] || 0);
@@ -251,7 +252,7 @@ export default class extends base {
      * @param options
      */
     parseOrder(cls, data, options) {
-        if (ORM.isEmpty(options.order)) {
+        if (lib.isEmpty(options.order)) {
             return;
         }
         for (let n in options.order) {
@@ -266,7 +267,7 @@ export default class extends base {
      * @param options
      */
     parseField(cls, data, options) {
-        if (ORM.isEmpty(options.field)) {
+        if (lib.isEmpty(options.field)) {
             return;
         }
         let fds = [];
@@ -287,7 +288,7 @@ export default class extends base {
      * @param options
      */
     parseWhere(cls, data, options) {
-        if (ORM.isEmpty(options.where)) {
+        if (lib.isEmpty(options.where)) {
             return;
         }
         let optionsWhere = {
@@ -337,7 +338,7 @@ export default class extends base {
      * @param options
      */
     parseGroup(cls, data, options) {
-        if (ORM.isEmpty(options.group)) {
+        if (lib.isEmpty(options.group)) {
             return;
         }
         cls.groupBy(options.group);
@@ -356,15 +357,15 @@ export default class extends base {
         //.innerJoin('accounts', function() {
         //    this.on('accounts.id', '=', 'users.account_id').on('accounts.owner_id', '=', 'users.id').orOn('accounts.owner_id', '=', 'users.id')
         //})
-        if (ORM.isArray(options.join)) {
+        if (lib.isArray(options.join)) {
             let type, config = this.config, name = options.name, joinAlias = '', joinTable = '', onCondition, func = '';
             options.join.map(item => {
                 if (item && item.from && item.on) {
                     onCondition = item.on;
                     joinAlias = item.from;
-                    joinTable = `${config.db_prefix}${ORM.parseName(item.from)}`;
+                    joinTable = `${config.db_prefix}${lib.parseName(item.from)}`;
                     //关联表字段
-                    if (!ORM.isEmpty(item.field) && ORM.isArray(item.field)) {
+                    if (!lib.isEmpty(item.field) && lib.isArray(item.field)) {
                         options.field = options.field || [];
                         item.field.forEach(it => {
                             //关联表字段必须指定,不能写*
@@ -410,8 +411,8 @@ export default class extends base {
                 //处理其他options
                 for (let n in options) {
                     if (caseList[optType][n]) {
-                        let mt = `parse${ORM.ucFirst(n)}`;
-                        mt && ORM.isFunction(this[mt]) && await this[mt](cls, data, options);
+                        let mt = `parse${lib.ucFirst(n)}`;
+                        mt && lib.isFunction(this[mt]) && await this[mt](cls, data, options);
                     }
                 }
                 return cls.toString();
@@ -434,7 +435,7 @@ export default class extends base {
             options = data;
         }
         //防止外部options被更改
-        let parseOptions = ORM.extend({}, options);
+        let parseOptions = lib.extend({}, options);
         return this.parseSql(cls, data, parseOptions);
     }
 }

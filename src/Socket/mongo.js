@@ -6,6 +6,7 @@
  * @version    16/7/25
  */
 import base from '../base';
+import lib from '../Util/lib';
 
 export default class extends base{
 
@@ -33,14 +34,14 @@ export default class extends base{
         let driver = require('mongodb');
 
         //connection URL format
-        if(ORM.isEmpty(this.config.connect_url)){
+        if(lib.isEmpty(this.config.connect_url)){
             this.config.connect_url = 'mongodb://';
-            if(!ORM.isEmpty(this.config.user)){
+            if(!lib.isEmpty(this.config.user)){
                 this.config.connect_url = `${this.config.connect_url}${this.config.user}:${this.config.password}@`;
             }
             //many hosts
             let hostStr = '';
-            if(ORM.isArray(this.config.host)){
+            if(lib.isArray(this.config.host)){
                 hostStr = this.config.host.map((item, i) => {
                     return item + ':' + (this.config.port[i] || this.config.port[0]);
                 }).join(',');
@@ -49,19 +50,19 @@ export default class extends base{
             }
             this.config.connect_url = `${this.config.connect_url}${hostStr}/${this.config.database}`;
 
-            if(!ORM.isEmpty(this.config.maxPoolSize)){
+            if(!lib.isEmpty(this.config.maxPoolSize)){
                 this.config.connect_url = `${this.config.connect_url}?maxPoolSize=${this.config.maxPoolSize}`;
             }
-            if(!ORM.isEmpty(this.config.connectTimeoutMS)){
+            if(!lib.isEmpty(this.config.connectTimeoutMS)){
                 this.config.connect_url = `${this.config.connect_url}&connectTimeoutMS=${this.config.connectTimeoutMS}`;
             }
-            if(!ORM.isEmpty(this.config.replicaSet)){
+            if(!lib.isEmpty(this.config.replicaSet)){
                 this.config.connect_url = `${this.config.connect_url}&replicaSet=${this.config.replicaSet}`;
             }
         }
 
-        return ORM.await(this.config.connect_url, () => {
-            let fn = ORM.promisify(driver.MongoClient.connect, driver.MongoClient);
+        return lib.await(this.config.connect_url, () => {
+            let fn = lib.promisify(driver.MongoClient.connect, driver.MongoClient);
             return fn(this.config.connect_url, this.config).then(conn => {
                 this.connection = conn;
                 return conn;

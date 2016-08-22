@@ -5,6 +5,7 @@
  * @license    MIT
  * @version    16/7/14
  */
+import lib from '../Util/lib';
 
 export default class {
     constructor(){
@@ -28,7 +29,7 @@ export default class {
                 return Promise.reject(err);
             });
         } else {
-            let deferred = ORM.getDefer();
+            let deferred = lib.getDefer();
             this.queue[key].push(deferred);
             return deferred.promise;
         }
