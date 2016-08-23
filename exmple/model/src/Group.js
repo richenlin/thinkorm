@@ -8,8 +8,8 @@
 import thinkorm from '../../../index';
 
 export default class extends thinkorm{
-    init(name, config){
-        super.init(name, config);
+    init(config){
+        super.init(config);
         // 是否自动迁移(默认安全模式)
         this.safe = true;
         // 数据表字段信息

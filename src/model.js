@@ -60,8 +60,6 @@ export default class extends base {
         this.tableName = this.getTableName();
         // 安全模式
         this.safe = (this.config.db_ext_config.safe === true);
-        // colleciton key
-        this.clsKey = schema.getKey(this.config);
         // collection instance
         this.instances = null;
     }
@@ -71,7 +69,7 @@ export default class extends base {
      * @param args
      * @returns {type[]}
      */
-    static require(...args){
+    static require(...args) {
         return lib.thinkRequire(...args);
     }
 
@@ -80,7 +78,7 @@ export default class extends base {
      * @param args
      * @returns {*}
      */
-    static setCollection(...args){
+    static setCollection(...args) {
         return schema.setCollection(...args);
     }
 
@@ -90,13 +88,10 @@ export default class extends base {
     async initModel() {
         try {
             //check collection
-            if(!ORM.collections[this.clsKey]){
-                return this.error('Collections is undefined, please run setCollection before.');
-            }
-            if(!ORM.collections[this.clsKey][this.modelName]){
+            if (!ORM.collections[this.modelName]) {
                 return this.error(`Collections ${this.modelName} is undefined.`);
             }
-            this.instances = ORM.connections[this.clsKey];
+            this.instances = ORM.connections[schema.getKey(this.config)];
             if (!this.instances) {
                 this.instances = await schema.setConnection(this.config);
             }
@@ -133,11 +128,11 @@ export default class extends base {
      * 数据迁移
      */
     async migrate() {
-        try{
+        try {
             // init model
             let model = await this.initModel();
-            return model.migrate(ORM.collections[this.clsKey]);
-        }catch (e){
+            return model.migrate(ORM.collections);
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -146,11 +141,11 @@ export default class extends base {
      * 事务开始
      */
     async startTrans() {
-        try{
+        try {
             // init model
             let model = await this.initModel();
             return model.startTrans();
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -159,11 +154,11 @@ export default class extends base {
      * 事务提交
      */
     async commit() {
-        try{
+        try {
             // init model
             let model = await this.initModel();
             return model.commit();
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -172,11 +167,11 @@ export default class extends base {
      * 事务回滚
      */
     async rollback() {
-        try{
+        try {
             // init model
             let model = await this.initModel();
             return model.rollback();
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -186,14 +181,14 @@ export default class extends base {
      * @return {[type]} [description]
      */
     getTableName() {
-        try{
+        try {
             if (!this.tableName) {
                 let tableName = this.config.db_prefix || '';
                 tableName += lib.parseName(this.getModelName());
                 this.tableName = tableName.toLowerCase();
             }
             return this.tableName;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -204,14 +199,14 @@ export default class extends base {
      * @return string
      */
     getModelName(name) {
-        try{
+        try {
             if (!this.modelName) {
                 let filename = this.__filename || __filename;
                 let last = filename.lastIndexOf('/');
                 this.modelName = filename.substr(last + 1, filename.length - last - 4);
             }
             return this.modelName;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -222,7 +217,7 @@ export default class extends base {
      * @return string
      */
     getPk() {
-        try{
+        try {
             if (!lib.isEmpty(this.fields)) {
                 for (let v in this.fields) {
                     if (this.fields[v].hasOwnProperty('primaryKey') && this.fields[v].primaryKey === true) {
@@ -235,7 +230,7 @@ export default class extends base {
                 }
             }
             return this.pk;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -245,13 +240,13 @@ export default class extends base {
      * @return {[type]} [description]
      */
     page(page, listRows) {
-        try{
+        try {
             if (page === undefined) {
                 return this;
             }
             this.__options.page = listRows === undefined ? page : page + ',' + listRows;
             return this;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -262,7 +257,7 @@ export default class extends base {
      * @param field
      */
     rel(table = false, field = {}) {
-        try{
+        try {
             if (table) {
                 //获取关联关系
                 let rels = schema.getRelation(this.modelName, this.config);
@@ -289,7 +284,7 @@ export default class extends base {
                 }
             }
             return this;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -301,7 +296,7 @@ export default class extends base {
      * @return {[type]}        [description]
      */
     limit(offset, length) {
-        try{
+        try {
             if (offset === undefined) {
                 return this;
             }
@@ -318,7 +313,7 @@ export default class extends base {
             }
             this.__options.limit = [offset, length];
             return this;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -329,7 +324,7 @@ export default class extends base {
      * @returns {exports}
      */
     order(order) {
-        try{
+        try {
             if (order === undefined) {
                 return this;
             }
@@ -346,7 +341,7 @@ export default class extends base {
                 this.__options.order = JSON.parse(strToObj(order));
             }
             return this;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -357,7 +352,7 @@ export default class extends base {
      * @return {[type]}         [description]
      */
     field(field) {
-        try{
+        try {
             if (lib.isEmpty(field)) {
                 return this;
             }
@@ -366,7 +361,7 @@ export default class extends base {
             }
             this.__options.field = field;
             return this;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -383,13 +378,13 @@ export default class extends base {
      * @return {[type]} [description]
      */
     where(where) {
-        try{
+        try {
             if (!where) {
                 return this;
             }
             this.__options.where = lib.extend(false, this.__options.where || {}, where);
             return this;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -401,13 +396,13 @@ export default class extends base {
      * @param group
      */
     group(group) {
-        try{
+        try {
             if (!group) {
                 return this;
             }
             this.__options.group = group;
             return this;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -419,13 +414,13 @@ export default class extends base {
      * @param join
      */
     join(join) {
-        try{
+        try {
             if (!join || !lib.isArray(join) || join.length === 0) {
                 return this;
             }
             this.__options.join = join;
             return this;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -844,7 +839,7 @@ export default class extends base {
      * @private
      */
     async __getRelationData(options, data) {
-        try{
+        try {
             let caseList = {
                 HASONE: this.__getHasOneRelation,
                 HASMANY: this.__getHasManyRelation,
@@ -870,7 +865,7 @@ export default class extends base {
             }
 
             return relationData;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -925,13 +920,13 @@ export default class extends base {
         let mapModel = new rel.mapModel(scope.config);
         //let mapName = `${rel.primaryName}${rel.name}Map`;
         //if(model.config.db_type === 'mongo'){
-            return mapModel.field(rel.fkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
-                let keys = [];
-                data.map(item => {
-                    item[rel.fkey] && keys.push(item[rel.fkey]);
-                });
-                return model.select({where: {[rpk]: keys}});
+        return mapModel.field(rel.fkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
+            let keys = [];
+            data.map(item => {
+                item[rel.fkey] && keys.push(item[rel.fkey]);
             });
+            return model.select({where: {[rpk]: keys}});
+        });
         //} else {
         //    let options = {
         //        table: `${model.config.db_prefix}${lib.parseName(mapModel)}`,
@@ -962,7 +957,7 @@ export default class extends base {
      * @private
      */
     async __postRelationData(result, options, relationData, postType) {
-        try{
+        try {
             let caseList = {
                 HASONE: this.__postHasOneRelation,
                 HASMANY: this.__postHasManyRelation,
@@ -974,13 +969,12 @@ export default class extends base {
                 for (let n in relationData) {
                     rtype = relation[n] ? relation[n]['type'] : null;
                     if (relation[n].fkey && rtype && rtype in caseList) {
-                        relation[n]['clsKey'] = this.clsKey;
                         await caseList[rtype](scope, result, options, relation[n], relationData[n], postType)
                     }
                 }
             }
             return;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -1000,7 +994,7 @@ export default class extends base {
             return;
         }
         let model = new (rel.model)(scope.config);
-        let primaryModel = new (ORM.collections[rel.clsKey][rel.primaryName])(scope.config);
+        let primaryModel = new (ORM.collections[rel.primaryName])(scope.config);
         switch (postType) {
             case 'ADD':
                 //子表插入数据
@@ -1010,7 +1004,7 @@ export default class extends base {
                 break;
             case 'UPDATE':
                 if (!relationData[rel.fkey]) {
-                    if(primaryModel){
+                    if (primaryModel) {
                         let info = await primaryModel.field(rel.fkey).find(options);
                         relationData[rel.fkey] = info[rel.fkey];
                     }
@@ -1038,7 +1032,7 @@ export default class extends base {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }
-        let model  = new (rel.model)(scope.config), rpk = model.getPk();
+        let model = new (rel.model)(scope.config), rpk = model.getPk();
         for (let [k, v] of relationData.entries()) {
             switch (postType) {
                 case 'ADD':
@@ -1081,14 +1075,22 @@ export default class extends base {
                     //子表增加数据
                     let fkey = await model.add(v);
                     //关系表增加数据,使用thenAdd
-                    fkey && (await mapModel.thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, {where: {[rel.fkey]: result, [rel.rkey]: fkey}}));
+                    fkey && (await mapModel.thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, {
+                        where: {
+                            [rel.fkey]: result,
+                            [rel.rkey]: fkey
+                        }
+                    }));
                     break;
                 case 'UPDATE':
                     //关系表两个外键都存在,更新关系表
                     if (v[rel.fkey] && v[rel.rkey]) {
                         //关系表增加数据,此处不考虑两个外键是否在相关表存在数据,因为关联查询会忽略
-                        await mapModel.thenAdd({[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
-                    } else if(v[rpk]){//仅存在子表主键情况下,更新子表
+                        await mapModel.thenAdd({
+                            [rel.fkey]: v[rel.fkey],
+                            [rel.rkey]: v[rel.rkey]
+                        }, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
+                    } else if (v[rpk]) {//仅存在子表主键情况下,更新子表
                         await model.update(v, {where: {[rpk]: v[rpk]}});
                     }
                     break;
