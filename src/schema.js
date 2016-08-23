@@ -40,26 +40,22 @@ let getKey = function (config) {
  * @returns {*}
  */
 let setCollection = function (func, config) {
-    let collection = func, name = func.modelName;
-    if(!name){
-        collection = new collection(config);
+    let key = getKey(config), name;
+    if(lib.isFile(func)){
+        func = lib.thinkRequire(func);
+    }
+    if(lib.isFunction(func)){
+        if(!ORM.collections[key]){
+            ORM.collections[key] = {relationShip: {}};
+        }
+        let collection = new func(config);
         name = collection.modelName;
+
+        if(!ORM.collections[key][name]){
+            ORM.collections[key][name] = func;
+        }
     }
-    let key = getKey(config);
-    if(!ORM.collections[key]){
-        ORM.collections[key] = {};
-    }
-    if(!ORM.collections[key][name]){
-        ORM.collections[key][name] = collection;
-        ORM.collections[key][name].schema = {
-            name: name,
-            tableName: collection.getTableName(),
-            fields: collection.fields,
-            autoCreatedAt: false,
-            autoUpdatedAt: false,
-            autoPrimaryKey: true
-        };
-    }
+
     return ORM.collections[key][name];
 };
 /**
@@ -77,15 +73,15 @@ function getRelation(name, config) {
         throw new Error(`collection ${name} is undefined.`);
         return;
     }
-    !ORM.collections[key][name].relationShip && (ORM.collections[key][name].relationShip = {});
-    let cls = ORM.collections[key][name], type, relation = cls.relation;
+    !ORM.collections[key].relationShip[name] && (ORM.collections[key].relationShip[name] = {});
+    let cls = new (ORM.collections[key][name])(config), type, relation = cls.relation;
     for (let n in relation) {
         if(!ORM.collections[key][n]){
             throw new Error(`collection ${n} is undefined.`);
             return;
         } else {
             type = parseType(relation[n]['type']);
-            ORM.collections[key][name].relationShip[n] = {
+            ORM.collections[key].relationShip[name][n] = {
                 type: type, //关联方式
                 name: n, //关联模型名称
                 model: ORM.collections[key][n], //关联模型
@@ -99,8 +95,8 @@ function getRelation(name, config) {
             //MANYTOMANY map
             if(type === 'MANYTOMANY'){
                 let mapName = `${cls.modelName}${n}Map`;
-                let model = lib.thinkRequire(__dirname + '/model.js');
                 if(!ORM.collections[key][mapName]){
+                    let model = lib.thinkRequire(__dirname + '/model.js');
                     let _class = class extends model{
                         init(name, config){
                             super.init(name, config);
@@ -109,10 +105,12 @@ function getRelation(name, config) {
                             // 数据表字段信息
                             this.fields = {
                                 [relation[n]['fkey']]: {
-                                    type: 'integer'
+                                    type: 'integer',
+                                    index: true
                                 },
                                 [relation[n]['rkey']]: {
-                                    type: 'integer'
+                                    type: 'integer',
+                                    index: true
                                 }
                             };
                             // 数据验证
@@ -127,11 +125,11 @@ function getRelation(name, config) {
                     //初始化map模型
                     this.setCollection(_class, cls.config);
                 }
-                ORM.collections[key][name].relationShip[n]['mapModel'] = ORM.collections[key][mapName];
+                ORM.collections[key].relationShip[name][n]['mapModel'] = ORM.collections[key][mapName];
             }
         }
     }
-    return ORM.collections[key][name].relationShip;
+    return ORM.collections[key].relationShip[name];
 }
 
 /**

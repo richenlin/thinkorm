@@ -52,7 +52,7 @@ export default class extends base {
             db_pwd: config.db_pwd,
             db_prefix: config.db_prefix,
             db_charset: config.db_charset,
-            db_ext_config: config.db_ext_config
+            db_ext_config: config.db_ext_config || {}
         };
         // 模型名
         this.modelName = this.getModelName();
@@ -61,7 +61,7 @@ export default class extends base {
         // 安全模式
         this.safe = (this.config.db_ext_config.safe === true);
         // colleciton key
-        this.clsKey = schema.getKey(config);
+        this.clsKey = schema.getKey(this.config);
         // collection instance
         this.instances = null;
     }
@@ -852,7 +852,7 @@ export default class extends base {
             };
             let relationData = data;
             if (!lib.isEmpty(data)) {
-                let relation = options.rel, rtype, fkey;
+                let relation = options.rel, rtype, fkey, scope = this;
                 let pk = await this.getPk();
                 for (let n in relation) {
                     rtype = relation[n]['type'];
@@ -860,10 +860,10 @@ export default class extends base {
                         fkey = (rtype === 'MANYTOMANY') ? lib.parseName(relation[n].name) : relation[n].fkey;
                         if (lib.isArray(data)) {
                             for (let [k,v] of data.entries()) {
-                                data[k][fkey] = await caseList[rtype](relation[n], data[k]);
+                                data[k][fkey] = await caseList[rtype](scope, relation[n], data[k]);
                             }
                         } else {
-                            data[fkey] = await caseList[rtype](relation[n], data);
+                            data[fkey] = await caseList[rtype](scope, relation[n], data);
                         }
                     }
                 }
@@ -877,51 +877,55 @@ export default class extends base {
 
     /**
      *
+     * @param scope
      * @param rel
      * @param data
      * @returns {*}
      * @private
      */
-    __getHasOneRelation(rel, data) {
+    __getHasOneRelation(scope, rel, data) {
         if (lib.isEmpty(data) || lib.isEmpty(data[rel.fkey])) {
             return {};
         }
-        let model = rel.model;
+        let model = new (rel.model)(scope.config);
         return model.find({field: rel.field, where: {[rel.rkey]: data[rel.fkey]}});
     }
 
     /**
      *
+     * @param scope
      * @param rel
      * @param data
-     * @returns {{}}
+     * @returns {*}
      * @private
      */
-    __getHasManyRelation(rel, data) {
+    __getHasManyRelation(scope, rel, data) {
         if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
             return [];
         }
-        let model = rel.model;
+        let model = new (rel.model)(scope.config);
         let options = {field: rel.field, where: {[rel.rkey]: data[rel.primaryPk]}};
         return model.select(options);
     }
 
     /**
      *
+     * @param scope
      * @param rel
      * @param data
-     * @returns {{}}
+     * @returns {*}
      * @private
      */
-    __getManyToManyRelation(rel, data) {
+    __getManyToManyRelation(scope, rel, data) {
         if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
             return [];
         }
-        let model = rel.model;
+        let model = new (rel.model)(scope.config);
         let rpk = model.getPk();
-        //let mapModel = `${rel.primaryName}${rel.name}Map`;
+        let mapModel = new rel.mapModel(scope.config);
+        //let mapName = `${rel.primaryName}${rel.name}Map`;
         //if(model.config.db_type === 'mongo'){
-            return rel.mapModel.field(rel.fkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
+            return mapModel.field(rel.fkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
                 let keys = [];
                 data.map(item => {
                     item[rel.fkey] && keys.push(item[rel.fkey]);
@@ -931,7 +935,7 @@ export default class extends base {
         //} else {
         //    let options = {
         //        table: `${model.config.db_prefix}${lib.parseName(mapModel)}`,
-        //        name: mapModel,
+        //        name: mapName,
         //        join: [
         //            {from: `${rel.model.modelName}`, on: {[rel.rkey]: rpk}, field: rel.field, type: 'inner'}
         //        ],
@@ -965,13 +969,13 @@ export default class extends base {
                 MANYTOMANY: this.__postManyToManyRelation
             };
             if (!lib.isEmpty(result)) {
-                let relation = schema.getRelation(this.modelName, this.config), rtype;
+                let relation = schema.getRelation(this.modelName, this.config), rtype, scope = this;
                 let pk = await this.getPk();
                 for (let n in relationData) {
                     rtype = relation[n] ? relation[n]['type'] : null;
                     if (relation[n].fkey && rtype && rtype in caseList) {
                         relation[n]['clsKey'] = this.clsKey;
-                        await caseList[rtype](result, options, relation[n], relationData[n], postType)
+                        await caseList[rtype](scope, result, options, relation[n], relationData[n], postType)
                     }
                 }
             }
@@ -983,6 +987,7 @@ export default class extends base {
 
     /**
      *
+     * @param scope
      * @param result
      * @param options
      * @param rel
@@ -990,22 +995,23 @@ export default class extends base {
      * @param postType
      * @private
      */
-    async __postHasOneRelation(result, options, rel, relationData, postType) {
+    async __postHasOneRelation(scope, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }
-        let model  = rel.model;
+        let model = new (rel.model)(scope.config);
+        let primaryModel = new (ORM.collections[rel.clsKey][rel.primaryName])(scope.config);
         switch (postType) {
             case 'ADD':
                 //子表插入数据
                 let fkey = await model.add(relationData);
                 //更新主表关联字段
-                fkey && ORM.collections[rel.clsKey][rel.primaryName] && (await ORM.collections[rel.clsKey][rel.primaryName].update({[rel.fkey]: fkey}, {where: {[rel.primaryPk]: result}}));
+                fkey && (await primaryModel.update({[rel.fkey]: fkey}, {where: {[rel.primaryPk]: result}}));
                 break;
             case 'UPDATE':
                 if (!relationData[rel.fkey]) {
-                    if(ORM.collections[rel.clsKey][rel.primaryName]){
-                        let info = await ORM.collections[rel.clsKey][rel.primaryName].field(rel.fkey).find(options);
+                    if(primaryModel){
+                        let info = await primaryModel.field(rel.fkey).find(options);
                         relationData[rel.fkey] = info[rel.fkey];
                     }
                 }
@@ -1020,6 +1026,7 @@ export default class extends base {
 
     /**
      *
+     * @param scope
      * @param result
      * @param options
      * @param rel
@@ -1027,11 +1034,11 @@ export default class extends base {
      * @param postType
      * @private
      */
-    async __postHasManyRelation(result, options, rel, relationData, postType) {
+    async __postHasManyRelation(scope, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }
-        let model  = rel.model, rpk = model.getPk();
+        let model  = new (rel.model)(scope.config), rpk = model.getPk();
         for (let [k, v] of relationData.entries()) {
             switch (postType) {
                 case 'ADD':
@@ -1052,6 +1059,7 @@ export default class extends base {
 
     /**
      *
+     * @param scope
      * @param result
      * @param options
      * @param rel
@@ -1059,12 +1067,13 @@ export default class extends base {
      * @param postType
      * @private
      */
-    async __postManyToManyRelation(result, options, rel, relationData, postType) {
+    async __postManyToManyRelation(scope, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }
         //子表主键
-        let model = rel.model, rpk = model.getPk();
+        let model = new (rel.model)(scope.config), rpk = model.getPk();
+        let mapModel = new (rel['mapModel'])(scope.config);
         //关系表
         for (let [k, v] of relationData.entries()) {
             switch (postType) {
@@ -1072,13 +1081,13 @@ export default class extends base {
                     //子表增加数据
                     let fkey = await model.add(v);
                     //关系表增加数据,使用thenAdd
-                    fkey && rel['mapModel'] && (await rel['mapModel'].thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, {where: {[rel.fkey]: result, [rel.rkey]: fkey}}));
+                    fkey && (await mapModel.thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, {where: {[rel.fkey]: result, [rel.rkey]: fkey}}));
                     break;
                 case 'UPDATE':
                     //关系表两个外键都存在,更新关系表
                     if (v[rel.fkey] && v[rel.rkey]) {
                         //关系表增加数据,此处不考虑两个外键是否在相关表存在数据,因为关联查询会忽略
-                        rel['mapModel'] && (await rel['mapModel'].thenAdd({[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}}));
+                        await mapModel.thenAdd({[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
                     } else if(v[rpk]){//仅存在子表主键情况下,更新子表
                         await model.update(v, {where: {[rpk]: v[rpk]}});
                     }
