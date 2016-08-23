@@ -83,6 +83,15 @@ export default class extends base {
     }
 
     /**
+     *
+     * @param args
+     * @returns {*}
+     */
+    static setConnection(...args){
+        return schema.setConnection(...args);
+    }
+
+    /**
      * 初始化模型
      */
     async initModel() {

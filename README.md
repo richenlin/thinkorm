@@ -43,6 +43,8 @@ var config = {
     db_charset: 'utf8',
     db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
 };
+
+//thinkorm.require需要使用绝对路径
 var User = thinkorm.require(path.dirname(__dirname) + '/exmple/model/lib/User.js');
 var Profile = thinkorm.require(path.dirname(__dirname) + '/exmple/model/lib/Profile.js');
 var Pet = thinkorm.require(path.dirname(__dirname) + '/exmple/model/lib/Pet.js');
