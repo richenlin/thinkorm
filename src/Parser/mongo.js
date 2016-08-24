@@ -144,20 +144,20 @@ export default class extends base {
         //        }
         //    }
         //});
-        if(options.group){
+        if (options.group) {
             let group = {};
-            if(lib.isArray(options.group)){
+            if (lib.isArray(options.group)) {
                 options.group.map(item => {
                     group[item] = true;
                 });
 
             } else {
-                group = options.group;
+                group = [options.group];
             }
             options.group = {
                 "key": group,
-                "initial": {},
-                "reduce": function(obj, prev) {},
+                "initial": {"count": 0},
+                "reduce": "function (obj, prev) { prev.count++; }",
                 "cond": {}
             };
         }
@@ -181,7 +181,7 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseData(data, options){
+    parseData(data, options) {
         //暂时未实现
     }
 
@@ -200,28 +200,31 @@ export default class extends base {
             UPDATE: {},
             DELETE: {},
             COUNT: {},
-            SUM: {}};
+            SUM: {}
+        };
         let optType = options.method, handler, fn, pipe = [];
         if (optType && optType in caseList) {
             switch (optType) {
                 case 'FIND':
-                    if(lib.isEmpty(options.group)){
+                    if (lib.isEmpty(options.group)) {
                         this.sql = `${this.sql}${options.where ? '.findOne(' + JSON.stringify(options.where) + ')' : '.findOne()'}`;
                         handler = collection.findOne(options.where || {});
                     } else {
                         options.group.cond = options.where;
-                        this.sql = `${this.sql}.group(${JSON.stringify(options.group)})`;
-                        handler = collection.group(options.group);
+                        this.sql = `${this.sql}.group(${options.group.key},${options.group.cond},${options.group.initial},${options.group.reduce})`;
+                        //handler = collection.group(options.group);
+                        handler = collection.group(options.group.key, options.group.cond, options.group.initial, options.group.reduce);
                     }
                     break;
                 case 'SELECT':
-                    if(lib.isEmpty(options.group)){
+                    if (lib.isEmpty(options.group)) {
                         this.sql = `${this.sql}${options.where ? '.find(' + JSON.stringify(options.where) + ')' : '.find()'}`;
                         handler = collection.find(options.where || {});
                     } else {
                         options.group.cond = options.where;
-                        this.sql = `${this.sql}.group(${JSON.stringify(options.group)})`;
-                        handler = collection.group(options.group);
+                        this.sql = `${this.sql}.group(${options.group.key},${options.group.cond},${options.group.initial},${options.group.reduce})`;
+                        //handler = collection.group(options.group);
+                        handler = collection.group(options.group.key, options.group.cond, options.group.initial, options.group.reduce);
                     }
                     break;
                 case 'ADD':
@@ -241,7 +244,7 @@ export default class extends base {
                     handler = collection.deleteMany(options.where || {});
                     break;
                 case 'COUNT':
-                    if(lib.isEmpty(options.group)){
+                    if (lib.isEmpty(options.group)) {
                         fn = lib.promisify(collection.aggregate, collection);
                         !lib.isEmpty(options.where) && pipe.push({$match: options.where});
                         pipe.push({
@@ -263,7 +266,7 @@ export default class extends base {
                     }
                     break;
                 case 'SUM':
-                    if(lib.isEmpty(options.group)){
+                    if (lib.isEmpty(options.group)) {
                         fn = lib.promisify(collection.aggregate, collection);
                         !lib.isEmpty(options.where) && pipe.push({$match: options.where});
                         pipe.push({
@@ -286,13 +289,13 @@ export default class extends base {
                     break;
             }
             //解析skip,limit,sort,project
-            for (let c in caseList[optType]){
-                if(options[c] && handler[c]){
+            for (let c in caseList[optType]) {
+                if (options[c] && handler[c]) {
                     this.sql = `${this.sql}.${c}(${JSON.stringify(options[c])})`;
                     handler[c](options[c]);
                 }
             }
-            if(optType == 'SELECT'){
+            if (optType == 'SELECT' && lib.isEmpty(options.group)) {
                 return handler.toArray();
             } else {
                 return handler;
