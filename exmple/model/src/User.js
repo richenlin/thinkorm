@@ -29,6 +29,9 @@ export default class extends thinkorm{
             },
             memo: {
                 type: 'text'
+            },
+            create_time: {
+                type: 'timestamp'
             }
         };
         // 数据验证

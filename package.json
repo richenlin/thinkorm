@@ -4,7 +4,7 @@
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "index.js",
   "scripts": {
-    "test": "npm run eslint && npm run test-cov",
+    "test": "npm run test-cov",
     "test-cov": "istanbul cover ./node_modules/mocha/bin/_mocha -- -t 50000 --recursive  -R spec test/",
     "compile": "babel src -d lib",
     "compile-test": "babel exmple/model/src -d exmple/model/lib",

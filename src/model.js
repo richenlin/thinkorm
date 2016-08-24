@@ -135,20 +135,24 @@ export default class extends base {
 
     /**
      * 结构迁移
+     * @param rel 是否创建关联表
+     * @returns {*}
      */
-    async migrate() {
+    async migrate(rel = false) {
         try {
             if(this.config.safe){
                 return;
             }
             // init model
             let model = await this.initModel();
-            let relation = schema.getRelation(this.modelName, this.config), ps = [];
-            if(!lib.isEmpty(relation)){
-                for(let n in relation){
-                    ps.push(model.migrate(ORM.collections[n].schema, this.config));
+            if(rel){
+                let relation = schema.getRelation(this.modelName, this.config), ps = [];
+                if(!lib.isEmpty(relation)){
+                    for(let n in relation){
+                        ps.push(model.migrate(ORM.collections[n].schema, this.config));
+                    }
+                    await Promise.all(ps);
                 }
-                await Promise.all(ps);
             }
             await model.migrate(ORM.collections[this.modelName].schema, this.config);
             return;
