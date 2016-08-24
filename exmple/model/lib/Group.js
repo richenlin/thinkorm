@@ -28,14 +28,15 @@ var _class = function (_thinkorm) {
         return (0, _possibleConstructorReturn3.default)(this, _thinkorm.apply(this, arguments));
     }
 
-    _class.prototype.init = function init(name, config) {
-        _thinkorm.prototype.init.call(this, name, config);
+    _class.prototype.init = function init(config) {
+        _thinkorm.prototype.init.call(this, config);
         // 是否自动迁移(默认安全模式)
         this.safe = true;
         // 数据表字段信息
         this.fields = {
             id: {
-                type: 'integer'
+                type: 'integer',
+                primaryKey: true
             },
             name: {
                 type: 'string'

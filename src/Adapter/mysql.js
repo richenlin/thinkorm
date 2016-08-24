@@ -37,7 +37,7 @@ export default class extends base {
 
     close() {
         if (this.handel) {
-            this.handel.close();
+            this.handel.close && this.handel.close();
             this.handel = null;
         }
     }
@@ -51,10 +51,38 @@ export default class extends base {
     }
 
     /**
-     * 数据迁移
+     *
+     * @param schema
+     * @param config
      */
-    migrate() {
-        return;
+    migrate(schema, config) {
+        if(lib.isEmpty(schema) || lib.isEmpty(config)){
+            return;
+        }
+        let tableName = `${config.db_prefix}${lib.parseName(schema.name)}`;
+        return this.query(this.knexClient.schema.hasTable(tableName).toString()).then(exists => {
+            if(lib.isEmpty(exists)){
+                return Promise.resolve();
+            } else {
+                return this.execute(this.knexClient.schema.dropTableIfExists(tableName).toString());
+            }
+        }).then(() => {
+                let options = {
+                    method: 'MIGRATE',
+                    schema: schema
+                };
+                return this.parsers().buildSql(this.knexClient.schema, config, options).then(sql => {
+                    if (/\n/.test(sql)) {
+                        let temp = sql.replace(/\n/g, '').split(';'), ps = [];
+                        temp.map(item => {
+                            ps.push(this.execute(item));
+                        });
+                        return Promise.all(ps);
+                    }
+                    return this.execute(sql.replace(/\n/g, ''));
+                });
+        });
+
     }
 
     /**

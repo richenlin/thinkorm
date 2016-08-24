@@ -53,11 +53,8 @@ let setCollection = function (func, config) {
             ORM.collections[name] = func;
             ORM.collections[name].schema = {
                 name: name,
-                tableName: collection.getTableName(),
-                fields: collection.fields,
-                autoCreatedAt: false,
-                autoUpdatedAt: false,
-                autoPrimaryKey: true
+                pk: collection.getPk(),
+                fields: collection.fields
             };
         }
         return ORM.collections[name];
@@ -125,12 +122,13 @@ function getRelation(name, config) {
                             this.relation = {};
 
                             this.modelName = mapName;
-                            this.tableName = `${cls.config.db_prefix}${lib.parseName(mapName)}`;
+                            this.tableName = `${this.config.db_prefix}${lib.parseName(mapName)}`;
                         }
                     };
                     //初始化map模型
                     this.setCollection(_class, cls.config);
                 }
+                ORM.collections[name]['relation'][mapName] = ORM.collections[mapName];
                 ORM.collections[name]['relation'][n]['mapModel'] = ORM.collections[mapName];
             }
         }

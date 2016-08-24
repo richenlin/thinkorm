@@ -44,6 +44,7 @@ let model = new User(config);
 function test() {
     "use strict";
     return model
+        //.migrate()
     //.where({id: {'<>': 1, '>=': 0}, name: '', or: [{name: 'aa'}, {name: 'aaa'}]}).find()
     //.where({id: {'>=': 0}}).count()
     //.where({id: {'>=': 0}}).sum('id')
@@ -52,14 +53,14 @@ function test() {
     //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.where({id: {'>=': 0}}).group(['id','username']).find()
-    .rel(true).find()
-    //.add({username: 'rrrrrrr',Profile: {test: 'rrrtest'}})
-    //.where({id: 60}).update({username: 'tttttt',Profile: {test: 'ttttttt'}})
-    //.add({username: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
-    //.where({id: 99}).update({username: 'tttttt',Pet: [{id: 7,types: 'ttttttt'}]})
-    //.add({username: 'rrrrrrr',Group: [{name: 'ssfsssss'}]})
-    //.where({id: 115}).update({username: 'tttttt',Group: [{id: 15,name: 'ttttttt'}]})
-    //.where({id: 115}).update({username: 'tttttt',Group: [{userid: 115, groupid: 15}]})
+    //.rel(true).find()
+    .add({name: 'rrrrrrr',Profile: {test: 'rrrtest'},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
+    //.where({id: 60}).update({name: 'tttttt',Profile: {test: 'ttttttt'}})
+    //.add({name: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
+    //.where({id: 99}).update({name: 'tttttt',Pet: [{id: 7,types: 'ttttttt'}]})
+    //.add({name: 'rrrrrrr',Group: [{name: 'ssfsssss'}]})
+    //.where({id: 115}).update({name: 'tttttt',Group: [{id: 15,name: 'ttttttt'}]})
+    //.where({id: 115}).update({name: 'tttttt',Group: [{userid: 115, groupid: 15}]})
         .then(res => {
             console.log(res);
         });

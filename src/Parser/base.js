@@ -226,6 +226,61 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
     return funcTemp;
 };
 
+/**
+ *
+ * @param str
+ * @param field
+ * @param value
+ * let types = {
+            integer: {},
+            string: {size: 50},
+            float: {precision: 8, size: 2},
+            timestamp: {},
+            json: {},
+            text: {}
+        };
+ */
+let preParseSchema = function (field, value){
+    let str = '';
+    if(value.hasOwnProperty('primaryKey') && value.primaryKey === true){
+        str += `t.increments('${field}').primary();`;
+    } else {
+        switch (value.type) {
+            case 'integer':
+                str += `t.integer('${field}')`;
+                break;
+            case 'float':
+                str += `t.float('${field}', 8, ${value.size || 2})`;
+                break;
+            case 'timestamp':
+                str += `t.timestamp('${field}')`;
+                break;
+            case 'string':
+                str += `t.string('${field}', ${value.size || 50})`;
+                break;
+            case 'json':
+                str += `t.json('${field}')`;
+                break;
+            case 'text':
+                str += `t.text('${field}')`;
+                break;
+            default:
+                str += `t.string('${field}')`;
+                break;
+        }
+        if (value.hasOwnProperty('index') && value.index === true) {
+            str += `.index('${field}')`;
+        }
+        if (value.hasOwnProperty('unique') && value.unique === true) {
+            str += `.unique()`;
+        }
+        if (value.hasOwnProperty('defaultTo')) {
+            str += `.defaultTo(${value.defaultTo})`;
+        }
+    }
+    return str + ';';
+};
+
 
 export default class extends base {
     init(config = {}) {
@@ -389,6 +444,25 @@ export default class extends base {
      * @param cls
      * @param data
      * @param options
+     */
+    parseSchema(cls, data, options){
+        if(lib.isEmpty(data) || lib.isEmpty(options.schema)){
+            return;
+        }
+        let tableName = `${data.db_prefix}${lib.parseName(options.schema.name)}`;
+        let str = [], fields = options.schema.fields;
+        for(let v in fields){
+            str.push(preParseSchema(v, fields[v]));
+        }
+        let func = new Function('t', str.join('\n'));
+        cls.createTableIfNotExists(tableName, func);
+    }
+
+    /**
+     *
+     * @param cls
+     * @param data
+     * @param options
      * @returns {string}
      */
     async parseSql(cls, data, options) {
@@ -399,7 +473,8 @@ export default class extends base {
                 UPDATE: {where: 1},
                 DELETE: {where: 1},
                 COUNT: {join: 1, where: 1, limit: 1, group: 1},
-                SUM: {join: 1, where: 1, limit: 1, group: 1}
+                SUM: {join: 1, where: 1, limit: 1, group: 1},
+                MIGRATE: {schema: 1}
             };
             if (cls) {
                 let optType = options.method;

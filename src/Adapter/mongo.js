@@ -29,7 +29,7 @@ export default class extends base {
 
     close() {
         if (this.handel) {
-            this.handel.close();
+            this.handel.close && this.handel.close();
             this.handel = null;
         }
     }
@@ -43,34 +43,34 @@ export default class extends base {
     }
 
     /**
-     * 数据迁移
+     * mongodb is schema less.
      */
     migrate() {
-        return;
+        return Promise.resolve();
     }
 
     /**
      *
      */
     startTrans() {
-        lib.log(`Adapter is not support.`, 'WARNING');
-        return;
+        lib.log(`Adapter is not support startTrans.`, 'WARNING');
+        return Promise.resolve();
     }
 
     /**
      *
      */
     commit() {
-        lib.log(`Adapter is not support.`, 'WARNING');
-        return;
+        lib.log(`Adapter is not support commit.`, 'WARNING');
+        return Promise.resolve();
     }
 
     /**
      *
      */
     rollback() {
-        lib.log(`Adapter is not support.`, 'WARNING');
-        return;
+        lib.log(`Adapter is not support rollback.`, 'WARNING');
+        return Promise.resolve();
     }
 
     /**

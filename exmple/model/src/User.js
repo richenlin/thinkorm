@@ -15,13 +15,20 @@ export default class extends thinkorm{
         // 数据表字段信息
         this.fields = {
             id: {
-                type: 'integer'
+                type: 'integer',
+                primaryKey: true
             },
-            username: {
-                type: 'string'
+            name: {
+                type: 'string',
+                index: true
             },
             profile: {
-                type: 'integer'
+                type: 'integer',
+                index: true,
+                defaultTo: 0
+            },
+            memo: {
+                type: 'text'
             }
         };
         // 数据验证

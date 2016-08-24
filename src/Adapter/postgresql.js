@@ -37,7 +37,7 @@ export default class extends base {
 
     close() {
         if (this.handel) {
-            this.handel.close();
+            this.handel.close && this.handel.close();
             this.handel = null;
         }
     }
@@ -51,9 +51,11 @@ export default class extends base {
     }
 
     /**
-     * 数据迁移
+     *
+     * @param schema
+     * @param config
      */
-    migrate() {
+    migrate(schema, config) {
         return;
     }
 

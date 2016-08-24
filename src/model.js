@@ -115,8 +115,8 @@ export default class extends base {
      * @param err
      */
     error(err) {
-        if (err) {
-            let msg = err;
+        let msg = err;
+        if (msg) {
             if (!lib.isError(msg)) {
                 if (!lib.isString(msg)) {
                     msg = JSON.stringify(msg);
@@ -130,17 +130,28 @@ export default class extends base {
             }
             lib.log(msg);
         }
-        return lib.getDefer().promise;
+        return Promise.reject(msg);
     }
 
     /**
-     * 数据迁移
+     * 结构迁移
      */
     async migrate() {
         try {
+            if(this.config.safe){
+                return;
+            }
             // init model
             let model = await this.initModel();
-            return model.migrate(ORM.collections);
+            let relation = schema.getRelation(this.modelName, this.config), ps = [];
+            if(!lib.isEmpty(relation)){
+                for(let n in relation){
+                    ps.push(model.migrate(ORM.collections[n].schema, this.config));
+                }
+                await Promise.all(ps);
+            }
+            await model.migrate(ORM.collections[this.modelName].schema, this.config);
+            return;
         } catch (e) {
             return this.error(e);
         }
@@ -210,7 +221,7 @@ export default class extends base {
     getModelName(name) {
         try {
             if (!this.modelName) {
-                let filename = this.__filename || __filename;
+                let filename = this.__filename;
                 let last = filename.lastIndexOf('/');
                 this.modelName = filename.substr(last + 1, filename.length - last - 4);
             }

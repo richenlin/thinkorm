@@ -15,7 +15,8 @@ export default class extends thinkorm{
         // 数据表字段信息
         this.fields = {
             id: {
-                type: 'integer'
+                type: 'integer',
+                primaryKey: true
             },
             name: {
                 type: 'string'
