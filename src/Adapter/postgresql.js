@@ -56,7 +56,32 @@ export default class extends base {
      * @param config
      */
     migrate(schema, config) {
-        return;
+        if(lib.isEmpty(schema) || lib.isEmpty(config)){
+            return;
+        }
+        let tableName = `${config.db_prefix}${lib.parseName(schema.name)}`;
+        return this.query(this.knexClient.schema.hasTable(tableName).toString()).then(exists => {
+            if(lib.isEmpty(exists)){
+                return Promise.resolve();
+            } else {
+                return this.execute(this.knexClient.schema.dropTableIfExists(tableName).toString());
+            }
+        }).then(() => {
+            let options = {
+                method: 'MIGRATE',
+                schema: schema
+            };
+            return this.parsers().buildSql(this.knexClient.schema, config, options).then(sql => {
+                if (/\n/.test(sql)) {
+                    let temp = sql.replace(/\n/g, '').split(';'), ps = [];
+                    temp.map(item => {
+                        ps.push(this.execute(item));
+                    });
+                    return Promise.all(ps);
+                }
+                return this.execute(sql.replace(/\n/g, ''));
+            });
+        });
     }
 
     /**

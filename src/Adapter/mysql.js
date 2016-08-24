@@ -82,7 +82,6 @@ export default class extends base {
                     return this.execute(sql.replace(/\n/g, ''));
                 });
         });
-
     }
 
     /**
