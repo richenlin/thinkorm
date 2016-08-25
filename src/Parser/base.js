@@ -238,7 +238,6 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
             integer: {},
             string: {size: 50},
             float: {precision: 8, size: 2},
-            datetime: {},
             json: {},
             text: {}
         };
@@ -254,9 +253,6 @@ let preParseSchema = function (field, value){
                 break;
             case 'float':
                 str += `t.float('${field}', 8, ${value.size || 2})`;
-                break;
-            case 'datetime':
-                str += `t.datetime('${field}')`;
                 break;
             case 'string':
                 str += `t.string('${field}', ${value.size || 50})`;
@@ -472,8 +468,8 @@ export default class extends base {
         try {
             let caseList = {
                 SELECT: {join: 1, where: 1, field: 1, limit: 1, order: 1, group: 1},
-                ADD: {},
-                UPDATE: {where: 1},
+                ADD: {data: 1},
+                UPDATE: {where: 1, data: 1},
                 DELETE: {where: 1},
                 COUNT: {join: 1, where: 1, limit: 1, group: 1},
                 SUM: {join: 1, where: 1, limit: 1, group: 1},
