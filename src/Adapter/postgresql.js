@@ -100,7 +100,7 @@ export default class extends base {
             this.logSql && lib.log(sql, 'PostgreSQL', startTime);
             return this.bufferToString(rows);
         }).catch(err => {
-            this.release && this.release();
+            connection.release && connection.release();
             //when socket is closed, try it
             if(err.code === 'EPIPE'){
                 this.close();
