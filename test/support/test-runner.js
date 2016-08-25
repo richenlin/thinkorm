@@ -12,14 +12,13 @@ var User = thinkorm.require(path.dirname(path.dirname(__dirname)) + '/exmple/mod
 function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 var _aToG = require('babel-runtime/helpers/asyncToGenerator');
 var _asyncToGenerator = requireDefault(_aToG);
-var baseparser = requireDefault(require('../../lib/Parser/base.js')).default;
 
 module.exports = function(test, cb) {
   var testDialect = function testDialect(outcome, next) {
 
     let model = new User(outcome.config);
 
-    let parser = new baseparser(outcome.config);
+    let parser = new (outcome.parser)(outcome.config);
     for(let n in outcome.query){
       model = model[n](outcome.query[n]);
     }

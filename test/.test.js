@@ -55,7 +55,7 @@ function test() {
     //.where({name: {'like': '%a'}}).select()
     //.where({id: [1,2,3]}).select()
 
-    //.where({id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}).select()
+    //.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
     //.countSelect()
     //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()

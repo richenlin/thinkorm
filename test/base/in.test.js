@@ -1,5 +1,9 @@
 var knex = require('knex');
 var Test = require('../support/test-runner');
+function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var baseparser = requireDefault(require('../../lib/Parser/base.js')).default;
+
+
 describe('Query Generation ::', function () {
     describe('Grouping statements with IN', function () {
         it('should generate a query when an IN statement', function (done) {
@@ -19,6 +23,7 @@ describe('Query Generation ::', function () {
                             db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
                         },
                         options: {method: 'SELECT'},
+                        parser: baseparser,
                         client: knex({client: 'mysql'}).select().from('think_user AS User'),
                         query: {
                             where: {id: [1, 2, 3]}
@@ -39,6 +44,7 @@ describe('Query Generation ::', function () {
                             db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
                         },
                         options: {method: 'SELECT'},
+                        parser: baseparser,
                         client: knex({client: 'postgresql'}).select().from('think_user AS User'),
                         query: {
                             where: {id: [1, 2, 3]}
