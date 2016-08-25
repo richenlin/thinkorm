@@ -158,20 +158,20 @@ export default class extends base {
         //        }
         //    }
         //});
-        if(options.group){
+        if (options.group) {
             let group = {};
-            if(lib.isArray(options.group)){
+            if (lib.isArray(options.group)) {
                 options.group.map(item => {
                     group[item] = true;
                 });
 
             } else {
-                group = options.group;
+                group = [options.group];
             }
             options.group = {
                 "key": group,
-                "initial": {},
-                "reduce": function(obj, prev) {},
+                "initial": {"count": 0},
+                "reduce": "function (obj, prev) { prev.count++; }",
                 "cond": {}
             };
         }
@@ -201,129 +201,11 @@ export default class extends base {
 
     /**
      *
-     * @param collection
-     * @param data
-     * @param options
-     */
-    parseMethod(collection, data, options) {
-        let caseList = {
-            FIND: {skip: true, limit: true, sort: true, project: true},
-            SELECT: {skip: true, limit: true, sort: true, project: true},
-            ADD: {},
-            /*ADDALL: {},*/
-            UPDATE: {},
-            DELETE: {},
-            COUNT: {},
-            SUM: {}};
-        let optType = options.method, handler, fn, pipe = [];
-        if (optType && optType in caseList) {
-            switch (optType) {
-                case 'FIND':
-                    if(lib.isEmpty(options.group)){
-                        this.sql = `${this.sql}${options.where ? '.findOne(' + JSON.stringify(options.where) + ')' : '.findOne()'}`;
-                        handler = collection.findOne(options.where || {});
-                    } else {
-                        options.group.cond = options.where;
-                        this.sql = `${this.sql}.group(${JSON.stringify(options.group)})`;
-                        handler = collection.group(options.group);
-                    }
-                    break;
-                case 'SELECT':
-                    if(lib.isEmpty(options.group)){
-                        this.sql = `${this.sql}${options.where ? '.find(' + JSON.stringify(options.where) + ')' : '.find()'}`;
-                        handler = collection.find(options.where || {});
-                    } else {
-                        options.group.cond = options.where;
-                        this.sql = `${this.sql}.group(${JSON.stringify(options.group)})`;
-                        handler = collection.group(options.group);
-                    }
-                    break;
-                case 'ADD':
-                    this.sql = `${this.sql}.insertOne(${JSON.stringify(data)})`;
-                    handler = collection.insertOne(data);
-                    break;
-                case 'ADDALL':
-                    this.sql = `${this.sql}.insertMany(${JSON.stringify(data)})`;
-                    handler = collection.insertMany(data);
-                    break;
-                case 'UPDATE':
-                    this.sql = `${this.sql}${options.where ? '.update(' + JSON.stringify(options.where) + ', {$set:' + JSON.stringify(data) + '}, false, true))' : '.update({}, {$set:' + JSON.stringify(data) + '}, false, true)'}`;
-                    handler = collection.updateMany(options.where || {}, data);
-                    break;
-                case 'DELETE':
-                    this.sql = `${this.sql}${options.where ? '.remove(' + JSON.stringify(options.where) + ')' : '.remove()'}`;
-                    handler = collection.deleteMany(options.where || {});
-                    break;
-                case 'COUNT':
-                    if(lib.isEmpty(options.group)){
-                        fn = lib.promisify(collection.aggregate, collection);
-                        !lib.isEmpty(options.where) && pipe.push({$match: options.where});
-                        pipe.push({
-                            $group: {
-                                _id: null,
-                                count: {$sum: 1}
-                            }
-                        })
-                        this.sql = `${this.sql}.aggregate(${JSON.stringify(pipe)})`;
-                        handler = fn(pipe);
-                    } else {
-                        options.group.initial = {
-                            "countid": 0
-                        };
-                        options.group.reduce = new Function('obj', 'prev', `if (obj.${options.count} != null) if (obj.${options.count} instanceof Array){prev.countid += obj.${options.count}.length; }else{ prev.countid++;}`);
-                        options.group.cond = options.where;
-                        this.sql = `${this.sql}.group(${JSON.stringify(options.group)})`;
-                        handler = collection.group(options.group);
-                    }
-                    break;
-                case 'SUM':
-                    if(lib.isEmpty(options.group)){
-                        fn = lib.promisify(collection.aggregate, collection);
-                        !lib.isEmpty(options.where) && pipe.push({$match: options.where});
-                        pipe.push({
-                            $group: {
-                                _id: 1,
-                                sum: {$sum: `$${options.sum}`}
-                            }
-                        })
-                        this.sql = `${this.sql}.aggregate(${JSON.stringify(pipe)})`;
-                        handler = fn(pipe);
-                    } else {
-                        options.group.initial = {
-                            "sumid": 0
-                        };
-                        options.group.reduce = new Function('obj', 'prev', `prev.sumid = prev.sumid + obj.${options.sum} - 0;`);
-                        options.group.cond = options.where;
-                        this.sql = `${this.sql}.group(${JSON.stringify(options.group)})`;
-                        handler = collection.group(options.group);
-                    }
-                    break;
-            }
-            //解析skip,limit,sort,project
-            for (let c in caseList[optType]){
-                if(options[c] && handler[c]){
-                    this.sql = `${this.sql}.${c}(${JSON.stringify(options[c])})`;
-                    handler[c](options[c]);
-                }
-            }
-            if(optType == 'SELECT'){
-                return handler.toArray();
-            } else {
-                return handler;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     *
-     * @param conn
      * @param data
      * @param options
      * @returns {*}
      */
-    async parseSql(conn, data, options) {
+    async parseSql(data, options) {
         try {
             let caseList = {
                 FIND: {join: 1, where: 1, field: 1, limit: 1, order: 1, group: 1},
@@ -335,62 +217,55 @@ export default class extends base {
                 COUNT: {join: 1, where: 1, limit: 1, group: 1},
                 SUM: {join: 1, where: 1, limit: 1, group: 1}
             };
-            if (conn) {
-                let optType = options.method;
-                //处理join
-                if (options['join'] && caseList[optType]['join']) {
-                    await this.parseJoin(data, options);
-                    caseList[optType]['join'] && (caseList[optType]['join'] = 0);
-                }
-                //解析where
-                if (options['where'] && caseList[optType]['where']) {
-                    await this.parseWhere(data, options);
-                    caseList[optType]['where'] && (caseList[optType]['where'] = 0);
-                }
-                //解析group
-                if (options['group'] && caseList[optType]['group']) {
-                    await this.parseGroup(data, options);
-                    caseList[optType]['group'] && (caseList[optType]['group'] = 0);
-                }
-                //解析data
-                if (options['data'] && caseList[optType]['data']) {
-                    await this.parseData(data, options);
-                    caseList[optType]['data'] && (caseList[optType]['data'] = 0);
-                }
-                //处理其他options
-                for (let n in options) {
-                    if (caseList[optType][n]) {
-                        let mt = `parse${lib.ucFirst(n)}`;
-                        if (mt && lib.isFunction(this[mt])) {
-                            await this[mt](data, options);
-                        }
+
+            let optType = options.method;
+            //处理join
+            if (options['join'] && caseList[optType]['join']) {
+                await this.parseJoin(data, options);
+                caseList[optType]['join'] && (caseList[optType]['join'] = 0);
+            }
+            //解析where
+            if (options['where'] && caseList[optType]['where']) {
+                await this.parseWhere(data, options);
+                caseList[optType]['where'] && (caseList[optType]['where'] = 0);
+            }
+            //解析group
+            if (options['group'] && caseList[optType]['group']) {
+                await this.parseGroup(data, options);
+                caseList[optType]['group'] && (caseList[optType]['group'] = 0);
+            }
+            //解析data
+            if (options['data'] && caseList[optType]['data']) {
+                await this.parseData(data, options);
+                caseList[optType]['data'] && (caseList[optType]['data'] = 0);
+            }
+            //处理其他options
+            for (let n in options) {
+                if (caseList[optType][n]) {
+                    let mt = `parse${lib.ucFirst(n)}`;
+                    if (mt && lib.isFunction(this[mt])) {
+                        await this[mt](data, options);
                     }
                 }
-                //处理collection
-                let collection = conn.collection(options.table);
-                this.sql = `db.${options.table}`;
-                let methodFn = this.parseMethod(collection, data, options);
-                return {sql: this.sql, col: methodFn};
             }
+            return {data: data, options: options};
         } catch (e) {
-            console.log(e)
+            throw new Error(e);
         }
-        return {sql: this.sql, col: null};
     }
 
     /**
      *
-     * @param conn
      * @param data
      * @param options
-     * @returns {string}
+     * @returns {{data, options}|*}
      */
-    async buildSql(conn, data, options) {
+    async buildSql(data, options) {
         if (options === undefined) {
             options = data;
         }
         //防止外部options被更改
         let parseOptions = lib.extend({}, options);
-        return this.parseSql(conn, data, parseOptions);
+        return this.parseSql(data, parseOptions);
     }
 }

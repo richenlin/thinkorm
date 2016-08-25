@@ -492,9 +492,8 @@ export default class extends base {
                 return cls.toString();
             }
         } catch (e) {
-
+            throw new Error(e);
         }
-        return '';
     }
 
     /**
