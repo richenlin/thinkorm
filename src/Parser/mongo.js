@@ -7,7 +7,7 @@
  */
 import base from '../base';
 import lib from '../Util/lib';
-
+import {ObjectID} from 'mongodb';
 const identifiers = {
     '>': '$gt',
     '>=': '$gte',
@@ -48,7 +48,7 @@ let whereParse = function (key, value, item) {
             return {$or: temp};
             break;
         default:
-            if (lib.isObject(value)) {
+            if (lib.isJSONObj(value)) {
                 temp = {};
                 for (let k in value) {
                     temp = lib.extend(temp, whereParse(k, value[k], key));
@@ -121,6 +121,8 @@ export default class extends base {
             }
             options.where = where || {};
         }
+        //将主键转为ObjectID
+        options.pk && options.where[options.pk] && (options.where[options.pk] = new ObjectID(options.where[options.pk]))
     }
 
     /**
@@ -183,6 +185,7 @@ export default class extends base {
      */
     parseData(data, options) {
         //暂时未实现
+        //console.log(data)
     }
 
     /**
@@ -237,7 +240,7 @@ export default class extends base {
                     break;
                 case 'UPDATE':
                     this.sql = `${this.sql}${options.where ? '.update(' + JSON.stringify(options.where) + ', {$set:' + JSON.stringify(data) + '}, false, true))' : '.update({}, {$set:' + JSON.stringify(data) + '}, false, true)'}`;
-                    handler = collection.updateMany(options.where || {}, data);
+                    handler = collection.updateMany(options.where || {}, {$set: data}, false, true);
                     break;
                 case 'DELETE':
                     this.sql = `${this.sql}${options.where ? '.remove(' + JSON.stringify(options.where) + ')' : '.remove()'}`;

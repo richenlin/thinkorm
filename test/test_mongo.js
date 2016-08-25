@@ -7,6 +7,7 @@
  */
 var path = require('path');
 var thinkorm = require('../index.js');
+var ObjectID = require('mongodb').ObjectID;
 var config = {
     db_type: 'mongo',
     db_host: '192.168.99.100',
@@ -30,10 +31,12 @@ thinkorm.setCollection(Group, config);
 
 //实例化模型
 var model = new User(config);
+//model.add({id: 14, name: 'e', Profile: {id: 10, test: 'aaaaa'}});
 model
-    //.where({id: {'>': 2}})
-    .group('name')
-    .select()
+    .where({_id: '57bd6ffbd67f9ba2cbf015ed'})
+    //.group('name')
+    .update({name:'f'})
+    //.select()
     .then(res=> {
         console.log(res)
     })

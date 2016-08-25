@@ -9,7 +9,6 @@ import base from './base';
 import schema from './schema';
 import lib from './Util/lib';
 import vaild from './Util/valid';
-
 export default class extends base {
     /**
      * init
@@ -87,7 +86,7 @@ export default class extends base {
      * @param args
      * @returns {*}
      */
-    static setConnection(...args){
+    static setConnection(...args) {
         return schema.setConnection(...args);
     }
 
@@ -138,14 +137,14 @@ export default class extends base {
      */
     async migrate() {
         try {
-            if(this.config.safe){
+            if (this.config.safe) {
                 return;
             }
             // init model
             let model = await this.initModel();
             let relation = schema.getRelation(this.modelName, this.config), ps = [];
-            if(!lib.isEmpty(relation)){
-                for(let n in relation){
+            if (!lib.isEmpty(relation)) {
+                for (let n in relation) {
                     ps.push(model.migrate(ORM.collections[n].schema, this.config));
                 }
                 await Promise.all(ps);
@@ -589,13 +588,13 @@ export default class extends base {
             let pk = await this.getPk();
             // 如果存在主键数据 则自动作为更新条件
             if (lib.isEmpty(parsedOptions.where)) {
-                if (!lib.isEmpty(this.__data[pk])) {
-                    parsedOptions.where = {};
-                    parsedOptions.where[pk] = this.__data[pk];
-                    delete this.__data[pk];
-                } else {
-                    return this.error('_OPERATION_WRONG_');
-                }
+                //if (!lib.isEmpty(this.__data[pk])) {
+                parsedOptions.where = {};
+                parsedOptions.where[pk] = this.__data[pk];
+                delete this.__data[pk];
+                //} else {
+                //    return this.error('_OPERATION_WRONG_');
+                //}
             } else {
                 if (!lib.isEmpty(this.__data[pk])) {
                     delete this.__data[pk];
@@ -776,6 +775,8 @@ export default class extends base {
         }
         //查询过后清空sql表达式组装 避免影响下次查询
         this.__options = {};
+        //添加主键
+        options.pk = this.getPk();
         //获取表名
         options.table = options.table || this.getTableName();
         //模型名称

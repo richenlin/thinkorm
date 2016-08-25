@@ -9,7 +9,6 @@ import base from '../base';
 import lib from '../Util/lib';
 import parser from '../Parser/mongo';
 import socket from '../Socket/mongo';
-
 export default class extends base {
     init(config = {}) {
         this.config = config;
@@ -81,7 +80,7 @@ export default class extends base {
      */
     query(cls, startTime) {
         startTime = startTime || Date.now();
-        if(!cls.col){
+        if (!cls.col) {
             this.logSql && lib.log(cls.sql, 'MongoDB', startTime);
             return Promise.reject('Analytic result is empty');
         }
