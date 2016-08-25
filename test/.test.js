@@ -39,7 +39,7 @@ thinkorm.setCollection(Pet, config);
 thinkorm.setCollection(Group, config);
 
 //实例化模型
-let model = new User(config);
+var model = new User(config);
 
 function test() {
     "use strict";
