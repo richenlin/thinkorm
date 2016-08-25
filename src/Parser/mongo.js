@@ -17,8 +17,18 @@ const identifiers = {
     'OR': '$or',
     'NOT': '$ne',
     'IN': '$in',
-    'NOTIN': '$nin'
+    'NOTIN': '$nin',
+    'LIKE': '$regex'
 };
+//js统计字符串中包含的特定字符个数
+function getPlaceholderCount(strSource, k) {
+    var thisCount = 0, reg = new RegExp(`${k}`, "g");
+    strSource.replace(reg, function (m, i) {
+        //m为找到的{xx}元素、i为索引
+        thisCount++;
+    });
+    return thisCount;
+}
 /**
  *
  * @param key
@@ -47,6 +57,26 @@ let whereParse = function (key, value, item) {
             });
             return {$or: temp};
             break;
+        case '$regex':
+            if (lib.isObject(value)) {
+                temp = {};
+                for(let n in value){
+                    if(value[n].indexOf('%') > -1){
+                        if(getPlaceholderCount(value, '%') > 1){
+
+                        } else if(value.indexOf('%') === 0){
+
+                        } else if(value.indexOf('%') === 0){
+
+                        } else {
+
+                        }
+                    } else {
+                        temp = lib.extend(temp, {[key]: value[n]}) ;
+                    }
+                }
+                return temp;
+            }
         default:
             if (lib.isObject(value)) {
                 temp = {};

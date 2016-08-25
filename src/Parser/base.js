@@ -18,7 +18,8 @@ const identifiers = {
     '<': 'OPERATOR',
     '<>': 'OPERATOR',
     '<=': 'OPERATOR',
-    '>=': 'OPERATOR'
+    '>=': 'OPERATOR',
+    'LIKE': 'OPERATOR'
 };
 /**
  * 书写方法:
@@ -28,6 +29,7 @@ const identifiers = {
  not: {not: {name: '', id: 1}}
  notin: {notin: {'id': [1,2,3]}}
  operator: {id: {'<>': 1, '>=': 0}}
+ like: {like: }
  * @param options
  * @param key
  * @param value
