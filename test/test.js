@@ -49,6 +49,14 @@ function test() {
     //.where({id: {'>=': 0}}).count()
     //.where({id: {'>=': 0}}).sum('id')
     //.where({id: {'>=': 0}}).select()
+    //.where({name: {'like': 'r%'}}).select()
+    //.where({not: {name: '', id: 1}}).select()
+    //.where({notin: {'id': [1,2,3]}}).select()
+    //.where({notin: {'id': [1,2,3]}}).select()
+    //.where({name: {'like': '%a'}}).select()
+    .where({id: [1,2,3]}).select()
+
+    //.where({id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}).select()
     //.countSelect()
     //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
@@ -65,4 +73,4 @@ function test() {
             console.log(res);
         });
 }
-//test();
+test();

@@ -393,12 +393,14 @@ export default class extends base {
     /**
      * where条件
      * 书写方法:
-     * and:      where({id: 1, name: 'a'})
-     * or:       where({or: [{...}, {...}]})
-     * in:       where({id: [1,2,3]})
-     * not:      where({not: {name: '', id: 1}})
-     * notin:    where({notin: {'id': [1,2,3]}})
-     * operator: where({id: {'<>': 1, '>=': 0}})
+     * or:  {or: [{...}, {...}]}
+     * not: {not: {name: '', id: 1}}
+     * in: {id: [1,2,3]}
+     * and: {id: 1, name: 'a'},
+     * notin: {id: {'notin': [1,2,3]}}
+     * operator: {id: {'<>': 1}}
+     * operator: {id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}
+     * like: {name: {'like': '%a'}}
      * @return {[type]} [description]
      */
     where(where) {

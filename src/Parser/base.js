@@ -23,13 +23,14 @@ const identifiers = {
 };
 /**
  * 书写方法:
- and: {id: 1, name: 'a'},
- or:  {or: [{...}, {...}]}
- in: {id: [1,2,3]}
- not: {not: {name: '', id: 1}}
- notin: {notin: {'id': [1,2,3]}}
- operator: {id: {'<>': 1, '>=': 0}}
- like: {like: }
+ * or:  {or: [{...}, {...}]}
+ * not: {not: {name: '', id: 1}}
+ * in: {id: [1,2,3]}
+ * and: {id: 1, name: 'a'},
+ * notin: {id: {'notin': [1,2,3]}}
+ * operator: {id: {'<>': 1}}
+ * operator: {id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}
+ * like: {name: {'like': '%a'}}
  * @param options
  * @param key
  * @param value
@@ -237,7 +238,7 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
             integer: {},
             string: {size: 50},
             float: {precision: 8, size: 2},
-            timestamp: {},
+            datetime: {},
             json: {},
             text: {}
         };
@@ -254,8 +255,8 @@ let preParseSchema = function (field, value){
             case 'float':
                 str += `t.float('${field}', 8, ${value.size || 2})`;
                 break;
-            case 'timestamp':
-                str += `t.timestamp('${field}')`;
+            case 'datetime':
+                str += `t.datetime('${field}')`;
                 break;
             case 'string':
                 str += `t.string('${field}', ${value.size || 50})`;

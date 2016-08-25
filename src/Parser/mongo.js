@@ -20,15 +20,6 @@ const identifiers = {
     'NOTIN': '$nin',
     'LIKE': '$regex'
 };
-//js统计字符串中包含的特定字符个数
-function getPlaceholderCount(strSource, k) {
-    var thisCount = 0, reg = new RegExp(`${k}`, "g");
-    strSource.replace(reg, function (m, i) {
-        //m为找到的{xx}元素、i为索引
-        thisCount++;
-    });
-    return thisCount;
-}
 /**
  *
  * @param key
@@ -46,37 +37,30 @@ let whereParse = function (key, value, item) {
         case '$ne':
         case '$in':
         case '$nin':
-            return {[item]: {[identifiers[key]]: value}};
+            return {[item]: {[identifiers[idt]]: value}};
             break;
         case '$or':
-            temp = [];
-            value.map(data=> {
-                for (let k in data) {
-                    temp.push(whereParse(k, data[k], k));
-                }
-            });
-            return {$or: temp};
+            if(lib.isArray(value)){
+                temp = [];
+                value.map(data=> {
+                    for (let k in data) {
+                        temp.push(whereParse(k, data[k], k));
+                    }
+                });
+                return {$or: temp};
+            }
             break;
         case '$regex':
-            if (lib.isObject(value)) {
-                temp = {};
-                for(let n in value){
-                    if(value[n].indexOf('%') > -1){
-                        if(getPlaceholderCount(value, '%') > 1){
-
-                        } else if(value.indexOf('%') === 0){
-
-                        } else if(value.indexOf('%') === 0){
-
-                        } else {
-
-                        }
-                    } else {
-                        temp = lib.extend(temp, {[key]: value[n]}) ;
-                    }
+            if(lib.isString(value)){
+                if(value.indexOf('%') === 0 && value.substring(value.length -1) === '%'){
+                    return {[key]: new RegExp(`${v}`)};
+                } else if(value.indexOf('%') === 0){
+                    return {[key]: new RegExp(`${v}^`)};
+                }else if(value.substring(value.length -1) === '%'){
+                    return {[key]: new RegExp(`^${v}`)};
                 }
-                return temp;
             }
+            break;
         default:
             if (lib.isObject(value)) {
                 temp = {};
