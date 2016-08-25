@@ -25,9 +25,9 @@ const identifiers = {
  * 书写方法:
  * or:  {or: [{...}, {...}]}
  * not: {not: {name: '', id: 1}}
+ * notin: {notin: {'id': [1,2,3]}}
  * in: {id: [1,2,3]}
  * and: {id: 1, name: 'a'},
- * notin: {id: {'notin': [1,2,3]}}
  * operator: {id: {'<>': 1}}
  * operator: {id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}
  * like: {name: {'like': '%a'}}
