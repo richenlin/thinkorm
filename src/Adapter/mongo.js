@@ -113,13 +113,14 @@ export default class extends base {
      */
     add(data, options = {}) {
         options.method = 'ADD';
-        let startTime = Date.now(), collection;
+        let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(data, options);
         }).then(res => {
             this.sql = `db.${res.options.table}.insertOne(${JSON.stringify(res.data)})`;
-            return this.execute(collection.insertOne(res.data), startTime);
+            handler = collection.insertOne(res.data);
+            return this.execute(handler, startTime);
         }).then(data => {
             return data.insertedId || 0;
         });
@@ -131,13 +132,14 @@ export default class extends base {
      */
     delete(options = {}) {
         options.method = 'DELETE';
-        let startTime = Date.now(), collection;
+        let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(options);
         }).then(res => {
             this.sql = `db.${res.options.table}${res.options.where ? '.remove(' + JSON.stringify(res.options.where) + ')' : '.remove()'}`;
-            return this.execute(collection.deleteMany(res.options.where || {}), startTime);
+            handler = collection.deleteMany(res.options.where || {});
+            return this.execute(handler, startTime);
         }).then(data => {
             return data.deletedCount || 0;
         });
@@ -149,13 +151,14 @@ export default class extends base {
      */
     update(data, options = {}) {
         options.method = 'UPDATE';
-        let startTime = Date.now(), collection;
+        let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(data, options);
         }).then(res => {
             this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$set:' + JSON.stringify(res.data) + '}, false, true))' : '.update({}, {$set:' + JSON.stringify(res.data) + '}, false, true)'}`;
-            return this.execute(collection.updateMany(res.options.where || {}, res.data), startTime);
+            handler = collection.updateMany(res.options.where || {}, res.data);
+            return this.execute(handler, startTime);
         }).then(data => {
             return data.modifiedCount || 0;
         });
@@ -171,12 +174,11 @@ export default class extends base {
         options.method = 'COUNT';
         options.count = field;
         options.limit = [0, 1];
-        let startTime = Date.now(), collection;
+        let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(options);
         }).then(res => {
-            let handler;
             if (lib.isEmpty(res.options.group)) {
                 let fn = lib.promisify(collection.aggregate, collection), pipe = [];
                 !lib.isEmpty(res.options.where) && pipe.push({$match: res.options.where});
@@ -221,12 +223,11 @@ export default class extends base {
         options.method = 'SUM';
         options.sum = field;
         options.limit = [0, 1];
-        let startTime = Date.now(), collection;
+        let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(options);
         }).then(res => {
-            let handler;
             if (lib.isEmpty(res.options.group)) {
                 let fn = lib.promisify(collection.aggregate, collection), pipe = [];
                 !lib.isEmpty(res.options.where) && pipe.push({$match: res.options.where});
@@ -268,12 +269,11 @@ export default class extends base {
     find(options = {}) {
         options.method = 'FIND';
         options.limit = [0, 1];
-        let startTime = Date.now(), collection;
+        let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(options);
         }).then(res => {
-            let handler;
             if (lib.isEmpty(res.options.group)) {
                 this.sql = `db.${res.options.table}${res.options.where ? '.findOne(' + JSON.stringify(res.options.where) + ')' : '.findOne()'}`;
                 handler = collection.findOne(res.options.where || {});
@@ -293,12 +293,11 @@ export default class extends base {
      */
     select(options = {}) {
         options.method = 'SELECT';
-        let startTime = Date.now(), collection;
+        let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(options);
         }).then(res => {
-            let handler;
             if (lib.isEmpty(res.options.group)) {
                 this.sql = `${this.sql}${res.options.where ? '.find(' + JSON.stringify(res.options.where) + ')' : '.find()'}`;
                 handler = collection.find(res.options.where || {});
