@@ -846,9 +846,6 @@ export default class extends base {
                             default:
                                 break;
                         }
-                        if (result.length > 0) {
-                            return this.error(result[0]);
-                        }
                     } else {
                         //分离关联模型数据
                         if (this.relation[field]) {
@@ -858,6 +855,9 @@ export default class extends base {
                         //移除未定义的字段
                         delete data[field];
                     }
+                }
+                if (result.length > 0) {
+                    return this.error(result[0]);
                 }
                 //根据自定义规则自动验证数据
                 if (lib.isEmpty(this.validations)) {
