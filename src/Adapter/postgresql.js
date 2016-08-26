@@ -79,7 +79,7 @@ export default class extends base {
                     });
                     return Promise.all(ps);
                 }
-                return this.execute(sql.replace(/\n/g, ''));
+                return this.execute(sql);
             });
         });
     }
