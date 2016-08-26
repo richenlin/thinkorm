@@ -9,6 +9,7 @@ import base from './base';
 import schema from './schema';
 import lib from './Util/lib';
 import vaild from './Util/valid';
+
 export default class extends base {
     /**
      * init
@@ -134,20 +135,24 @@ export default class extends base {
 
     /**
      * 结构迁移
+     * @param rel 是否创建关联表
+     * @returns {*}
      */
-    async migrate() {
+    async migrate(rel = false) {
         try {
             if (this.config.safe) {
                 return;
             }
             // init model
             let model = await this.initModel();
-            let relation = schema.getRelation(this.modelName, this.config), ps = [];
-            if (!lib.isEmpty(relation)) {
-                for (let n in relation) {
-                    ps.push(model.migrate(ORM.collections[n].schema, this.config));
+            if (rel) {
+                let relation = schema.getRelation(this.modelName, this.config), ps = [];
+                if (!lib.isEmpty(relation)) {
+                    for (let n in relation) {
+                        ps.push(model.migrate(ORM.collections[n].schema, this.config));
+                    }
+                    await Promise.all(ps);
                 }
-                await Promise.all(ps);
             }
             await model.migrate(ORM.collections[this.modelName].schema, this.config);
             return;
@@ -388,12 +393,14 @@ export default class extends base {
     /**
      * where条件
      * 书写方法:
-     * and:      where({id: 1, name: 'a'})
-     * or:       where({or: [{...}, {...}]})
-     * in:       where({id: [1,2,3]})
-     * not:      where({not: {name: '', id: 1}})
-     * notin:    where({notin: {'id': [1,2,3]}})
-     * operator: where({id: {'<>': 1, '>=': 0}})
+     * or:  {or: [{...}, {...}]}
+     * not: {not: {name: '', id: 1}}
+     * in: {id: [1,2,3]}
+     * and: {id: 1, name: 'a'},
+     * notin: {id: {'notin': [1,2,3]}}
+     * operator: {id: {'<>': 1}}
+     * operator: {id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}
+     * like: {name: {'like': '%a'}}
      * @return {[type]} [description]
      */
     where(where) {
@@ -477,9 +484,10 @@ export default class extends base {
             }
             let result = await model.add(this.__data, parsedOptions);
             let pk = await this.getPk();
+
             this.__data[pk] = this.__data[pk] ? this.__data[pk] : result;
             if (!lib.isEmpty(this.__relationData)) {
-                await this.__postRelationData(result, parsedOptions, this.__relationData, 'ADD');
+                await this.__postRelationData(model, result, parsedOptions, this.__relationData, 'ADD');
             }
             await this._afterAdd(this.__data, parsedOptions);
             result = await this._parseData(this.__data[pk] || 0, parsedOptions, false);
@@ -574,6 +582,7 @@ export default class extends base {
      * @return {[type]} [description]
      */
     async update(data, options) {
+        //console.log(options)
         try {
             let parsedOptions = await this._parseOptions(options);
             // init model
@@ -588,13 +597,13 @@ export default class extends base {
             let pk = await this.getPk();
             // 如果存在主键数据 则自动作为更新条件
             if (lib.isEmpty(parsedOptions.where)) {
-                //if (!lib.isEmpty(this.__data[pk])) {
-                parsedOptions.where = {};
-                parsedOptions.where[pk] = this.__data[pk];
-                delete this.__data[pk];
-                //} else {
-                //    return this.error('_OPERATION_WRONG_');
-                //}
+                if (!lib.isEmpty(this.__data[pk])) {
+                    parsedOptions.where = {};
+                    parsedOptions.where[pk] = this.__data[pk];
+                    delete this.__data[pk];
+                } else {
+                    return this.error('_OPERATION_WRONG_');
+                }
             } else {
                 if (!lib.isEmpty(this.__data[pk])) {
                     delete this.__data[pk];
@@ -602,7 +611,7 @@ export default class extends base {
             }
             let result = await model.update(this.__data, parsedOptions);
             if (!lib.isEmpty(this.__relationData)) {
-                await this.__postRelationData(result, parsedOptions, this.__relationData, 'UPDATE');
+                await this.__postRelationData(model, result, parsedOptions, this.__relationData, 'UPDATE');
             }
             await this._afterUpdate(this.__data, parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
@@ -677,7 +686,7 @@ export default class extends base {
             result = await this._parseData(result, parsedOptions, false);
             result = (lib.isArray(result) ? result[0] : result) || {};
             if (!lib.isEmpty(parsedOptions.rel)) {
-                result = await this.__getRelationData(parsedOptions, result);
+                result = await this.__getRelationData(model, parsedOptions, result);
             }
             await this._afterFind(result, parsedOptions);
             return result;
@@ -706,7 +715,7 @@ export default class extends base {
             let result = await model.select(parsedOptions);
             result = await this._parseData(result || [], parsedOptions, false);
             if (!lib.isEmpty(parsedOptions.rel)) {
-                result = await this.__getRelationData(parsedOptions, result);
+                result = await this.__getRelationData(model, parsedOptions, result);
             }
             await this._afterSelect(result, parsedOptions);
             return result;
@@ -775,12 +784,12 @@ export default class extends base {
         }
         //查询过后清空sql表达式组装 避免影响下次查询
         this.__options = {};
-        //添加主键
-        options.pk = this.getPk();
         //获取表名
-        options.table = options.table || this.getTableName();
+        options.table = options.table || this.tableName;
         //模型名称
         options.name = options.name || this.modelName;
+        //模型主键
+        options.pk = options.pk || this.getPk();
         //解析field,根据model的fields进行过滤
         let field = [];
         if (lib.isEmpty(options.field) && !lib.isEmpty(options.fields)) options.field = options.fields;
@@ -855,20 +864,22 @@ export default class extends base {
 
     /**
      *
+     * @param adapter
      * @param options
+     * @param data
      * @returns {*}
      * @private
      */
-    async __getRelationData(options, data) {
+    async __getRelationData(adapter, options, data) {
         try {
             let caseList = {
-                HASONE: this.__getHasOneRelation,
-                HASMANY: this.__getHasManyRelation,
-                MANYTOMANY: this.__getManyToManyRelation
+                HASONE: adapter.__getHasOneRelation,
+                HASMANY: adapter.__getHasManyRelation,
+                MANYTOMANY: adapter.__getManyToManyRelation
             };
             let relationData = data;
             if (!lib.isEmpty(data)) {
-                let relation = options.rel, rtype, fkey, scope = this;
+                let relation = options.rel, rtype, fkey, config = this.config;
                 let pk = await this.getPk();
                 for (let n in relation) {
                     rtype = relation[n]['type'];
@@ -876,10 +887,10 @@ export default class extends base {
                         fkey = (rtype === 'MANYTOMANY') ? lib.parseName(relation[n].name) : relation[n].fkey;
                         if (lib.isArray(data)) {
                             for (let [k,v] of data.entries()) {
-                                data[k][fkey] = await caseList[rtype](scope, relation[n], data[k]);
+                                data[k][fkey] = await caseList[rtype](config, relation[n], data[k]);
                             }
                         } else {
-                            data[fkey] = await caseList[rtype](scope, relation[n], data);
+                            data[fkey] = await caseList[rtype](config, relation[n], data);
                         }
                     }
                 }
@@ -893,83 +904,7 @@ export default class extends base {
 
     /**
      *
-     * @param scope
-     * @param rel
-     * @param data
-     * @returns {*}
-     * @private
-     */
-    __getHasOneRelation(scope, rel, data) {
-        if (lib.isEmpty(data) || lib.isEmpty(data[rel.fkey])) {
-            return {};
-        }
-        let model = new (rel.model)(scope.config);
-        return model.find({field: rel.field, where: {[rel.rkey]: data[rel.fkey]}});
-    }
-
-    /**
-     *
-     * @param scope
-     * @param rel
-     * @param data
-     * @returns {*}
-     * @private
-     */
-    __getHasManyRelation(scope, rel, data) {
-        if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
-            return [];
-        }
-        let model = new (rel.model)(scope.config);
-        let options = {field: rel.field, where: {[rel.rkey]: data[rel.primaryPk]}};
-        return model.select(options);
-    }
-
-    /**
-     *
-     * @param scope
-     * @param rel
-     * @param data
-     * @returns {*}
-     * @private
-     */
-    __getManyToManyRelation(scope, rel, data) {
-        if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
-            return [];
-        }
-        let model = new (rel.model)(scope.config);
-        let rpk = model.getPk();
-        let mapModel = new rel.mapModel(scope.config);
-        //let mapName = `${rel.primaryName}${rel.name}Map`;
-        //if(model.config.db_type === 'mongo'){
-        return mapModel.field(rel.fkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
-            let keys = [];
-            data.map(item => {
-                item[rel.fkey] && keys.push(item[rel.fkey]);
-            });
-            return model.select({where: {[rpk]: keys}});
-        });
-        //} else {
-        //    let options = {
-        //        table: `${model.config.db_prefix}${lib.parseName(mapModel)}`,
-        //        name: mapName,
-        //        join: [
-        //            {from: `${rel.model.modelName}`, on: {[rel.rkey]: rpk}, field: rel.field, type: 'inner'}
-        //        ],
-        //        where: {
-        //            [rel.fkey]: data[rel.primaryPk]
-        //        }
-        //    };
-        //    //数据量大的情况下可能有性能问题
-        //    let regx = new RegExp(`${rel.name}_`, "g");
-        //    return model.select(options).then(result => {
-        //        result = JSON.stringify(result).replace(regx, '');
-        //        return JSON.parse(result);
-        //    });
-        //}
-    }
-
-    /**
-     *
+     * @param adapter
      * @param result
      * @param options
      * @param relationData
@@ -977,20 +912,20 @@ export default class extends base {
      * @returns {*}
      * @private
      */
-    async __postRelationData(result, options, relationData, postType) {
+    async __postRelationData(adapter, result, options, relationData, postType) {
         try {
             let caseList = {
-                HASONE: this.__postHasOneRelation,
-                HASMANY: this.__postHasManyRelation,
-                MANYTOMANY: this.__postManyToManyRelation
+                HASONE: adapter.__postHasOneRelation,
+                HASMANY: adapter.__postHasManyRelation,
+                MANYTOMANY: adapter.__postManyToManyRelation
             };
             if (!lib.isEmpty(result)) {
-                let relation = schema.getRelation(this.modelName, this.config), rtype, scope = this;
+                let relation = schema.getRelation(this.modelName, this.config), rtype, config = this.config;
                 let pk = await this.getPk();
                 for (let n in relationData) {
                     rtype = relation[n] ? relation[n]['type'] : null;
                     if (relation[n].fkey && rtype && rtype in caseList) {
-                        await caseList[rtype](scope, result, options, relation[n], relationData[n], postType)
+                        await caseList[rtype](config, result, options, relation[n], relationData[n], postType)
                     }
                 }
             }
@@ -998,126 +933,6 @@ export default class extends base {
         } catch (e) {
             return this.error(e);
         }
-    }
-
-    /**
-     *
-     * @param scope
-     * @param result
-     * @param options
-     * @param rel
-     * @param relationData
-     * @param postType
-     * @private
-     */
-    async __postHasOneRelation(scope, result, options, rel, relationData, postType) {
-        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
-            return;
-        }
-        let model = new (rel.model)(scope.config);
-        let primaryModel = new (ORM.collections[rel.primaryName])(scope.config);
-        switch (postType) {
-            case 'ADD':
-                //子表插入数据
-                let fkey = await model.add(relationData);
-                //更新主表关联字段
-                fkey && (await primaryModel.update({[rel.fkey]: fkey}, {where: {[rel.primaryPk]: result}}));
-                break;
-            case 'UPDATE':
-                if (!relationData[rel.fkey]) {
-                    if (primaryModel) {
-                        let info = await primaryModel.field(rel.fkey).find(options);
-                        relationData[rel.fkey] = info[rel.fkey];
-                    }
-                }
-                //子表主键数据存在才更新
-                if (relationData[rel.fkey]) {
-                    await model.update(relationData, {where: {[rel.rkey]: relationData[rel.fkey]}});
-                }
-                break;
-        }
-        return;
-    }
-
-    /**
-     *
-     * @param scope
-     * @param result
-     * @param options
-     * @param rel
-     * @param relationData
-     * @param postType
-     * @private
-     */
-    async __postHasManyRelation(scope, result, options, rel, relationData, postType) {
-        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
-            return;
-        }
-        let model = new (rel.model)(scope.config), rpk = model.getPk();
-        for (let [k, v] of relationData.entries()) {
-            switch (postType) {
-                case 'ADD':
-                    //子表插入数据
-                    v[rel.rkey] = result;
-                    await model.add(v);
-                    break;
-                case 'UPDATE':
-                    //子表主键数据存在才更新
-                    if (v[rpk]) {
-                        await model.update(v, {where: {[rpk]: v[rpk]}});
-                    }
-                    break;
-            }
-        }
-        return;
-    }
-
-    /**
-     *
-     * @param scope
-     * @param result
-     * @param options
-     * @param rel
-     * @param relationData
-     * @param postType
-     * @private
-     */
-    async __postManyToManyRelation(scope, result, options, rel, relationData, postType) {
-        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
-            return;
-        }
-        //子表主键
-        let model = new (rel.model)(scope.config), rpk = model.getPk();
-        let mapModel = new (rel['mapModel'])(scope.config);
-        //关系表
-        for (let [k, v] of relationData.entries()) {
-            switch (postType) {
-                case 'ADD':
-                    //子表增加数据
-                    let fkey = await model.add(v);
-                    //关系表增加数据,使用thenAdd
-                    fkey && (await mapModel.thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, {
-                        where: {
-                            [rel.fkey]: result,
-                            [rel.rkey]: fkey
-                        }
-                    }));
-                    break;
-                case 'UPDATE':
-                    //关系表两个外键都存在,更新关系表
-                    if (v[rel.fkey] && v[rel.rkey]) {
-                        //关系表增加数据,此处不考虑两个外键是否在相关表存在数据,因为关联查询会忽略
-                        await mapModel.thenAdd({
-                            [rel.fkey]: v[rel.fkey],
-                            [rel.rkey]: v[rel.rkey]
-                        }, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
-                    } else if (v[rpk]) {//仅存在子表主键情况下,更新子表
-                        await model.update(v, {where: {[rpk]: v[rpk]}});
-                    }
-                    break;
-            }
-        }
-        return;
     }
 
 }

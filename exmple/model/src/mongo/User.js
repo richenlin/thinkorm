@@ -5,7 +5,7 @@
  * @license    MIT
  * @version    16/8/18
  */
-import thinkorm from '../../../index';
+import thinkorm from '../../../../index';
 
 export default class extends thinkorm{
     init(config){
@@ -14,7 +14,7 @@ export default class extends thinkorm{
         this.safe = true;
         // 数据表字段信息
         this.fields = {
-            id: {
+            _id: {
                 type: 'integer',
                 primaryKey: true
             },
@@ -40,9 +40,9 @@ export default class extends thinkorm{
         this.relation = {
             Profile : {
                 type: 'hasone',//关联方式
-                field: ['test', 'id'],//关联表字段
+                field: ['test', '_id'],//关联表字段
                 fkey: 'profile', //主表外键 (子表主键)
-                rkey: 'id' //子表主键
+                rkey: '_id' //子表主键
             },
             Pet: {
                 type: 'hasmany',

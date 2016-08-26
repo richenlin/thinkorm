@@ -111,13 +111,16 @@ export default class extends base {
      */
     add(data, options = {}) {
         options.method = 'ADD';
+        //mongodb.js的addOne,会改变原有添加对象，将主键加进去。
+        let d = lib.extend({}, data);
         let startTime = Date.now();
         return this.connect().then(conn => {
-            return this.parsers().buildSql(conn, data, options);
+            return this.parsers().buildSql(conn, d, options);
         }).then(res => {
+            //console.log(data)
             return this.execute(res, startTime);
         }).then(data => {
-            return data.insertedId || 0;
+            return data.insertedId.toHexString() || 0;
         });
     }
 
@@ -255,5 +258,203 @@ export default class extends base {
             }
         }
         return data;
+    }
+
+    /**
+     *
+     * @param config
+     * @param rel
+     * @param data
+     * @returns {*}
+     * @private
+     */
+    __getHasOneRelation(config, rel, data) {
+        if (lib.isEmpty(data) || lib.isEmpty(data[rel.fkey])) {
+            return {};
+        }
+        let model = new (rel.model)(config);
+        return model.find({field: rel.field, where: {[rel.rkey]: data[rel.fkey]}});
+    }
+
+    /**
+     *
+     * @param config
+     * @param rel
+     * @param data
+     * @returns {*}
+     * @private
+     */
+    __getHasManyRelation(config, rel, data) {
+        if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
+            return [];
+        }
+        let model = new (rel.model)(config);
+        let options = {field: rel.field, where: {[rel.rkey]: data[rel.primaryPk]}};
+        return model.select(options);
+    }
+
+    /**
+     *
+     * @param config
+     * @param rel
+     * @param data
+     * @returns {*}
+     * @private
+     */
+    __getManyToManyRelation(config, rel, data) {
+        if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
+            return [];
+        }
+        let model = new (rel.model)(config);
+        let rpk = model.getPk();
+        let mapModel = new rel.mapModel(config);
+        //let mapName = `${rel.primaryName}${rel.name}Map`;
+        //if(model.config.db_type === 'mongo'){
+        return mapModel.field(rel.fkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
+            let keys = [];
+            data.map(item => {
+                item[rel.fkey] && keys.push(item[rel.fkey]);
+            });
+            return model.select({where: {[rpk]: keys}});
+        });
+        //} else {
+        //    let options = {
+        //        table: `${model.config.db_prefix}${lib.parseName(mapModel)}`,
+        //        name: mapName,
+        //        join: [
+        //            {from: `${rel.model.modelName}`, on: {[rel.rkey]: rpk}, field: rel.field, type: 'inner'}
+        //        ],
+        //        where: {
+        //            [rel.fkey]: data[rel.primaryPk]
+        //        }
+        //    };
+        //    //数据量大的情况下可能有性能问题
+        //    let regx = new RegExp(`${rel.name}_`, "g");
+        //    return model.select(options).then(result => {
+        //        result = JSON.stringify(result).replace(regx, '');
+        //        return JSON.parse(result);
+        //    });
+        //}
+    }
+
+    /**
+     *
+     * @param config
+     * @param result
+     * @param options
+     * @param rel
+     * @param relationData
+     * @param postType
+     * @private
+     */
+    async __postHasOneRelation(config, result, options, rel, relationData, postType) {
+        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
+            return;
+        }
+        let model = new (rel.model)(config);
+        let primaryModel = new (ORM.collections[rel.primaryName])(config);
+        switch (postType) {
+            case 'ADD':
+                //子表插入数据
+                let fkey = await model.add(relationData);
+                options.where = {[rel.primaryPk]: result};
+                //更新主表关联字段
+                fkey && (await primaryModel.update({[rel.fkey]: fkey}, options));
+                break;
+            case 'UPDATE':
+                if (!relationData[rel.fkey]) {
+                    if (primaryModel) {
+                        let info = await primaryModel.field(rel.fkey).find(options);
+                        relationData[rel.fkey] = info[rel.fkey];
+                    }
+                }
+                //子表主键数据存在才更新
+                if (relationData[rel.fkey]) {
+                    await model.update(relationData, {where: {[rel.rkey]: relationData[rel.fkey]}});
+                }
+                break;
+        }
+        return;
+    }
+
+    /**
+     *
+     * @param config
+     * @param result
+     * @param options
+     * @param rel
+     * @param relationData
+     * @param postType
+     * @private
+     */
+    async __postHasManyRelation(config, result, options, rel, relationData, postType) {
+        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
+            return;
+        }
+        let model = new (rel.model)(config), rpk = model.getPk();
+        for (let [k, v] of relationData.entries()) {
+            switch (postType) {
+                case 'ADD':
+                    //子表插入数据
+                    v[rel.rkey] = result;
+                    await model.add(v);
+                    break;
+                case 'UPDATE':
+                    //子表主键数据存在才更新
+                    if (v[rpk]) {
+                        await model.update(v, {where: {[rpk]: v[rpk]}});
+                    }
+                    break;
+            }
+        }
+        return;
+    }
+
+    /**
+     *
+     * @param config
+     * @param result
+     * @param options
+     * @param rel
+     * @param relationData
+     * @param postType
+     * @private
+     */
+    async __postManyToManyRelation(config, result, options, rel, relationData, postType) {
+        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
+            return;
+        }
+        //子表主键
+        let model = new (rel.model)(config), rpk = model.getPk();
+        let mapModel = new (rel['mapModel'])(config);
+        //关系表
+        for (let [k, v] of relationData.entries()) {
+            switch (postType) {
+                case 'ADD':
+                    //子表增加数据
+                    let fkey = await model.add(v);
+                    //关系表增加数据,使用thenAdd
+                    fkey && (await mapModel.thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, {
+                        where: {
+                            [rel.fkey]: result,
+                            [rel.rkey]: fkey
+                        }
+                    }));
+                    break;
+                case 'UPDATE':
+                    //关系表两个外键都存在,更新关系表
+                    if (v[rel.fkey] && v[rel.rkey]) {
+                        //关系表增加数据,此处不考虑两个外键是否在相关表存在数据,因为关联查询会忽略
+                        await mapModel.thenAdd({
+                            [rel.fkey]: v[rel.fkey],
+                            [rel.rkey]: v[rel.rkey]
+                        }, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
+                    } else if (v[rpk]) {//仅存在子表主键情况下,更新子表
+                        await model.update(v, {where: {[rpk]: v[rpk]}});
+                    }
+                    break;
+            }
+        }
+        return;
     }
 }

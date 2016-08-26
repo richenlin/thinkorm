@@ -17,7 +17,8 @@ const identifiers = {
     'OR': '$or',
     'NOT': '$ne',
     'IN': '$in',
-    'NOTIN': '$nin'
+    'NOTIN': '$nin',
+    'LIKE': '$regex'
 };
 /**
  *
@@ -36,16 +37,29 @@ let whereParse = function (key, value, item) {
         case '$ne':
         case '$in':
         case '$nin':
-            return {[item]: {[identifiers[key]]: value}};
+            return {[item]: {[identifiers[idt]]: value}};
             break;
         case '$or':
-            temp = [];
-            value.map(data=> {
-                for (let k in data) {
-                    temp.push(whereParse(k, data[k], k));
+            if(lib.isArray(value)){
+                temp = [];
+                value.map(data=> {
+                    for (let k in data) {
+                        temp.push(whereParse(k, data[k], k));
+                    }
+                });
+                return {$or: temp};
+            }
+            break;
+        case '$regex':
+            if(lib.isString(value)){
+                if(value.indexOf('%') === 0 && value.substring(value.length -1) === '%'){
+                    return {[key]: new RegExp(`${v}`)};
+                } else if(value.indexOf('%') === 0){
+                    return {[key]: new RegExp(`${v}^`)};
+                }else if(value.substring(value.length -1) === '%'){
+                    return {[key]: new RegExp(`^${v}`)};
                 }
-            });
-            return {$or: temp};
+            }
             break;
         default:
             if (lib.isJSONObj(value)) {
