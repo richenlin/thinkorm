@@ -43,9 +43,8 @@ var _class = function (_thinkorm) {
                 index: true
             },
             profile: {
-                type: 'integer',
-                index: true,
-                defaultTo: 0
+                type: 'string',
+                index: true
             },
             memo: {
                 type: 'text'
@@ -60,7 +59,7 @@ var _class = function (_thinkorm) {
         this.relation = {
             Profile: {
                 type: 'hasone', //关联方式
-                field: ['test', 'id'], //关联表字段
+                field: ['test', '_id'], //关联表字段
                 fkey: 'profile', //主表外键 (子表主键)
                 rkey: '_id' //子表主键
             },

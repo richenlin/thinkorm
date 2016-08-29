@@ -5,8 +5,8 @@ var baseparser = requireDefault(require('../../lib/Parser/base.js')).default;
 
 
 describe('Query Generation ::', function () {
-    describe('Grouping statements with AND', function () {
-        it('should generate a query when an AND statement', function (done) {
+    describe('Grouping statements with NOTIN', function () {
+        it('should generate a query when an NOTIN statement', function (done) {
             Test({
                 outcomes: [
                     {
@@ -26,9 +26,9 @@ describe('Query Generation ::', function () {
                         parser: baseparser,
                         client: knex({client: 'mysql'}).select().from('think_user AS User'),
                         query: {
-                            where: {firstName: 'foo', lastName: 'bar'}
+                            where: {notin: {'id': [1,2,3]}}
                         },
-                        sql: "select * from `think_user` as `User` where `User`.`firstName` = 'foo' and `User`.`lastName` = 'bar'"
+                        sql: "select * from `think_user` as `User` where `User`.`id` not in (1, 2, 3)"
                     },
                     {
                         dialect: 'postgresql',
@@ -47,9 +47,9 @@ describe('Query Generation ::', function () {
                         parser: baseparser,
                         client: knex({client: 'postgresql'}).select().from('think_user AS User'),
                         query: {
-                            where: {firstName: 'foo', lastName: 'bar'}
+                            where: {notin: {'id': [1,2,3]}}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"firstName\" = 'foo' and \"User\".\"lastName\" = 'bar'"
+                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" not in ('1', '2', '3')"
                     }
                 ]
             }, done);

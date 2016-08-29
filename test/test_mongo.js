@@ -31,7 +31,7 @@ thinkorm.setCollection(Group, config);
 
 //实例化模型
 var model = new User(config);
-//model.add({id: 14, name: 'e', Profile: {id: 10, test: 'aaaaa'}});
-model.where({_id:'57bebfa4b5ffadbebe28dc7d'}).rel('Profile').find().then(res=>{
+//model.add({id: 3, name: 'c', Profile: {id: 3, test: 'ca'}});
+model.where({id: 1, or: [{name: 'a'}, {name: 'c'}]}).select().then(res=> {
     console.log(res)
 })

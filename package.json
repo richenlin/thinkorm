@@ -1,6 +1,6 @@
 {
   "name": "thinkorm",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "index.js",
   "scripts": {
@@ -40,6 +40,7 @@
     "node": ">4.0.0"
   },
   "devDependencies": {
+    "async": "^2.0.1",
     "babel-cli": "^6.11.4",
     "babel-core": "^6.11.4",
     "babel-eslint": "^6.1.2",
@@ -54,9 +55,9 @@
   },
   "dependencies": {
     "babel-runtime": "6.11.6",
-    "bluebird": "3.4.1",
-    "knex": "^0.11.9",
-    "mysql": "^2.11.1"
+    "bluebird": "3.4.2",
+    "knex": "0.11.10",
+    "mysql": "2.11.1"
   },
   "maintainers": [
     {

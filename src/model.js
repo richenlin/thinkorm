@@ -395,9 +395,9 @@ export default class extends base {
      * 书写方法:
      * or:  {or: [{...}, {...}]}
      * not: {not: {name: '', id: 1}}
+     * notin: {notin: {'id': [1,2,3]}}
      * in: {id: [1,2,3]}
      * and: {id: 1, name: 'a'},
-     * notin: {id: {'notin': [1,2,3]}}
      * operator: {id: {'<>': 1}}
      * operator: {id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}
      * like: {name: {'like': '%a'}}
@@ -776,39 +776,43 @@ export default class extends base {
      * @private
      */
     _parseOptions(oriOpts, extraOptions) {
-        let options;
-        if (lib.isScalar(oriOpts)) {
-            options = lib.extend({}, this.__options);
-        } else {
-            options = lib.extend({}, this.__options, oriOpts, extraOptions);
-        }
-        //查询过后清空sql表达式组装 避免影响下次查询
-        this.__options = {};
-        //获取表名
-        options.table = options.table || this.tableName;
-        //模型名称
-        options.name = options.name || this.modelName;
-        //模型主键
-        options.pk = options.pk || this.getPk();
-        //解析field,根据model的fields进行过滤
-        let field = [];
-        if (lib.isEmpty(options.field) && !lib.isEmpty(options.fields)) options.field = options.fields;
-        //解析分页
-        if (options['page']) {
-            let page = options.page + '';
-            let num = 0;
-            if (page.indexOf(',') > -1) {
-                page = page.split(',');
-                num = parseInt(page[1], 10);
-                page = page[0];
+        try {
+            let options;
+            if (lib.isScalar(oriOpts)) {
+                options = lib.extend({}, this.__options);
+            } else {
+                options = lib.extend({}, this.__options, oriOpts, extraOptions);
             }
-            num = num || 10;
-            page = parseInt(page, 10) || 1;
-            options.page = {page: page, num: num};
-        } else {
-            options.page = {page: 1, num: 10};
+            //查询过后清空sql表达式组装 避免影响下次查询
+            this.__options = {};
+            //获取表名
+            options.table = options.table || this.tableName;
+            //模型名称
+            options.name = options.name || this.modelName;
+            //模型主键
+            options.pk = options.pk || this.getPk();
+            //解析field,根据model的fields进行过滤
+            let field = [];
+            if (lib.isEmpty(options.field) && !lib.isEmpty(options.fields)) options.field = options.fields;
+            //解析分页
+            if (options['page']) {
+                let page = options.page + '';
+                let num = 0;
+                if (page.indexOf(',') > -1) {
+                    page = page.split(',');
+                    num = parseInt(page[1], 10);
+                    page = page[0];
+                }
+                num = num || 10;
+                page = parseInt(page, 10) || 1;
+                options.page = {page: page, num: num};
+            } else {
+                options.page = {page: 1, num: 10};
+            }
+            return options;
+        } catch (e) {
+            return this.error(e);
         }
-        return options;
     }
 
     /**
@@ -820,45 +824,70 @@ export default class extends base {
      * @returns {*}
      */
     _parseData(data, options, preCheck = true, option = 1) {
-        if (preCheck) {
-            //根据模型定义字段类型进行数据检查
-            let result = [];
-            for (let field in data) {
-                //分离关联模型数据
-                if (this.relation[field]) {
-                    !this.__relationData[field] && (this.__relationData[field] = {});
-                    this.__relationData[field] = data[field];
-                    delete data[field];
+        try {
+            if (preCheck) {
+                //根据模型定义字段类型进行数据检查
+                let result = [];
+                for (let field in data) {
+                    if (this.fields[field] && this.fields[field].type) {
+                        //字段默认值处理
+                        lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultTo ? this.fields[field].defaultTo : data[field]);
+                        //字段类型严格验证
+                        switch (this.fields[field].type) {
+                            case 'integer':
+                            case 'float':
+                                (!lib.isNumber(data[field])) && result.push(`${ field }值类型错误`);
+                                break;
+                            case 'json':
+                                (!lib.isJSONObj(data[field]) && !lib.isJSONStr(data[field])) && result.push(`${ field }值类型错误`);
+                                break;
+                            case 'string':
+                            case 'text':
+                                !lib.isString(data[field]) && result.push(`${ field }值类型错误`);
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        //分离关联模型数据
+                        if (this.relation[field]) {
+                            !this.__relationData[field] && (this.__relationData[field] = {});
+                            this.__relationData[field] = data[field];
+                        }
+                        //移除未定义的字段
+                        delete data[field];
+                    }
                 }
-                //移除未定义的字段
-                if (!this.fields[field]) {
-                    delete data[field];
+                if (result.length > 0) {
+                    return this.error(result[0]);
                 }
-            }
-            //根据规则自动验证数据
-            if (lib.isEmpty(this.validations)) {
-                return data;
-            }
-            let field, value, checkData = [];
-            for (field in this.validations) {
-                value = lib.extend(this.validations[field], {name: field, value: data[field]});
-                checkData.push(value);
-            }
-            if (lib.isEmpty(checkData)) {
-                return data;
-            }
-            result = {};
-            result = this.__valid(checkData);
-            if (lib.isEmpty(result)) {
-                return data;
-            }
-            return this.error(Object.values(result)[0]);
-        } else {
-            if (lib.isJSONObj(data)) {
-                return data;
+                //根据自定义规则自动验证数据
+                if (lib.isEmpty(this.validations)) {
+                    return data;
+                }
+                let field, value, checkData = [];
+                for (field in this.validations) {
+                    value = lib.extend(this.validations[field], {name: field, value: data[field]});
+                    checkData.push(value);
+                }
+                if (lib.isEmpty(checkData)) {
+                    return data;
+                }
+                result = {};
+                result = this.__valid(checkData);
+                if (lib.isEmpty(result)) {
+                    return data;
+                }
+                return this.error(Object.values(result)[0]);
             } else {
-                return JSON.parse(JSON.stringify(data));
+                if (lib.isJSONObj(data)) {
+                    return data;
+                } else {
+                    return JSON.parse(JSON.stringify(data));
+                }
             }
+        } catch (e) {
+            return this.error(e);
         }
     }
 

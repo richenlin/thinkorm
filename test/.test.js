@@ -39,7 +39,7 @@ thinkorm.setCollection(Pet, config);
 thinkorm.setCollection(Group, config);
 
 //实例化模型
-let model = new User(config);
+var model = new User(config);
 
 function test() {
     "use strict";
@@ -52,17 +52,16 @@ function test() {
     //.where({name: {'like': 'r%'}}).select()
     //.where({not: {name: '', id: 1}}).select()
     //.where({notin: {'id': [1,2,3]}}).select()
-    //.where({notin: {'id': [1,2,3]}}).select()
     //.where({name: {'like': '%a'}}).select()
-    .where({id: [1,2,3]}).select()
+    //.where({id: [1,2,3]}).select()
 
-    //.where({id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}).select()
+    //.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
     //.countSelect()
     //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','username']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.where({id: {'>=': 0}}).group(['id','username']).find()
     //.rel(true).find()
-    //.add({name: 'rrrrrrr',Profile: {test: 'rrrtest'},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
+    .add({name: 'rrrrrrr',Profile: {test: 'rrrtest'},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
     //.where({id: 60}).update({name: 'tttttt',Profile: {test: 'ttttttt'}})
     //.add({name: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
     //.where({id: 99}).update({name: 'tttttt',Pet: [{id: 7,types: 'ttttttt'}]})
