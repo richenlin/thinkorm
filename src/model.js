@@ -582,7 +582,6 @@ export default class extends base {
      * @return {[type]} [description]
      */
     async update(data, options) {
-        //console.log(options)
         try {
             let parsedOptions = await this._parseOptions(options);
             // init model

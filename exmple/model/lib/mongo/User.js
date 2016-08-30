@@ -43,8 +43,11 @@ var _class = function (_thinkorm) {
                 index: true
             },
             profile: {
-                type: 'string',
+                type: 'ref',
                 index: true
+            },
+            pet: {
+                type: 'ref'
             },
             memo: {
                 type: 'text'

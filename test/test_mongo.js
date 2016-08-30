@@ -32,6 +32,13 @@ thinkorm.setCollection(Group, config);
 //实例化模型
 var model = new User(config);
 //model.add({id: 3, name: 'c', Profile: {id: 3, test: 'ca'}});
-model.where({id: 1, or: [{name: 'a'}, {name: 'c'}]}).select().then(res=> {
+//model.where({id: 1, or: [{name: 'a'}, {name: 'c'}]}).select().then(res=> {
+//    console.log(res)
+//})
+model.rel('Pet').find().then(res=> {
     console.log(res)
 })
+//model.where({name:'a'}).select().then(res=>{
+//    console.log(res)
+//})
+//model.add({id: 1, name: 'a', Pet: [{types: 'a'}, {types: 'b'}, {types:'c'}]})

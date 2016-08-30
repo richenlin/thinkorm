@@ -9,6 +9,7 @@ import base from '../base';
 import lib from '../Util/lib';
 import parser from '../Parser/mongo';
 import socket from '../Socket/mongo';
+import {DBRef} from 'mongodb';
 export default class extends base {
     init(config = {}) {
         this.config = config;
@@ -344,7 +345,7 @@ export default class extends base {
             return {};
         }
         let model = new (rel.model)(config);
-        return model.find({field: rel.field, where: {[rel.rkey]: data[rel.fkey]}});
+        return model.find({field: rel.field, where: {[rel.rkey]: data[rel.fkey]['oid']}});
     }
 
     /**
@@ -360,7 +361,9 @@ export default class extends base {
             return [];
         }
         let model = new (rel.model)(config);
-        let options = {field: rel.field, where: {[rel.rkey]: data[rel.primaryPk]}};
+        //modify by lihao 此处主表查询出的结果中_id为ObjectId类型,会被parse/parseWhere解析出错,因此转为string
+        let primaryPk = lib.isObject(data[rel.primaryPk]) ? data[rel.primaryPk].toString() : data[rel.primaryPk];
+        let options = {field: rel.field, where: {[rel.rkey]: primaryPk}};
         return model.select(options);
     }
 
@@ -429,8 +432,11 @@ export default class extends base {
                 //子表插入数据
                 let fkey = await model.add(relationData);
                 options.where = {[rel.primaryPk]: result};
+                //modify by lihao,此处修改为mongo的ref引用关联字段
+                let refKey = new DBRef(model.getTableName(), fkey);
                 //更新主表关联字段
-                fkey && (await primaryModel.update({[rel.fkey]: fkey}, options));
+                //fkey && (await primaryModel.update({[rel.fkey]: fkey}, options));
+                fkey && (await primaryModel.update({[rel.fkey]: refKey}, options));
                 break;
             case 'UPDATE':
                 if (!relationData[rel.fkey]) {
@@ -463,20 +469,47 @@ export default class extends base {
             return;
         }
         let model = new (rel.model)(config), rpk = model.getPk();
-        for (let [k, v] of relationData.entries()) {
-            switch (postType) {
-                case 'ADD':
+        //for (let [k, v] of relationData.entries()) {
+        //    switch (postType) {
+        //        case 'ADD':
+        //            //子表插入数据
+        //            v[rel.rkey] = result;
+        //            await model.add(v);
+        //            //modify by lihao,将子表数据通过ref关联更新到主表
+        //            break;
+        //        case 'UPDATE':
+        //            //子表主键数据存在才更新
+        //            if (v[rpk]) {
+        //                await model.update(v, {where: {[rpk]: v[rpk]}});
+        //            }
+        //            break;
+        //    }
+        //}
+        //modify by lihao,将子表数据通过ref关联更新到主表
+        switch (postType) {
+            case 'ADD':
+                let relIdArr = [], fkey;
+                for (let [k, v] of relationData.entries()) {
                     //子表插入数据
                     v[rel.rkey] = result;
-                    await model.add(v);
-                    break;
-                case 'UPDATE':
+                    fkey = await model.add(v);
+                    relIdArr.push(new DBRef(model.getTableName(), fkey))
+                }
+                //更新到主表的关联字段
+                if (!lib.isEmpty(relIdArr)) {
+                    options.where = {[rel.primaryPk]: result};
+                    let primaryModel = new (ORM.collections[rel.primaryName])(config);
+                    await primaryModel.update({[rel.fkey]: relIdArr}, options)
+                }
+                break;
+            case 'UPDATE':
+                for (let [k, v] of relationData.entries()) {
                     //子表主键数据存在才更新
                     if (v[rpk]) {
                         await model.update(v, {where: {[rpk]: v[rpk]}});
                     }
-                    break;
-            }
+                }
+                break;
         }
         return;
     }

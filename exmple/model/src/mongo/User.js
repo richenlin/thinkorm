@@ -7,8 +7,8 @@
  */
 import thinkorm from '../../../../index';
 
-export default class extends thinkorm{
-    init(config){
+export default class extends thinkorm {
+    init(config) {
         super.init(config);
         // 是否自动迁移(默认安全模式)
         this.safe = true;
@@ -23,8 +23,11 @@ export default class extends thinkorm{
                 index: true
             },
             profile: {
-                type: 'string',
+                type: 'ref',
                 index: true
+            },
+            pet: {
+                type: 'ref'
             },
             memo: {
                 type: 'text'
@@ -37,7 +40,7 @@ export default class extends thinkorm{
         this.validations = {};
         // 关联关系
         this.relation = {
-            Profile : {
+            Profile: {
                 type: 'hasone',//关联方式
                 field: ['test', '_id'],//关联表字段
                 fkey: 'profile', //主表外键 (子表主键)
@@ -45,7 +48,7 @@ export default class extends thinkorm{
             },
             Pet: {
                 type: 'hasmany',
-                field: ['types','user', 'id'],
+                field: ['types', 'user', 'id'],
                 fkey: 'pet',//虚拟字段
                 rkey: 'user'//子表外键 (主表主键)
             },

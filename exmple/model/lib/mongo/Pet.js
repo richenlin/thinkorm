@@ -34,7 +34,7 @@ var _class = function (_thinkorm) {
         this.safe = true;
         // 数据表字段信息
         this.fields = {
-            id: {
+            _id: {
                 type: 'integer',
                 primaryKey: true
             },
