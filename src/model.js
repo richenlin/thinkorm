@@ -746,7 +746,7 @@ export default class extends base {
             }
             let parsedOptions = await this._parseOptions(options);
             let countNum = await this.count(parsedOptions);
-            let pageOptions = parsedOptions.page;
+            let pageOptions = parsedOptions.page || {page: 1, num: 10};
             let totalPage = Math.ceil(countNum / pageOptions.num);
             if (lib.isBoolean(pageFlag)) {
                 if (pageOptions.page > totalPage) {
@@ -804,8 +804,6 @@ export default class extends base {
                 num = num || 10;
                 page = parseInt(page, 10) || 1;
                 options.page = {page: page, num: num};
-            } else {
-                options.page = {page: 1, num: 10};
             }
             return options;
         } catch (e) {
