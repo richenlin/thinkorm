@@ -125,34 +125,34 @@ let parseKnexWhere = function (knex, optionWhere) {
         })
     }
 
-    if (optionWhere.null) {
-        optionWhere.null.map(data=> {
-            //knex.whereNull(...data);
-            data.map(d=> {
-                knex.whereNull(d);
-            })
-        })
-    }
-
-    if (optionWhere.notnull) {
-        optionWhere.notnull.map(data=> {
-            data.map(d=> {
-                knex.whereNotNull(d);
-            })
-        })
-    }
-
-    if (optionWhere.between) {
-        optionWhere.between.map(data=> {
-            knex.whereBetween(data[0], data[1]);
-        })
-    }
-
-    if (optionWhere.notbetween) {
-        optionWhere.notbetween.map(data=> {
-            knex.whereNotBetween(data[0], data[1]);
-        })
-    }
+    //if (optionWhere.null) {
+    //    optionWhere.null.map(data=> {
+    //        //knex.whereNull(...data);
+    //        data.map(d=> {
+    //            knex.whereNull(d);
+    //        })
+    //    })
+    //}
+    //
+    //if (optionWhere.notnull) {
+    //    optionWhere.notnull.map(data=> {
+    //        data.map(d=> {
+    //            knex.whereNotNull(d);
+    //        })
+    //    })
+    //}
+    //
+    //if (optionWhere.between) {
+    //    optionWhere.between.map(data=> {
+    //        knex.whereBetween(data[0], data[1]);
+    //    })
+    //}
+    //
+    //if (optionWhere.notbetween) {
+    //    optionWhere.notbetween.map(data=> {
+    //        knex.whereNotBetween(data[0], data[1]);
+    //    })
+    //}
 
     if (optionWhere.operation) {
         optionWhere.operation.map(data=> {
@@ -282,6 +282,7 @@ let preParseSchema = function (field, value){
 
 
 export default class extends base {
+
     init(config = {}) {
         this.config = config;
     }
@@ -351,10 +352,10 @@ export default class extends base {
                 "not": [],
                 "in": [],
                 "notin": [],
-                "null": [],
-                "notnull": [],
-                "between": [],
-                "notbetween": [],
+                //"null": [],
+                //"notnull": [],
+                //"between": [],
+                //"notbetween": [],
                 "operation": []
             },
             orwhere: {
@@ -362,10 +363,10 @@ export default class extends base {
                 "not": [],
                 "in": [],
                 "notin": [],
-                "null": [],
-                "notnull": [],
-                "between": [],
-                "notbetween": [],
+                //"null": [],
+                //"notnull": [],
+                //"between": [],
+                //"notbetween": [],
                 "operation": []
             }
         };
