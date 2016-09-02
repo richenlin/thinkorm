@@ -33,7 +33,6 @@ export default class extends base {
         }
         //读写分离配置
         if(this.config.db_ext_config.read_write_splitting && lib.isArray(this.config.db_host)){
-            this.handel = {RW: true};
             let configMaster = {
                 db_name: lib.isArray(this.config.db_name) ? this.config.db_name[0] : this.config.db_name,
                 db_host: lib.isArray(this.config.db_host) ? this.config.db_host[0] : this.config.db_host,
@@ -54,8 +53,12 @@ export default class extends base {
                 db_timeout: this.config.db_timeout,
                 db_ext_config: this.config.db_ext_config
             };
-            this.handel.master = new socket(configMaster).connect();
-            this.handel.slave = new socket(configSlave).connect();
+            return Promise.all([new socket(configMaster).connect(), new socket(configSlave).connect()]).then(cons => {
+                this.handel = {RW: true};
+                this.handel.master = cons[0];
+                this.handel.slave = cons[1];
+                return this.handel;
+            });
         } else {
             this.handel = new socket(this.config).connect();
         }
