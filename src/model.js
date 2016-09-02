@@ -825,24 +825,26 @@ export default class extends base {
                 //根据模型定义字段类型进行数据检查
                 let result = [];
                 for (let field in data) {
-                    if (this.fields[field] && this.fields[field].type) {
+                    if (this.fields[field]) {
                         //字段默认值处理
                         lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultTo ? this.fields[field].defaultTo : data[field]);
-                        //字段类型严格验证
-                        switch (this.fields[field].type) {
-                            case 'integer':
-                            case 'float':
-                                (!lib.isNumber(data[field])) && result.push(`${ field }值类型错误`);
-                                break;
-                            case 'json':
-                                (!lib.isJSONObj(data[field]) && !lib.isJSONStr(data[field])) && result.push(`${ field }值类型错误`);
-                                break;
-                            case 'string':
-                            case 'text':
-                                !lib.isString(data[field]) && result.push(`${ field }值类型错误`);
-                                break;
-                            default:
-                                break;
+                        if(this.fields[field].type){
+                            //字段类型严格验证
+                            switch (this.fields[field].type) {
+                                case 'integer':
+                                case 'float':
+                                    (!lib.isNumber(data[field])) && result.push(`${ field }值类型错误`);
+                                    break;
+                                case 'json':
+                                    (!lib.isJSONObj(data[field]) && !lib.isJSONStr(data[field])) && result.push(`${ field }值类型错误`);
+                                    break;
+                                case 'string':
+                                case 'text':
+                                    !lib.isString(data[field]) && result.push(`${ field }值类型错误`);
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                     } else {
                         //分离关联模型数据
