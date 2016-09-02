@@ -53,7 +53,7 @@ function test() {
     //.where({not: {name: '', id: 1}}).select()
     //.where({notin: {'id': [1,2,3]}}).select()
     //.where({name: {'like': '%a'}}).select()
-    //.where({id: [1,2,3]}).select()
+    .where({id: [1,2,3]}).select()
 
     //.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
     //.countSelect()
