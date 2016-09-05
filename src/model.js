@@ -906,7 +906,7 @@ export default class extends base {
             };
             let relationData = data;
             if (!lib.isEmpty(data)) {
-                let relation = options.rel, rtype, fkey, config = this.config;
+                let relation = options.rel, rtype, fkey, config = this.config, ps = [];
                 let pk = await this.getPk();
                 for (let n in relation) {
                     rtype = relation[n]['type'];
@@ -914,15 +914,18 @@ export default class extends base {
                         fkey = (rtype === 'MANYTOMANY') ? lib.parseName(relation[n].name) : relation[n].fkey;
                         if (lib.isArray(data)) {
                             for (let [k,v] of data.entries()) {
-                                data[k][fkey] = await caseList[rtype](config, relation[n], data[k]);
+                                ps.push(caseList[rtype](config, relation[n], data[k]).then(res => {
+                                    data[k][fkey] = res;
+                                }));
+                                //data[k][fkey] = await caseList[rtype](config, relation[n], data[k]);
                             }
+                            await Promise.all(ps);
                         } else {
                             data[fkey] = await caseList[rtype](config, relation[n], data);
                         }
                     }
                 }
             }
-
             return relationData;
         } catch (e) {
             return this.error(e);
@@ -945,18 +948,18 @@ export default class extends base {
                 HASONE: adapter.__postHasOneRelation,
                 HASMANY: adapter.__postHasManyRelation,
                 MANYTOMANY: adapter.__postManyToManyRelation
-            };
+            }, ps = [];
             if (!lib.isEmpty(result)) {
                 let relation = schema.getRelation(this.modelName, this.config), rtype, config = this.config;
                 let pk = await this.getPk();
                 for (let n in relationData) {
                     rtype = relation[n] ? relation[n]['type'] : null;
                     if (relation[n].fkey && rtype && rtype in caseList) {
-                        await caseList[rtype](config, result, options, relation[n], relationData[n], postType)
+                        ps.push(caseList[rtype](config, result, options, relation[n], relationData[n], postType));
                     }
                 }
             }
-            return;
+            return Promise.all(ps);
         } catch (e) {
             return this.error(e);
         }

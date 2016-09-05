@@ -45,7 +45,7 @@ function test() {
     "use strict";
     return model
         //.migrate()
-    //.where({id: {'<>': 1, '>=': 0}, name: '', or: [{name: 'aa'}, {name: 'aaa'}]}).find()
+    //.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}]}).find()
     //.where({id: {'>=': 0}}).count()
     //.where({id: {'>=': 0}}).sum('id')
     //.where({id: {'>=': 0}}).select()
@@ -60,7 +60,7 @@ function test() {
     //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.where({id: {'>=': 0}}).group(['id','username']).find()
-    .rel(true).find()
+    .rel(true).select()
     //.add({name: 'rrrrrrr',Profile: {test: 'rrrtest'},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
     //.where({id: 60}).update({name: 'tttttt',Profile: {test: 'ttttttt'}})
     //.add({name: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})

@@ -42,7 +42,7 @@ var _class = function (_thinkorm) {
                 type: 'string'
             },
             user: {
-                type: 'string'
+                type: 'integer'
             }
         };
         // 数据验证
