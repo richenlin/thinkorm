@@ -1,7 +1,7 @@
-.idea
 node_modules/
 npm-debug.log
 coverage/
 App
 Runtime
 www
+.idea

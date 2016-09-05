@@ -5,7 +5,7 @@
  * @license    MIT
  * @version    16/8/18
  */
-import thinkorm from '../../../index';
+import thinkorm from '../../../../index';
 
 export default class extends thinkorm{
     init(config){
@@ -14,11 +14,14 @@ export default class extends thinkorm{
         this.safe = true;
         // 数据表字段信息
         this.fields = {
-            _id: {
+            id: {
                 type: 'integer',
                 primaryKey: true
             },
-            test: {
+            name: {
+                type: 'string'
+            },
+            type: {
                 type: 'string'
             }
         };

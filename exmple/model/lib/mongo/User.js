@@ -14,7 +14,7 @@ var _inherits2 = require('babel-runtime/helpers/inherits');
 
 var _inherits3 = _interopRequireDefault(_inherits2);
 
-var _index = require('../../../index');
+var _index = require('../../../../index');
 
 var _index2 = _interopRequireDefault(_index);
 
@@ -38,14 +38,47 @@ var _class = function (_thinkorm) {
                 type: 'integer',
                 primaryKey: true
             },
-            test: {
-                type: 'string'
+            name: {
+                type: 'string',
+                index: true
+            },
+            profile: {
+                type: 'ref',
+                index: true
+            },
+            pet: {
+                type: 'ref'
+            },
+            memo: {
+                type: 'text'
+            },
+            create_time: {
+                type: 'timestamp'
             }
         };
         // 数据验证
         this.validations = {};
         // 关联关系
-        this.relation = {};
+        this.relation = {
+            Profile: {
+                type: 'hasone', //关联方式
+                field: ['test', '_id'], //关联表字段
+                fkey: 'profile', //主表外键 (子表主键)
+                rkey: '_id' //子表主键
+            },
+            Pet: {
+                type: 'hasmany',
+                field: ['types', 'user', 'id'],
+                fkey: 'pet', //虚拟字段
+                rkey: 'user' //子表外键 (主表主键)
+            },
+            Group: {
+                type: 'manytomany',
+                field: ['name', 'type', 'id'],
+                fkey: 'userid', //map外键(主表主键)
+                rkey: 'groupid' //map外键(子表主键)
+            }
+        };
     };
 
     return _class;

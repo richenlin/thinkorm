@@ -484,6 +484,7 @@ export default class extends base {
             }
             let result = await model.add(this.__data, parsedOptions);
             let pk = await this.getPk();
+
             this.__data[pk] = this.__data[pk] ? this.__data[pk] : result;
             if (!lib.isEmpty(this.__relationData)) {
                 await this.__postRelationData(model, result, parsedOptions, this.__relationData, 'ADD');

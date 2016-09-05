@@ -9,7 +9,7 @@ import base from '../base';
 import lib from '../Util/lib';
 import parser from '../Parser/mongo';
 import socket from '../Socket/mongo';
-
+import {DBRef} from 'mongodb';
 export default class extends base {
     init(config = {}) {
         this.config = config;
@@ -82,7 +82,7 @@ export default class extends base {
      */
     query(cls, startTime) {
         startTime = startTime || Date.now();
-        if(!cls){
+        if (!cls) {
             this.logSql && lib.log(this.sql, 'MongoDB', startTime);
             return Promise.reject('Analytic result is empty');
         }
@@ -114,15 +114,17 @@ export default class extends base {
     add(data, options = {}) {
         options.method = 'ADD';
         let startTime = Date.now(), collection, handler;
+        //mongodb.js的addOne,会改变原有添加对象，将主键加进去。
+        let d = lib.extend({}, data);
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
-            return this.parsers().buildSql(data, options);
+            return this.parsers().buildSql(d, options);
         }).then(res => {
             this.sql = `db.${res.options.table}.insertOne(${JSON.stringify(res.data)})`;
             handler = collection.insertOne(res.data);
             return this.execute(handler, startTime);
         }).then(data => {
-            return data.insertedId || 0;
+            return data.insertedId.toHexString() || 0;
         });
     }
 
@@ -157,7 +159,7 @@ export default class extends base {
             return this.parsers().buildSql(data, options);
         }).then(res => {
             this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$set:' + JSON.stringify(res.data) + '}, false, true))' : '.update({}, {$set:' + JSON.stringify(res.data) + '}, false, true)'}`;
-            handler = collection.updateMany(res.options.where || {}, res.data);
+            handler = collection.updateMany(res.options.where || {}, {$set: res.data}, false, true);
             return this.execute(handler, startTime);
         }).then(data => {
             return data.modifiedCount || 0;
@@ -307,7 +309,7 @@ export default class extends base {
                 //handler = collection.group(res.options.group);
                 handler = collection.group(res.options.group.key, res.options.group.cond, res.options.group.initial, res.options.group.reduce);
             }
-            return this.query(handler, startTime);
+            return this.query(handler.toArray(), startTime);
         });
     }
 
@@ -343,7 +345,7 @@ export default class extends base {
             return {};
         }
         let model = new (rel.model)(config);
-        return model.find({field: rel.field, where: {[rel.rkey]: data[rel.fkey]}});
+        return model.find({field: rel.field, where: {[rel.rkey]: data[rel.fkey]['oid']}});
     }
 
     /**
@@ -359,7 +361,9 @@ export default class extends base {
             return [];
         }
         let model = new (rel.model)(config);
-        let options = {field: rel.field, where: {[rel.rkey]: data[rel.primaryPk]}};
+        //modify by lihao 此处主表查询出的结果中_id为ObjectId类型,会被parse/parseWhere解析出错,因此转为string
+        let primaryPk = lib.isObject(data[rel.primaryPk]) ? data[rel.primaryPk].toString() : data[rel.primaryPk];
+        let options = {field: rel.field, where: {[rel.rkey]: primaryPk}};
         return model.select(options);
     }
 
@@ -427,8 +431,12 @@ export default class extends base {
             case 'ADD':
                 //子表插入数据
                 let fkey = await model.add(relationData);
+                options.where = {[rel.primaryPk]: result};
+                //modify by lihao,此处修改为mongo的ref引用关联字段
+                let refKey = new DBRef(model.getTableName(), fkey);
                 //更新主表关联字段
-                fkey && (await primaryModel.update({[rel.fkey]: fkey}, {where: {[rel.primaryPk]: result}}));
+                //fkey && (await primaryModel.update({[rel.fkey]: fkey}, options));
+                fkey && (await primaryModel.update({[rel.fkey]: refKey}, options));
                 break;
             case 'UPDATE':
                 if (!relationData[rel.fkey]) {
@@ -461,20 +469,47 @@ export default class extends base {
             return;
         }
         let model = new (rel.model)(config), rpk = model.getPk();
-        for (let [k, v] of relationData.entries()) {
-            switch (postType) {
-                case 'ADD':
+        //for (let [k, v] of relationData.entries()) {
+        //    switch (postType) {
+        //        case 'ADD':
+        //            //子表插入数据
+        //            v[rel.rkey] = result;
+        //            await model.add(v);
+        //            //modify by lihao,将子表数据通过ref关联更新到主表
+        //            break;
+        //        case 'UPDATE':
+        //            //子表主键数据存在才更新
+        //            if (v[rpk]) {
+        //                await model.update(v, {where: {[rpk]: v[rpk]}});
+        //            }
+        //            break;
+        //    }
+        //}
+        //modify by lihao,将子表数据通过ref关联更新到主表
+        switch (postType) {
+            case 'ADD':
+                let relIdArr = [], fkey;
+                for (let [k, v] of relationData.entries()) {
                     //子表插入数据
                     v[rel.rkey] = result;
-                    await model.add(v);
-                    break;
-                case 'UPDATE':
+                    fkey = await model.add(v);
+                    relIdArr.push(new DBRef(model.getTableName(), fkey))
+                }
+                //更新到主表的关联字段
+                if (!lib.isEmpty(relIdArr)) {
+                    options.where = {[rel.primaryPk]: result};
+                    let primaryModel = new (ORM.collections[rel.primaryName])(config);
+                    await primaryModel.update({[rel.fkey]: relIdArr}, options)
+                }
+                break;
+            case 'UPDATE':
+                for (let [k, v] of relationData.entries()) {
                     //子表主键数据存在才更新
                     if (v[rpk]) {
                         await model.update(v, {where: {[rpk]: v[rpk]}});
                     }
-                    break;
-            }
+                }
+                break;
         }
         return;
     }

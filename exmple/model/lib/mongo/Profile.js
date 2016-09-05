@@ -14,7 +14,7 @@ var _inherits2 = require('babel-runtime/helpers/inherits');
 
 var _inherits3 = _interopRequireDefault(_inherits2);
 
-var _index = require('../../../index');
+var _index = require('../../../../index');
 
 var _index2 = _interopRequireDefault(_index);
 

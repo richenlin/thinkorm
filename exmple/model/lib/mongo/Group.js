@@ -14,7 +14,7 @@ var _inherits2 = require('babel-runtime/helpers/inherits');
 
 var _inherits3 = _interopRequireDefault(_inherits2);
 
-var _index = require('../../../index');
+var _index = require('../../../../index');
 
 var _index2 = _interopRequireDefault(_index);
 
@@ -34,11 +34,14 @@ var _class = function (_thinkorm) {
         this.safe = true;
         // 数据表字段信息
         this.fields = {
-            _id: {
+            id: {
                 type: 'integer',
                 primaryKey: true
             },
-            test: {
+            name: {
+                type: 'string'
+            },
+            type: {
                 type: 'string'
             }
         };

@@ -7,7 +7,7 @@
  */
 import base from '../base';
 import lib from '../Util/lib';
-
+import {ObjectID} from 'mongodb';
 const identifiers = {
     '>': '$gt',
     '>=': '$gte',
@@ -114,9 +114,9 @@ export default class extends base {
     parseField(data, options) {
         for (let n of options.field) {
             if (n.indexOf('.') > -1) {
-                options.project[n.split('.')[1]] = 1;
+                options.field[n.split('.')[1]] = 1;
             } else {
-                options.project[n] = 1;
+                options.field[n] = 1;
             }
         }
     }
@@ -135,6 +135,8 @@ export default class extends base {
             }
             options.where = where || {};
         }
+        //将主键转为ObjectID
+        options.pk && options.where[options.pk] && (options.where[options.pk] = new ObjectID(options.where[options.pk]))
     }
 
     /**
@@ -195,12 +197,14 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseData(data, options){
+    parseData(data, options) {
         //暂时未实现
+        //console.log(data)
     }
 
     /**
      *
+
      * @param data
      * @param options
      * @returns {*}
