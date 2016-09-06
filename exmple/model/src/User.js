@@ -25,7 +25,7 @@ export default class extends thinkorm{
             profile: {
                 type: 'integer',
                 index: true,
-                defaultTo: 0
+                defaultsTo: 0
             },
             memo: {
                 type: 'text'

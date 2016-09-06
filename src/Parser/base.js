@@ -273,8 +273,8 @@ let preParseSchema = function (field, value){
         if (value.hasOwnProperty('unique') && value.unique === true) {
             str += `.unique()`;
         }
-        if (value.hasOwnProperty('defaultTo')) {
-            str += `.defaultTo(${value.defaultTo})`;
+        if (value.hasOwnProperty('defaultsTo')) {
+            str += `.defaultTo(${value.defaultsTo})`;
         }
     }
     return str + ';';

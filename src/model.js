@@ -871,9 +871,9 @@ export default class extends base {
                 //字段默认值处理
                 for (let field in this.fields) {
                     if(method === 1){//新增数据
-                        lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultTo ? this.fields[field].defaultTo : data[field]);
+                        lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultsTo ? this.fields[field].defaultsTo : data[field]);
                     }else if(method === 2){//编辑数据
-                        data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultTo ? this.fields[field].defaultTo : data[field]);
+                        data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultsTo ? this.fields[field].defaultsTo : data[field]);
                     }
                 }
                 //根据规则自动验证数据
