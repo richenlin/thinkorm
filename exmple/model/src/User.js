@@ -40,19 +40,19 @@ export default class extends thinkorm{
         this.relation = {
             Profile : {
                 type: 'hasone',//关联方式
-                field: ['test', 'id'],//关联表字段
+                //field: ['test', 'id'],//关联表字段
                 fkey: 'profile', //主表外键 (子表主键)
                 rkey: 'id' //子表主键
             },
             Pet: {
                 type: 'hasmany',
-                field: ['types','user', 'id'],
+                //field: ['types','user', 'id'],
                 fkey: '',//hasmany关联此值没用
                 rkey: 'user'//子表外键 (主表主键)
             },
             Group: {
                 type: 'manytomany',
-                field: ['name', 'type', 'id'],
+                //field: ['name', 'type', 'id'],
                 fkey: 'userid',//map外键(主表主键)
                 rkey: 'groupid'//map外键(子表主键)
             }

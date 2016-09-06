@@ -88,7 +88,7 @@ function getRelation(name, config) {
                 type: type, //关联方式
                 name: n, //关联模型名称
                 model: ORM.collections[n], //关联模型
-                field: (lib.isEmpty(relation[n]['field']) || relation[n]['field'] == '*') ? ORM.collections[n].fields : relation[n]['field'],
+                field: relation[n]['field'] || [],
                 fkey: relation[n]['fkey'], //hasone主表外键,hasmany查询结果字段名,manytomany map表主外键
                 rkey: relation[n]['rkey'], //hasone子表主键,hasmany子表外键,manytomany map表子外键
 
