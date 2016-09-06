@@ -835,8 +835,6 @@ export default class extends base {
                 let result = [];
                 for (let field in data) {
                     if (this.fields[field]) {
-                        //字段默认值处理
-                        lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultTo ? this.fields[field].defaultTo : data[field]);
                         if(this.fields[field].type){
                             //字段类型严格验证
                             switch (this.fields[field].type) {
