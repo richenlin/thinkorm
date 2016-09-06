@@ -747,7 +747,7 @@ export default class extends base {
             }
             let parsedOptions = await this._parseOptions(options);
             let countNum = await this.count(parsedOptions);
-            let pageOptions = parsedOptions.page;
+            let pageOptions = parsedOptions.page || {page: 1, num: 10};
             let totalPage = Math.ceil(countNum / pageOptions.num);
             if (lib.isBoolean(pageFlag)) {
                 if (pageOptions.page > totalPage) {
@@ -805,8 +805,6 @@ export default class extends base {
                 num = num || 10;
                 page = parseInt(page, 10) || 1;
                 options.page = {page: page, num: num};
-            } else {
-                options.page = {page: 1, num: 10};
             }
             return options;
         } catch (e) {
@@ -828,23 +826,24 @@ export default class extends base {
                 //根据模型定义字段类型进行数据检查
                 let result = [];
                 for (let field in data) {
-                    if (this.fields[field] && this.fields[field].type) {
-
-                        //字段类型严格验证
-                        switch (this.fields[field].type) {
-                            case 'integer':
-                            case 'float':
-                                (!lib.isNumber(data[field])) && result.push(`${ field }值类型错误`);
-                                break;
-                            case 'json':
-                                (!lib.isJSONObj(data[field]) && !lib.isJSONStr(data[field])) && result.push(`${ field }值类型错误`);
-                                break;
-                            case 'string':
-                            case 'text':
-                                !lib.isString(data[field]) && result.push(`${ field }值类型错误`);
-                                break;
-                            default:
-                                break;
+                    if (this.fields[field]) {
+                        if (this.fields[field].type) {
+                            //字段类型严格验证
+                            switch (this.fields[field].type) {
+                                case 'integer':
+                                case 'float':
+                                    (!lib.isNumber(data[field])) && result.push(`${ field }值类型错误`);
+                                    break;
+                                case 'json':
+                                    (!lib.isJSONObj(data[field]) && !lib.isJSONStr(data[field])) && result.push(`${ field }值类型错误`);
+                                    break;
+                                case 'string':
+                                case 'text':
+                                    !lib.isString(data[field]) && result.push(`${ field }值类型错误`);
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                     } else {
                         //分离关联模型数据
@@ -911,7 +910,7 @@ export default class extends base {
             };
             let relationData = data;
             if (!lib.isEmpty(data)) {
-                let relation = options.rel, rtype, fkey, config = this.config;
+                let relation = options.rel, rtype, fkey, config = this.config, ps = [];
                 let pk = await this.getPk();
                 for (let n in relation) {
                     rtype = relation[n]['type'];
@@ -919,15 +918,18 @@ export default class extends base {
                         fkey = (rtype === 'MANYTOMANY') ? lib.parseName(relation[n].name) : relation[n].fkey;
                         if (lib.isArray(data)) {
                             for (let [k,v] of data.entries()) {
-                                data[k][fkey] = await caseList[rtype](config, relation[n], data[k]);
+                                ps.push(caseList[rtype](config, relation[n], data[k]).then(res => {
+                                    data[k][fkey] = res;
+                                }));
+                                //data[k][fkey] = await caseList[rtype](config, relation[n], data[k]);
                             }
+                            await Promise.all(ps);
                         } else {
                             data[fkey] = await caseList[rtype](config, relation[n], data);
                         }
                     }
                 }
             }
-
             return relationData;
         } catch (e) {
             return this.error(e);
@@ -950,18 +952,18 @@ export default class extends base {
                 HASONE: adapter.__postHasOneRelation,
                 HASMANY: adapter.__postHasManyRelation,
                 MANYTOMANY: adapter.__postManyToManyRelation
-            };
+            }, ps = [];
             if (!lib.isEmpty(result)) {
                 let relation = schema.getRelation(this.modelName, this.config), rtype, config = this.config;
                 let pk = await this.getPk();
                 for (let n in relationData) {
                     rtype = relation[n] ? relation[n]['type'] : null;
                     if (relation[n].fkey && rtype && rtype in caseList) {
-                        await caseList[rtype](config, result, options, relation[n], relationData[n], postType)
+                        ps.push(caseList[rtype](config, result, options, relation[n], relationData[n], postType));
                     }
                 }
             }
-            return;
+            return Promise.all(ps);
         } catch (e) {
             return this.error(e);
         }

@@ -22,7 +22,7 @@ export default class extends thinkorm{
                 type: 'string'
             },
             user: {
-                type: 'string'
+                type: 'integer'
             }
         };
         // 数据验证

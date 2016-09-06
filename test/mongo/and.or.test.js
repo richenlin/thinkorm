@@ -46,8 +46,7 @@ describe('MONGO Query Generation ::', function () {
                                 method: 'SELECT',
                                 table: 'user',
                                 name: 'User',
-                                pk: '_id',
-                                page: {page: 1, num: 10}
+                                pk: '_id'
                             }
                         }
                     }

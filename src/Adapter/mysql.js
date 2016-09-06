@@ -31,13 +31,48 @@ export default class extends base {
         if (this.handel) {
             return this.handel;
         }
-        this.handel = new socket(this.config).connect();
+        //读写分离配置
+        if(this.config.db_ext_config.read_write_splitting && lib.isArray(this.config.db_host)){
+            let configMaster = {
+                db_name: lib.isArray(this.config.db_name) ? this.config.db_name[0] : this.config.db_name,
+                db_host: lib.isArray(this.config.db_host) ? this.config.db_host[0] : this.config.db_host,
+                db_user: lib.isArray(this.config.db_user) ? this.config.db_user[0] : this.config.db_user,
+                db_pwd: lib.isArray(this.config.db_pwd) ? this.config.db_pwd[0] : this.config.db_pwd,
+                db_port: lib.isArray(this.config.db_port) ? this.config.db_port[0] : this.config.db_port,
+                db_charset: this.config.db_charset,
+                db_timeout: this.config.db_timeout,
+                db_ext_config: this.config.db_ext_config
+            };
+            let configSlave = {
+                db_name: lib.isArray(this.config.db_name) ? this.config.db_name[1] : this.config.db_name,
+                db_host: lib.isArray(this.config.db_host) ? this.config.db_host[1] : this.config.db_host,
+                db_user: lib.isArray(this.config.db_user) ? this.config.db_user[1] : this.config.db_user,
+                db_pwd: lib.isArray(this.config.db_pwd) ? this.config.db_pwd[1] : this.config.db_pwd,
+                db_port: lib.isArray(this.config.db_port) ? this.config.db_port[1] : this.config.db_port,
+                db_charset: this.config.db_charset,
+                db_timeout: this.config.db_timeout,
+                db_ext_config: this.config.db_ext_config
+            };
+            return Promise.all([new socket(configMaster).connect(), new socket(configSlave).connect()]).then(cons => {
+                this.handel = {RW: true};
+                this.handel.master = cons[0];
+                this.handel.slave = cons[1];
+                return this.handel;
+            });
+        } else {
+            this.handel = new socket(this.config).connect();
+        }
         return this.handel;
     }
 
     close() {
         if (this.handel) {
-            this.handel.close && this.handel.close();
+            if(this.handel.RW){
+                this.handel.master && this.handel.master.close && this.handel.master.close();
+                this.handel.slave && this.handel.slave.close && this.handel.slave.close();
+            } else {
+                this.handel.close && this.handel.close();
+            }
             this.handel = null;
         }
     }
@@ -95,7 +130,7 @@ export default class extends base {
         let startTime = Date.now();
         let connection;
         return this.connect().then(conn => {
-            connection = conn;
+            connection = conn.RW ? conn.slave : conn;
             let fn = lib.promisify(connection.query, connection);
             return fn(sql);
         }).then((rows = []) => {
@@ -118,11 +153,32 @@ export default class extends base {
      * @param sql
      */
     execute(sql) {
-        return this.query(sql).then(data => {
+        if (lib.isEmpty(sql)) {
+            return Promise.reject('SQL analytic result is empty');
+        }
+        let startTime = Date.now();
+        let connection;
+        return this.connect().then(conn => {
+            connection = conn.RW ? conn.master : conn;
+            let fn = lib.promisify(connection.query, connection);
+            return fn(sql);
+        }).then((rows = []) => {
+            this.logSql && lib.log(sql, 'MySQL', startTime);
+            return this.bufferToString(rows);
+        }).then(data => {
             if (data.insertId) {
                 this.lastInsertId = data.insertId;
             }
             return data.affectedRows || 0;
+        }).catch(err => {
+            //when socket is closed, try it
+            if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'EPIPE') {
+                return this.close().then(() => {
+                    return this.query(sql);
+                });
+            }
+            this.logSql && lib.log(sql, 'MySQL', startTime);
+            return Promise.reject(err);
         });
     }
 

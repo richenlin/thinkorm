@@ -62,7 +62,7 @@ let whereParse = function (key, value, item) {
             }
             break;
         default:
-            if (lib.isJSONObj(value)) {
+            if (lib.isObject(value)) {
                 temp = {};
                 for (let k in value) {
                     temp = lib.extend(temp, whereParse(k, value[k], key));
@@ -191,17 +191,6 @@ export default class extends base {
         //未实现
         return Promise.reject('not support');
     }
-
-    /**
-     * mongodb需要严格匹配数据,此处做处理
-     * @param data
-     * @param options
-     */
-    parseData(data, options) {
-        //暂时未实现
-        //console.log(data)
-    }
-
     /**
      *
 
@@ -237,11 +226,6 @@ export default class extends base {
             if (options['group'] && caseList[optType]['group']) {
                 await this.parseGroup(data, options);
                 caseList[optType]['group'] && (caseList[optType]['group'] = 0);
-            }
-            //解析data
-            if (options['data'] && caseList[optType]['data']) {
-                await this.parseData(data, options);
-                caseList[optType]['data'] && (caseList[optType]['data'] = 0);
             }
             //处理其他options
             for (let n in options) {
