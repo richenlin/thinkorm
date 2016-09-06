@@ -829,8 +829,7 @@ export default class extends base {
                 let result = [];
                 for (let field in data) {
                     if (this.fields[field] && this.fields[field].type) {
-                        //字段默认值处理
-                        lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultTo ? this.fields[field].defaultTo : data[field]);
+
                         //字段类型严格验证
                         switch (this.fields[field].type) {
                             case 'integer':
@@ -856,6 +855,11 @@ export default class extends base {
                         //移除未定义的字段
                         delete data[field];
                     }
+                }
+                //modify by lihao,应对model的fields进行遍历,才能对有默认值字段进行赋值,若对data遍历,有默认值的字段若不在data中不赋值,则永远不会被赋值
+                for (let field in this.fields) {
+                    //字段默认值处理
+                    lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultTo ? this.fields[field].defaultTo : data[field]);
                 }
                 if (result.length > 0) {
                     return this.error(result[0]);
