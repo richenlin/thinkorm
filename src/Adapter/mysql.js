@@ -374,7 +374,8 @@ export default class extends base {
      */
     __getHasOneRelation(config, rel, data) {
         if (lib.isEmpty(data) || lib.isEmpty(data[rel.fkey])) {
-            return {};
+            //modify by lihao 需要返回一个promise
+            return Promise.resolve({});
         }
         let model = new (rel.model)(config);
         return model.find({field: rel.field, where: {[rel.rkey]: data[rel.fkey]}});
@@ -390,7 +391,8 @@ export default class extends base {
      */
     __getHasManyRelation(config, rel, data) {
         if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
-            return [];
+            //modify by lihao 需要返回一个promise
+            return Promise.resolve([])
         }
         let model = new (rel.model)(config);
         let options = {field: rel.field, where: {[rel.rkey]: data[rel.primaryPk]}};
@@ -407,7 +409,8 @@ export default class extends base {
      */
     __getManyToManyRelation(config, rel, data) {
         if (lib.isEmpty(data) || lib.isEmpty(data[rel.primaryPk])) {
-            return [];
+            //modify by lihao 需要返回一个promise
+            return Promise.resolve([])
         }
         let model = new (rel.model)(config);
         let rpk = model.getPk();
