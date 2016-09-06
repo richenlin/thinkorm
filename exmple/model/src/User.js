@@ -47,7 +47,7 @@ export default class extends thinkorm{
             Pet: {
                 type: 'hasmany',
                 field: ['types','user', 'id'],
-                fkey: 'pet',//虚拟字段
+                fkey: '',//hasmany关联此值没用
                 rkey: 'user'//子表外键 (主表主键)
             },
             Group: {

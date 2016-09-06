@@ -487,7 +487,7 @@ export default class extends base {
             //copy data
             this.__data = lib.extend({}, data);
             this.__data = await this._beforeAdd(this.__data, parsedOptions);
-            this.__data = await this._parseData(this.__data, parsedOptions);
+            this.__data = await this._parseData(this.__data, parsedOptions, true, 1);
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -598,7 +598,7 @@ export default class extends base {
             //copy data
             this.__data = lib.extend({}, data);
             this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this._parseData(this.__data, parsedOptions);
+            this.__data = await this._parseData(this.__data, parsedOptions, true, 2);
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -826,9 +826,11 @@ export default class extends base {
      * @param data
      * @param options
      * @param preCheck
+     * @param method
      * @returns {*}
+     * @private
      */
-    _parseData(data, options, preCheck = true) {
+    _parseData(data, options, preCheck = true, method = 0) {
         try {
             if (preCheck) {
                 //根据模型定义字段类型进行数据检查
@@ -866,10 +868,13 @@ export default class extends base {
                 if (result.length > 0) {
                     return this.error(result[0]);
                 }
-                //modify by lihao,应对model的fields进行遍历,才能对有默认值字段进行赋值,若对data遍历,有默认值的字段若不在data中不赋值,则永远不会被赋值
+                //字段默认值处理
                 for (let field in this.fields) {
-                    //字段默认值处理
-                    lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultTo ? this.fields[field].defaultTo : data[field]);
+                    if(method === 1){//新增数据
+                        lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultTo ? this.fields[field].defaultTo : data[field]);
+                    }else if(method === 2){//编辑数据
+                        data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultTo ? this.fields[field].defaultTo : data[field]);
+                    }
                 }
                 //根据规则自动验证数据
                 if (options.verify) {
@@ -930,13 +935,13 @@ export default class extends base {
                         if (lib.isArray(data)) {
                             for (let [k,v] of data.entries()) {
                                 ps.push(caseList[rtype](config, relation[n], data[k]).then(res => {
-                                    data[k][fkey] = res;
+                                    data[k][relation[n]['name']] = res;
                                 }));
-                                //data[k][fkey] = await caseList[rtype](config, relation[n], data[k]);
+                                //data[k][relation[n]['name']] = await caseList[rtype](config, relation[n], data[k]);
                             }
                             await Promise.all(ps);
                         } else {
-                            data[fkey] = await caseList[rtype](config, relation[n], data);
+                            data[relation[n]['name']] = await caseList[rtype](config, relation[n], data);
                         }
                     }
                 }
