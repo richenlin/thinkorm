@@ -260,6 +260,15 @@ export default class extends base {
     }
 
     /**
+     * 自动验证开关
+     * @param data
+     */
+    verify(flag = false) {
+        this.__options.verify = !!flag;
+        return this;
+    }
+
+    /**
      * 根据查询结果生成分页
      * @return {[type]} [description]
      */
@@ -817,10 +826,9 @@ export default class extends base {
      * @param data
      * @param options
      * @param preCheck
-     * @param option
      * @returns {*}
      */
-    _parseData(data, options, preCheck = true, option = 1) {
+    _parseData(data, options, preCheck = true) {
         try {
             if (preCheck) {
                 //根据模型定义字段类型进行数据检查
@@ -860,24 +868,27 @@ export default class extends base {
                 if (result.length > 0) {
                     return this.error(result[0]);
                 }
-                //根据自定义规则自动验证数据
-                if (lib.isEmpty(this.validations)) {
-                    return data;
+                //根据规则自动验证数据
+                if (options.verify) {
+                    if (lib.isEmpty(this.validations)) {
+                        return data;
+                    }
+                    let field, value, checkData = [];
+                    for (field in this.validations) {
+                        value = lib.extend(this.validations[field], {name: field, value: data[field]});
+                        checkData.push(value);
+                    }
+                    if (lib.isEmpty(checkData)) {
+                        return data;
+                    }
+                    result = {};
+                    result = this.__valid(checkData);
+                    if (lib.isEmpty(result)) {
+                        return data;
+                    }
+                    return this.error(Object.values(result)[0]);
                 }
-                let field, value, checkData = [];
-                for (field in this.validations) {
-                    value = lib.extend(this.validations[field], {name: field, value: data[field]});
-                    checkData.push(value);
-                }
-                if (lib.isEmpty(checkData)) {
-                    return data;
-                }
-                result = {};
-                result = this.__valid(checkData);
-                if (lib.isEmpty(result)) {
-                    return data;
-                }
-                return this.error(Object.values(result)[0]);
+                return data;
             } else {
                 if (lib.isJSONObj(data)) {
                     return data;
