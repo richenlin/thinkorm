@@ -481,13 +481,13 @@ export default class extends base {
             if (lib.isEmpty(data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
-            let parsedOptions = await this._parseOptions(options);
+            let parsedOptions = await this.__parseOptions(options);
             // init model
             let model = await this.initModel();
             //copy data
             this.__data = lib.extend({}, data);
             this.__data = await this._beforeAdd(this.__data, parsedOptions);
-            this.__data = await this._parseData(this.__data, parsedOptions, true, 1);
+            this.__data = await this.__parseData(this.__data, parsedOptions, true, 1);
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -499,8 +499,7 @@ export default class extends base {
                 await this.__postRelationData(model, result, parsedOptions, this.__relationData, 'ADD');
             }
             await this._afterAdd(this.__data, parsedOptions);
-            result = await this._parseData(this.__data[pk] || 0, parsedOptions, false);
-            return result;
+            return this.__data[pk] || 0;
         } catch (e) {
             return this.error(e);
         }
@@ -552,7 +551,7 @@ export default class extends base {
      */
     async delete(options) {
         try {
-            let parsedOptions = await this._parseOptions(options);
+            let parsedOptions = await this.__parseOptions(options);
             if (lib.isEmpty(parsedOptions.where)) {
                 return this.error('_OPERATION_WRONG_');
             }
@@ -561,8 +560,7 @@ export default class extends base {
             await this._beforeDelete(parsedOptions);
             let result = await model.delete(parsedOptions);
             await this._afterDelete(parsedOptions);
-            result = await this._parseData(result || [], parsedOptions, false);
-            return result;
+            return result || [];
         } catch (e) {
             return this.error(e);
         }
@@ -592,13 +590,13 @@ export default class extends base {
      */
     async update(data, options) {
         try {
-            let parsedOptions = await this._parseOptions(options);
+            let parsedOptions = await this.__parseOptions(options);
             // init model
             let model = await this.initModel();
             //copy data
             this.__data = lib.extend({}, data);
             this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this._parseData(this.__data, parsedOptions, true, 2);
+            this.__data = await this.__parseData(this.__data, parsedOptions, true, 2);
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -622,8 +620,7 @@ export default class extends base {
                 await this.__postRelationData(model, result, parsedOptions, this.__relationData, 'UPDATE');
             }
             await this._afterUpdate(this.__data, parsedOptions);
-            result = await this._parseData(result || [], parsedOptions, false);
-            return result;
+            return result || [];
         } catch (e) {
             return this.error(e);
         }
@@ -647,13 +644,12 @@ export default class extends base {
      */
     async count(options) {
         try {
-            let parsedOptions = await this._parseOptions(options);
+            let parsedOptions = await this.__parseOptions(options);
             let pk = await this.getPk();
             // init model
             let model = await this.initModel();
             let result = await model.count(pk, parsedOptions);
-            result = await this._parseData(result || 0, parsedOptions, false);
-            return result;
+            return result || 0;
         } catch (e) {
             return this.error(e);
         }
@@ -668,14 +664,13 @@ export default class extends base {
      */
     async sum(field, options) {
         try {
-            let parsedOptions = await this._parseOptions(options);
+            let parsedOptions = await this.__parseOptions(options);
             let pk = await this.getPk();
             field = field || pk;
             // init model
             let model = await this.initModel();
             let result = await model.sum(field, parsedOptions);
-            result = await this._parseData(result || 0, parsedOptions, false);
-            return result;
+            return result || 0;
         } catch (e) {
             return this.error(e);
         }
@@ -687,12 +682,11 @@ export default class extends base {
      */
     async find(options) {
         try {
-            let parsedOptions = await this._parseOptions(options);
+            let parsedOptions = await this.__parseOptions(options);
             // init model
             let model = await this.initModel();
             let result = await model.find(parsedOptions);
-            result = await this._parseData(result, parsedOptions, false);
-            result = (lib.isArray(result) ? result[0] : result) || {};
+            result = await this.__parseData((lib.isArray(result) ? result[0] : result) || {}, parsedOptions, false);
             if (!lib.isEmpty(parsedOptions.rel)) {
                 result = await this.__getRelationData(model, parsedOptions, result);
             }
@@ -717,11 +711,11 @@ export default class extends base {
      */
     async select(options) {
         try {
-            let parsedOptions = await this._parseOptions(options);
+            let parsedOptions = await this.__parseOptions(options);
             // init model
             let model = await this.initModel();
             let result = await model.select(parsedOptions);
-            result = await this._parseData(result || [], parsedOptions, false);
+            result = await this.__parseData(result || [], parsedOptions, false);
             if (!lib.isEmpty(parsedOptions.rel)) {
                 result = await this.__getRelationData(model, parsedOptions, result);
             }
@@ -754,7 +748,7 @@ export default class extends base {
                 pageFlag = options;
                 options = {};
             }
-            let parsedOptions = await this._parseOptions(options);
+            let parsedOptions = await this.__parseOptions(options);
             let countNum = await this.count(parsedOptions);
             let pageOptions = parsedOptions.page || {page: 1, num: 10};
             let totalPage = Math.ceil(countNum / pageOptions.num);
@@ -769,10 +763,45 @@ export default class extends base {
             parsedOptions.limit = [offset, pageOptions.num];
             let result = lib.extend(false, {count: countNum, total: totalPage}, pageOptions);
             result.data = await this.select(parsedOptions);
-            result = await this._parseData(result, parsedOptions, false);
             return result;
         } catch (e) {
             return this.error(e);
+        }
+    }
+
+    /**
+     * 原生语句查询
+     * mysql  TestModel.query('select * from test');
+     * mongo  TestModel.query('db.test.find()');
+     * @param sqlStr
+     */
+    async query(sqlStr) {
+        if (lib.isEmpty(sqlStr)) {
+            return this.error('_OPERATION_WRONG_');
+        }
+        if ((/[&(--);]/).test(sqlStr)) {
+            sqlStr =  sqlStr.
+            replace(/&/g, '&amp;').
+            replace(/;/g, '').
+            replace(/--/g, '&minus;&minus;');
+        }
+        // init model
+        let model = await this.initModel();
+
+        let adpCase = {mongo: 1};
+        if (adpCase[this.config.db_type]) {
+            let quer = sqlStr.split('.');
+            if (lib.isEmpty(quer) || lib.isEmpty(quer[0]) || quer[0] !== 'db' || lib.isEmpty(quer[1])) {
+                return this.error('query language error');
+            }
+            quer.shift();
+            let tableName = quer.shift();
+            if (tableName !== this.tableName) {
+                return this.error('table name error');
+            }
+            return model.native(tableName, quer);
+        } else {
+            return model.native(sqlStr);
         }
     }
 
@@ -783,7 +812,7 @@ export default class extends base {
      * @returns {*}
      * @private
      */
-    _parseOptions(oriOpts, extraOptions) {
+    __parseOptions(oriOpts, extraOptions) {
         try {
             let options;
             if (lib.isScalar(oriOpts)) {
@@ -822,7 +851,7 @@ export default class extends base {
     }
 
     /**
-     * 检测数据是否合法
+     * 数据合法性检测
      * @param data
      * @param options
      * @param preCheck
@@ -830,22 +859,26 @@ export default class extends base {
      * @returns {*}
      * @private
      */
-    _parseData(data, options, preCheck = true, method = 0) {
+    __parseData(data, options, preCheck = true, method = 0) {
         try {
+            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1};
             if (preCheck) {
                 //根据模型定义字段类型进行数据检查
                 let result = [];
                 for (let field in data) {
                     if (this.fields[field]) {
-                        if(this.fields[field].type){
+                        if (this.fields[field].type) {
                             //字段类型严格验证
                             switch (this.fields[field].type) {
                                 case 'integer':
                                 case 'float':
-                                    (!lib.isNumber(data[field])) && result.push(`${ field }值类型错误`);
+                                    !lib.isNumber(data[field]) && result.push(`${ field }值类型错误`);
                                     break;
                                 case 'json':
-                                    (!lib.isJSONObj(data[field]) && !lib.isJSONStr(data[field])) && result.push(`${ field }值类型错误`);
+                                    !lib.isJSONObj(data[field]) && result.push(`${ field }值类型错误`);
+                                    break;
+                                case 'array':
+                                    !lib.isArray(data[field]) && result.push(`${ field }值类型错误`);
                                     break;
                                 case 'string':
                                 case 'text':
@@ -868,14 +901,7 @@ export default class extends base {
                 if (result.length > 0) {
                     return this.error(result[0]);
                 }
-                //字段默认值处理
-                for (let field in this.fields) {
-                    if(method === 1){//新增数据
-                        lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultsTo ? this.fields[field].defaultsTo : data[field]);
-                    }else if(method === 2){//编辑数据
-                        data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (data[field] = this.fields[field].defaultsTo ? this.fields[field].defaultsTo : data[field]);
-                    }
-                }
+
                 //根据规则自动验证数据
                 if (options.verify) {
                     if (lib.isEmpty(this.validations)) {
@@ -896,13 +922,40 @@ export default class extends base {
                     }
                     return this.error(Object.values(result)[0]);
                 }
+
+                //字段默认值处理
+                for (let field in this.fields) {
+                    if (method === 1) {//新增数据add
+                        lib.isEmpty(data[field]) && (data[field] = !lib.isEmpty(this.fields[field].defaultsTo) ? this.fields[field].defaultsTo : data[field]);
+                    } else if (method === 2) {//编辑数据update
+                        data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (data[field] = !lib.isEmpty(this.fields[field].defaultsTo) ? this.fields[field].defaultsTo : data[field]);
+                    }
+                    //处理特殊类型字段
+                    if (adpCase[this.config.db_type] && data[field] && this.fields[field] && typeCase[this.fields[field].type]) {
+                        !lib.isString(data[field]) && (data[field] = JSON.stringify(data[field]));
+                    }
+                }
                 return data;
             } else {
-                if (lib.isJSONObj(data)) {
-                    return data;
-                } else {
-                    return JSON.parse(JSON.stringify(data));
+                //处理特殊类型字段
+                if (adpCase[this.config.db_type]) {
+                    if (lib.isArray(data)) {
+                        data.map(item => {
+                            for (let n in item) {
+                                if (this.fields[n] && typeCase[this.fields[n].type]) {
+                                    item[n] = JSON.parse(item[n]);
+                                }
+                            }
+                        });
+                    } else if (lib.isObject(data)) {
+                        for (let n in data) {
+                            if (this.fields[n] && typeCase[this.fields[n].type]) {
+                                data[n] = JSON.parse(data[n]);
+                            }
+                        }
+                    }
                 }
+                return data;
             }
         } catch (e) {
             return this.error(e);

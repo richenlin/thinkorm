@@ -171,9 +171,33 @@ export default class extends base {
             //when socket is closed, try it
             if(err.code === 'EPIPE'){
                 this.close();
-                return this.query(sql);
+                return this.execute(sql);
             }
             this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            return Promise.reject(err);
+        });
+    }
+
+    /**
+     *
+     * @param sqlStr
+     */
+    native(sqlStr){
+        let ouputs = this.knexClient.raw(sqlStr).toSQL();
+        if (lib.isEmpty(ouputs)) {
+            return Promise.reject('SQL analytic result is empty');
+        }
+        let startTime = Date.now();
+        let connection;
+        return this.connect().then(conn => {
+            connection = conn.RW ? conn.master : conn;
+            let fn = lib.promisify(connection.query, connection);
+            return fn(ouputs.sql, ouputs.bindings);
+        }).then((rows = []) => {
+            this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
+            return this.bufferToString(rows);
+        }).catch(err => {
+            this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
             return Promise.reject(err);
         });
     }
@@ -347,15 +371,17 @@ export default class extends base {
      * @returns {*}
      */
     bufferToString(data) {
-        if (!this.config.buffer_tostring || !lib.isArray(data)) {
-            return data;
-        }
-        for (let i = 0, length = data.length; i < length; i++) {
-            for (let key in data[i]) {
-                if (lib.isBuffer(data[i][key])) {
-                    data[i][key] = data[i][key].toString();
+        if (lib.isArray(data)) {
+            for (let i = 0, length = data.length; i < length; i++) {
+                for (let key in data[i]) {
+                    if (lib.isBuffer(data[i][key])) {
+                        data[i][key] = data[i][key].toString();
+                    }
                 }
             }
+        }
+        if (!lib.isJSONObj(data)) {
+            data = JSON.parse(JSON.stringify(data));
         }
         return data;
     }

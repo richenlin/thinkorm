@@ -60,16 +60,28 @@ function test() {
     //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.where({id: {'>=': 0}}).group(['id','username']).find()
-    .rel(true).find()
-    //.add({name: 'rrrrrrr',Profile: {test: 'rrrtest'},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
+    //.rel(true).where({id: 10}).find()
+    //.add({name: 'rrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
     //.where({id: 60}).update({name: 'tttttt',Profile: {test: 'ttttttt'}})
     //.add({name: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
     //.where({id: 99}).update({name: 'tttttt',Pet: [{id: 7,types: 'ttttttt'}]})
     //.add({name: 'rrrrrrr',Group: [{name: 'ssfsssss'}]})
     //.where({id: 115}).update({name: 'tttttt',Group: [{id: 15,name: 'ttttttt'}]})
     //.where({id: 115}).update({name: 'tttttt',Group: [{userid: 115, groupid: 15}]})
+        .query('select * from `think_user_group_map` as `UserGroupMap` ')
         .then(res => {
             console.log(res);
         });
 }
 test();
+
+
+//function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+//var lib = requireDefault(require('../lib/Util/lib.js')).default;
+//console.log(lib.isJSONStr(111))
+//console.log(lib.isJSONStr(undefined))
+//console.log(lib.isJSONStr(''))
+//console.log(lib.isJSONStr(null))
+//console.log(lib.isJSONStr(false))
+//console.log(lib.isJSONStr('[]'))
+//console.log(lib.isJSONObj([ RowDataPacket { userid: 1, groupid: 1 } ]))
