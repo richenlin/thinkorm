@@ -637,6 +637,62 @@ export default class extends base {
     }
 
     /**
+     * 字段自增
+     * @param field
+     * @param step
+     * @param options
+     * @returns {*}
+     */
+    async increment(field, step = 1, options){
+        try {
+            let parsedOptions = await this.__parseOptions(options);
+            // init model
+            let model = await this.initModel();
+            //copy data
+            this.__data = lib.extend({}, {[field]: step});
+            this.__data = await this._beforeUpdate(this.__data, parsedOptions);
+            this.__data = await this.__parseData(this.__data, parsedOptions, true, 2);
+            if (lib.isEmpty(this.__data)) {
+                return this.error('_DATA_TYPE_INVALID_');
+            }
+
+            let result = await model.increment(this.__data, field, parsedOptions);
+            await this._afterUpdate(this.__data, parsedOptions);
+            return result || [];
+        } catch (e) {
+            return this.error(e);
+        }
+    }
+
+    /**
+     * 字段自减
+     * @param field
+     * @param step
+     * @param options
+     * @returns {*}
+     */
+    async decrement(field, step = 1, options){
+        try {
+            let parsedOptions = await this.__parseOptions(options);
+            // init model
+            let model = await this.initModel();
+            //copy data
+            this.__data = lib.extend({}, {[field]: step});
+            this.__data = await this._beforeUpdate(this.__data, parsedOptions);
+            this.__data = await this.__parseData(this.__data, parsedOptions, true, 2);
+            if (lib.isEmpty(this.__data)) {
+                return this.error('_DATA_TYPE_INVALID_');
+            }
+
+            let result = await model.decrement(this.__data, field, parsedOptions);
+            await this._afterUpdate(this.__data, parsedOptions);
+            return result || [];
+        } catch (e) {
+            return this.error(e);
+        }
+    }
+
+    /**
      * 查询数据条数
      * count('xxx')
      * @param options
@@ -776,32 +832,41 @@ export default class extends base {
      * @param sqlStr
      */
     async query(sqlStr) {
-        if (lib.isEmpty(sqlStr)) {
-            return this.error('_OPERATION_WRONG_');
-        }
-        if ((/[&(--);]/).test(sqlStr)) {
-            sqlStr =  sqlStr.
-            replace(/&/g, '&amp;').
-            replace(/;/g, '').
-            replace(/--/g, '&minus;&minus;');
-        }
-        // init model
-        let model = await this.initModel();
+        try{
+            if (lib.isEmpty(sqlStr)) {
+                return this.error('_OPERATION_WRONG_');
+            }
+            if ((/[&(--);]/).test(sqlStr)) {
+                sqlStr =  sqlStr.
+                replace(/&/g, '&amp;').
+                replace(/;/g, '').
+                replace(/--/g, '&minus;&minus;');
+            }
+            // init model
+            let model = await this.initModel();
 
-        let adpCase = {mongo: 1};
-        if (adpCase[this.config.db_type]) {
-            let quer = sqlStr.split('.');
-            if (lib.isEmpty(quer) || lib.isEmpty(quer[0]) || quer[0] !== 'db' || lib.isEmpty(quer[1])) {
-                return this.error('query language error');
+            let adpCase = {mongo: 1}, result = null;
+            if (adpCase[this.config.db_type]) {
+                let quer = sqlStr.split('.');
+                if (lib.isEmpty(quer) || lib.isEmpty(quer[0]) || quer[0] !== 'db' || lib.isEmpty(quer[1])) {
+                    return this.error('query language error');
+                }
+                quer.shift();
+                let tableName = quer.shift();
+                if (tableName !== this.tableName) {
+                    return this.error('table name error');
+                }
+                result = await model.native(tableName, quer);
+            } else {
+                if(sqlStr.indexOf(this.tableName) === -1){
+                    return this.error('table name error');
+                }
+                result = await model.native(sqlStr);
             }
-            quer.shift();
-            let tableName = quer.shift();
-            if (tableName !== this.tableName) {
-                return this.error('table name error');
-            }
-            return model.native(tableName, quer);
-        } else {
-            return model.native(sqlStr);
+            result = await this.__parseData(result || [], {}, false);
+            return result;
+        }catch (e){
+            return this.error(e);
         }
     }
 
@@ -942,14 +1007,28 @@ export default class extends base {
                         data.map(item => {
                             for (let n in item) {
                                 if (this.fields[n] && typeCase[this.fields[n].type]) {
-                                    item[n] = lib.isEmpty(item[n]) ? '' : JSON.parse(JSON.stringify(item[n]));
+                                    switch (this.fields[n].type){
+                                        case 'json':
+                                            item[n] = lib.isEmpty(item[n]) ? {} : JSON.parse(item[n]);
+                                            break;
+                                        case 'array':
+                                            item[n] = lib.isEmpty(item[n]) ? [] : JSON.parse(item[n]);
+                                            break;
+                                    }
                                 }
                             }
                         });
                     } else if (lib.isObject(data)) {
                         for (let n in data) {
                             if (this.fields[n] && typeCase[this.fields[n].type]) {
-                                data[n] = lib.isEmpty(data[n]) ? '' : JSON.parse(JSON.stringify(data[n]));
+                                switch (this.fields[n].type){
+                                    case 'json':
+                                        data[n] = lib.isEmpty(data[n]) ? {} : JSON.parse(data[n]);
+                                        break;
+                                    case 'array':
+                                        data[n] = lib.isEmpty(data[n]) ? [] : JSON.parse(data[n]);
+                                        break;
+                                }
                             }
                         }
                     }

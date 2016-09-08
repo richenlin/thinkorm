@@ -109,7 +109,7 @@ export default class extends base {
      * Give access to a native mongo collection object for running custom queries.
      * @param sqlStr
      */
-    native(table, sqlArr){
+    native(table, sqlArr) {
         let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
             collection = conn.collection(table);
@@ -175,8 +175,50 @@ export default class extends base {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(data, options);
         }).then(res => {
-            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$set:' + JSON.stringify(res.data) + '}, false, true))' : '.update({}, {$set:' + JSON.stringify(res.data) + '}, false, true)'}`;
+            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$set:' + JSON.stringify(res.data) + '}, false, true)' : '.update({}, {$set:' + JSON.stringify(res.data) + '}, false, true)'}`;
             handler = collection.updateMany(res.options.where || {}, {$set: res.data}, false, true);
+            return this.execute(handler, startTime);
+        }).then(data => {
+            return data.modifiedCount || 0;
+        });
+    }
+
+    /**
+     *
+     * @param data
+     * @param field
+     * @param options
+     */
+    increment(data, field, options = {}) {
+        options.method = 'UPDATE';
+        let startTime = Date.now(), collection, handler;
+        return this.connect().then(conn => {
+            collection = conn.collection(options.table);
+            return this.parsers().buildSql(data, options);
+        }).then(res => {
+            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:{' + field + ':' + data[field] + '}, false, true)' : '.update({}, {$inc:{' + field + ':' + data[field] + '}, false, true)'}`;
+            handler = collection.updateMany(res.options.where || {}, {$inc: {[field]: data[field]}}, false, true);
+            return this.execute(handler, startTime);
+        }).then(data => {
+            return data.modifiedCount || 0;
+        });
+    }
+
+    /**
+     *
+     * @param data
+     * @param field
+     * @param options
+     */
+    decrement(data, field, options = {}) {
+        options.method = 'UPDATE';
+        let startTime = Date.now(), collection, handler;
+        return this.connect().then(conn => {
+            collection = conn.collection(options.table);
+            return this.parsers().buildSql(data, options);
+        }).then(res => {
+            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:{' + field + ':' + (0 - data[field]) + '}, false, true)' : '.update({}, {$inc:{' + field + ':' + (0 - data[field]) + '}, false, true)'}`;
+            handler = collection.updateMany(res.options.where || {}, {$inc: {[field]: (0 - data[field])}}, false, true);
             return this.execute(handler, startTime);
         }).then(data => {
             return data.modifiedCount || 0;
@@ -336,15 +378,15 @@ export default class extends base {
      * @returns {*}
      */
     bufferToString(data) {
-        if (lib.isArray(data)) {
-            for (let i = 0, length = data.length; i < length; i++) {
-                for (let key in data[i]) {
-                    if (lib.isBuffer(data[i][key])) {
-                        data[i][key] = data[i][key].toString();
-                    }
-                }
-            }
-        }
+        //if (lib.isArray(data)) {
+        //    for (let i = 0, length = data.length; i < length; i++) {
+        //        for (let key in data[i]) {
+        //            if (lib.isBuffer(data[i][key])) {
+        //                data[i][key] = data[i][key].toString();
+        //            }
+        //        }
+        //    }
+        //}
         if (!lib.isJSONObj(data)) {
             data = JSON.parse(JSON.stringify(data));
         }

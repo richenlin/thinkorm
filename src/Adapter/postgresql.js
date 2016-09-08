@@ -285,6 +285,50 @@ export default class extends base {
     }
 
     /**
+     *
+     * @param data
+     * @param field
+     * @param options
+     */
+    increment(data, field, options = {}){
+        options.method = 'UPDATE';
+        let knexCls = this.knexClient;
+        if(data[field]){
+            knexCls = knexCls.increment(field, data[field]);
+            delete data[field];
+        }
+        knexCls = knexCls.from(`${options.table} AS ${options.name}`);
+        return this.parsers().buildSql(knexCls, data, options).then(sql => {
+            return this.execute(sql);
+        }).then(data => {
+            //
+            return data;
+        });
+    }
+
+    /**
+     *
+     * @param data
+     * @param field
+     * @param options
+     */
+    decrement(data, field, options = {}){
+        options.method = 'UPDATE';
+        let knexCls = this.knexClient;
+        if(data[field]){
+            knexCls = knexCls.decrement(field, data[field]);
+            delete data[field];
+        }
+        knexCls = knexCls.from(`${options.table} AS ${options.name}`);
+        return this.parsers().buildSql(knexCls, data, options).then(sql => {
+            return this.execute(sql);
+        }).then(data => {
+            //
+            return data;
+        });
+    }
+
+    /**
      * 查询数据条数
      * @param field
      * @param options
@@ -371,15 +415,15 @@ export default class extends base {
      * @returns {*}
      */
     bufferToString(data) {
-        if (lib.isArray(data)) {
-            for (let i = 0, length = data.length; i < length; i++) {
-                for (let key in data[i]) {
-                    if (lib.isBuffer(data[i][key])) {
-                        data[i][key] = data[i][key].toString();
-                    }
-                }
-            }
-        }
+        //if (lib.isArray(data)) {
+        //    for (let i = 0, length = data.length; i < length; i++) {
+        //        for (let key in data[i]) {
+        //            if (lib.isBuffer(data[i][key])) {
+        //                data[i][key] = data[i][key].toString();
+        //            }
+        //        }
+        //    }
+        //}
         if (!lib.isJSONObj(data)) {
             data = JSON.parse(JSON.stringify(data));
         }

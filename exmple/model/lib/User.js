@@ -47,6 +47,11 @@ var _class = function (_thinkorm) {
                 index: true,
                 defaultsTo: 0
             },
+            num: {
+                type: 'integer',
+                index: true,
+                defaultsTo: 0
+            },
             memo: {
                 type: 'text'
             },

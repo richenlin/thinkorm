@@ -27,6 +27,11 @@ export default class extends thinkorm{
                 index: true,
                 defaultsTo: 0
             },
+            num: {
+                type: 'integer',
+                index: true,
+                defaultsTo: 0
+            },
             memo: {
                 type: 'text'
             },
