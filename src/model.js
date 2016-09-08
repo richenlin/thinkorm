@@ -649,7 +649,7 @@ export default class extends base {
             // init model
             let model = await this.initModel();
             //copy data
-            this.__data = lib.extend({}, {[field]: step});
+            this.__data = lib.extend({}, {[field]: step, memo: 'ccccccc'});
             this.__data = await this._beforeUpdate(this.__data, parsedOptions);
             this.__data = await this.__parseData(this.__data, parsedOptions, true, 2);
             if (lib.isEmpty(this.__data)) {

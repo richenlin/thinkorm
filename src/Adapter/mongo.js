@@ -191,16 +191,24 @@ export default class extends base {
      */
     increment(data, field, options = {}) {
         options.method = 'UPDATE';
-        let startTime = Date.now(), collection, handler;
+        let startTime = Date.now(), collection, handler, dataObj;
+        if(data[field]){
+            dataObj = {[field]: data[field]};
+            delete data[field];
+        }
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(data, options);
         }).then(res => {
-            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:{' + field + ':' + data[field] + '}, false, true)' : '.update({}, {$inc:{' + field + ':' + data[field] + '}, false, true)'}`;
+            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:' + JSON.stringify(res.data) + ', false, true)' : '.update({}, {$inc:{' + field + ':' + data[field] + '}, false, true)'}`;
             handler = collection.updateMany(res.options.where || {}, {$inc: {[field]: data[field]}}, false, true);
             return this.execute(handler, startTime);
-        }).then(data => {
-            return data.modifiedCount || 0;
+        }).then(res => {
+            //更新前置操作内会改变data的值
+            if(!lib.isEmpty(data)){
+                this.update(data, options);
+            }
+            return res.modifiedCount || 0;
         });
     }
 
@@ -212,16 +220,24 @@ export default class extends base {
      */
     decrement(data, field, options = {}) {
         options.method = 'UPDATE';
-        let startTime = Date.now(), collection, handler;
+        let startTime = Date.now(), collection, handler, dataObj;
+        if(data[field]){
+            dataObj = {[field]: (0 - data[field])};
+            delete data[field];
+        }
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(data, options);
         }).then(res => {
-            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:{' + field + ':' + (0 - data[field]) + '}, false, true)' : '.update({}, {$inc:{' + field + ':' + (0 - data[field]) + '}, false, true)'}`;
+            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:' + JSON.stringify(res.data) + ', false, true)' : '.update({}, {$inc:{' + field + ':' + (0 - data[field]) + '}, false, true)'}`;
             handler = collection.updateMany(res.options.where || {}, {$inc: {[field]: (0 - data[field])}}, false, true);
             return this.execute(handler, startTime);
-        }).then(data => {
-            return data.modifiedCount || 0;
+        }).then(res => {
+            //更新前置操作内会改变data的值
+            if(!lib.isEmpty(data)){
+                this.update(data, options);
+            }
+            return res.modifiedCount || 0;
         });
     }
 

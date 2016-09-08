@@ -304,9 +304,12 @@ export default class extends base {
         knexCls = knexCls.from(`${options.table} AS ${options.name}`);
         return this.parsers().buildSql(knexCls, data, options).then(sql => {
             return this.execute(sql);
-        }).then(data => {
-            //
-            return data;
+        }).then(res => {
+            //更新前置操作内会改变data的值
+            if(!lib.isEmpty(data)){
+                this.update(data, options);
+            }
+            return res;
         });
     }
 
@@ -326,9 +329,12 @@ export default class extends base {
         knexCls = knexCls.from(`${options.table} AS ${options.name}`);
         return this.parsers().buildSql(knexCls, data, options).then(sql => {
             return this.execute(sql);
-        }).then(data => {
-            //
-            return data;
+        }).then(res => {
+            //更新前置操作内会改变data的值
+            if(!lib.isEmpty(data)){
+                this.update(data, options);
+            }
+            return res;
         });
     }
 
