@@ -943,14 +943,14 @@ export default class extends base {
                         data.map(item => {
                             for (let n in item) {
                                 if (this.fields[n] && typeCase[this.fields[n].type]) {
-                                    item[n] = JSON.parse(item[n]);
+                                    item[n] = lib.isEmpty(item[n]) ? '' : JSON.parse(JSON.stringify(item[n]));
                                 }
                             }
                         });
                     } else if (lib.isObject(data)) {
                         for (let n in data) {
                             if (this.fields[n] && typeCase[this.fields[n].type]) {
-                                data[n] = JSON.parse(data[n]);
+                                data[n] = lib.isEmpty(data[n]) ? '' : JSON.parse(JSON.stringify(data[n]));
                             }
                         }
                     }
