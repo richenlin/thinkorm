@@ -89,24 +89,26 @@ var isNumberString = function (obj) {
     return numberReg.test(obj);
 };
 /**
- * 是否是标准JSON对象
+ * 是否是标准JSON对象(必须是对象或数组)
  * @param obj
  * @returns {boolean}
  */
 var isJSONObj = function (obj) {
     'use strict';
-    return typeof obj === 'object' && Object.prototype.toString.call(obj).toLowerCase() === '[object object]' && !obj.length;
+    return typeof obj === 'object' && (Object.prototype.toString.call(obj).toLowerCase() === '[object object]' || Object.prototype.toString.call(obj).toLowerCase() === '[object array]');
 };
 /**
- * 是否是标准的JSON字符串
+ * 是否是标准的JSON字符串(必须是字符串，且可以被反解为对象或数组)
  * @param str
  * @returns {boolean}
  */
 var isJSONStr = function (str) {
     'use strict';
+    if(!isString(str)){
+        return false;
+    }
     try {
-        JSON.parse(str);
-        return true;
+        return isJSONObj(JSON.parse(str));
     } catch (e) {
         return false;
     }

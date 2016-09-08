@@ -10,7 +10,7 @@ import thinkorm from '../../../index';
 export default class extends thinkorm{
     init(config){
         super.init(config);
-        // 是否自动迁移(默认安全模式)
+        // 是否开启迁移(migrate方法可用)
         this.safe = true;
         // 数据表字段信息
         this.fields = {
@@ -25,7 +25,7 @@ export default class extends thinkorm{
             profile: {
                 type: 'integer',
                 index: true,
-                defaultTo: 0
+                defaultsTo: 0
             },
             memo: {
                 type: 'text'
@@ -40,19 +40,19 @@ export default class extends thinkorm{
         this.relation = {
             Profile : {
                 type: 'hasone',//关联方式
-                field: ['test', 'id'],//关联表字段
+                //field: ['test', 'id'],//关联表字段
                 fkey: 'profile', //主表外键 (子表主键)
                 rkey: 'id' //子表主键
             },
             Pet: {
                 type: 'hasmany',
-                field: ['types','user', 'id'],
-                fkey: 'pet',//虚拟字段
+                //field: ['types','user', 'id'],
+                fkey: '',//hasmany关联此值没用
                 rkey: 'user'//子表外键 (主表主键)
             },
             Group: {
                 type: 'manytomany',
-                field: ['name', 'type', 'id'],
+                //field: ['name', 'type', 'id'],
                 fkey: 'userid',//map外键(主表主键)
                 rkey: 'groupid'//map外键(子表主键)
             }

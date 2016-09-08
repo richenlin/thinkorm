@@ -106,6 +106,23 @@ export default class extends base {
     }
 
     /**
+     * Give access to a native mongo collection object for running custom queries.
+     * @param sqlStr
+     */
+    native(table, sqlArr){
+        let startTime = Date.now(), collection, handler;
+        return this.connect().then(conn => {
+            collection = conn.collection(table);
+            this.sql = `db.${table}${sqlArr.join('.')}`;
+            let func = new Function('process', 'return process.' + sqlArr.join('.') + ';');
+            handler = func(collection);
+            return this.execute(handler, startTime);
+        }).then(data => {
+            return data.insertedId.toHexString() || 0;
+        });
+    }
+
+    /**
      * 添加一条数据
      * @param {[type]} data    [description]
      * @param {[type]} options [description]
@@ -115,10 +132,10 @@ export default class extends base {
         options.method = 'ADD';
         let startTime = Date.now(), collection, handler;
         //mongodb.js的addOne,会改变原有添加对象，将主键加进去。
-        let d = lib.extend({}, data);
+        let _data = lib.extend({}, data);
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
-            return this.parsers().buildSql(d, options);
+            return this.parsers().buildSql(_data, options);
         }).then(res => {
             this.sql = `db.${res.options.table}.insertOne(${JSON.stringify(res.data)})`;
             handler = collection.insertOne(res.data);
@@ -319,15 +336,17 @@ export default class extends base {
      * @returns {*}
      */
     bufferToString(data) {
-        if (!this.config.buffer_tostring || !lib.isArray(data)) {
-            return data;
-        }
-        for (let i = 0, length = data.length; i < length; i++) {
-            for (let key in data[i]) {
-                if (lib.isBuffer(data[i][key])) {
-                    data[i][key] = data[i][key].toString();
+        if (lib.isArray(data)) {
+            for (let i = 0, length = data.length; i < length; i++) {
+                for (let key in data[i]) {
+                    if (lib.isBuffer(data[i][key])) {
+                        data[i][key] = data[i][key].toString();
+                    }
                 }
             }
+        }
+        if (!lib.isJSONObj(data)) {
+            data = JSON.parse(JSON.stringify(data));
         }
         return data;
     }

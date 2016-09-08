@@ -260,6 +260,9 @@ let preParseSchema = function (field, value){
             case 'json':
                 str += `t.json('${field}')`;
                 break;
+            case 'array':
+                str += `t.enum('${field}')`;
+                break;
             case 'text':
                 str += `t.text('${field}')`;
                 break;
@@ -273,8 +276,8 @@ let preParseSchema = function (field, value){
         if (value.hasOwnProperty('unique') && value.unique === true) {
             str += `.unique()`;
         }
-        if (value.hasOwnProperty('defaultTo')) {
-            str += `.defaultTo(${value.defaultTo})`;
+        if (value.hasOwnProperty('defaultsTo')) {
+            str += `.defaultTo(${value.defaultsTo})`;
         }
     }
     return str + ';';

@@ -14,12 +14,12 @@ export default class extends thinkorm{
         this.safe = true;
         // 数据表字段信息
         this.fields = {
-            _id: {
+            id: {
                 type: 'integer',
                 primaryKey: true
             },
             test: {
-                type: 'string'
+                type: 'json'
             }
         };
         // 数据验证

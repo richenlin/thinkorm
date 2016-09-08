@@ -103,7 +103,7 @@ function getRelation(name, config) {
                     let _class = class extends model{
                         init(config){
                             super.init(config);
-                            // 是否自动迁移(默认安全模式)
+                            // 是否开启迁移(migrate方法可用)
                             this.safe = true;
                             // 数据表字段信息
                             this.fields = {
