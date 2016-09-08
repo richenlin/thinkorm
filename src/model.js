@@ -128,7 +128,7 @@ export default class extends base {
             if (~stack.indexOf('connect') || ~stack.indexOf('refused')) {
                 this.instances && this.instances.close && this.instances.close();
             }
-            lib.log(msg);
+            //lib.log(msg);
         }
         return Promise.reject(msg);
     }
