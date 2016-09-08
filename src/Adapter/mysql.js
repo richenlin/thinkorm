@@ -322,7 +322,8 @@ export default class extends base {
     sum(field, options = {}) {
         options.method = 'SUM';
         options.limit = [0, 1];
-        let knexCls = this.knexClient.sum(`${options.sum} AS sum`).from(`${options.table} AS ${options.name}`);
+        //modify by lihao ${options.sum}改为${field}
+        let knexCls = this.knexClient.sum(`${field} AS sum`).from(`${options.table} AS ${options.name}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {

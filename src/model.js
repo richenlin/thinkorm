@@ -901,7 +901,6 @@ export default class extends base {
                 if (result.length > 0) {
                     return this.error(result[0]);
                 }
-
                 //根据规则自动验证数据
                 if (options.verify) {
                     if (lib.isEmpty(this.validations)) {
