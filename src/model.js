@@ -912,7 +912,7 @@ export default class extends base {
      */
     __checkData(data, options, method = '') {
         try {
-            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1}, flag = false,
+            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1}, dataCheckFlag = false, ruleCheckFlag = false,
                 result = {status: 1, msg: ''}, fields = this.fields, vaildRules = this.validations;
             //根据模型定义字段类型进行数据检查
             for (let field in data) {
@@ -930,22 +930,26 @@ export default class extends base {
             for (let field in fields) {
                 if (method === 'ADD') {//新增数据add
                     lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null) && (data[field] = fields[field].defaultsTo);
-                    //非主键字段做检查
-                    flag = !fields[field].primaryKey ? true : false;
+                    //非主键字段就检查
+                    dataCheckFlag = !fields[field].primaryKey ? true : false;
+                    //定义了规则就检查
+                    ruleCheckFlag = vaildRules[field] ? true : false;
                 } else if (method === 'UPDATE') {//编辑数据update
                     data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null) && (data[field] = fields[field].defaultsTo);
-                    //更新包含字段做检查
-                    flag = data.hasOwnProperty(field) ? true : false;
+                    //更新包含字段就检查
+                    dataCheckFlag = data.hasOwnProperty(field) ? true : false;
+                    //更新包含字段且定义了规则就检查
+                    ruleCheckFlag = (data.hasOwnProperty(field) && vaildRules[field]) ? true : false;
                 }
                 //自定义规则验证
-                if (vaildRules[field]) {
+                if (ruleCheckFlag) {
                     result = vaild.ruleCheck(field, data[field], vaildRules[field], method);
                 }
                 if (!result.status) {
                     return this.error(result.msg);
                 }
                 //数据类型检查
-                if (flag) {
+                if (dataCheckFlag) {
                     result = vaild.dataCheck(field, data[field], fields[field].type);
                 }
                 if (!result.status) {
