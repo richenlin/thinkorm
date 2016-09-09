@@ -40,7 +40,8 @@ var _class = function (_thinkorm) {
             },
             name: {
                 type: 'string',
-                index: true
+                index: true,
+                defaultsTo: ''
             },
             profile: {
                 type: 'integer',
@@ -53,14 +54,26 @@ var _class = function (_thinkorm) {
                 defaultsTo: 0
             },
             memo: {
-                type: 'text'
+                type: 'text',
+                defaultsTo: ''
             },
             create_time: {
-                type: 'timestamp'
+                type: 'integer',
+                defaultsTo: 0
             }
         };
         // 数据验证
-        this.validations = {};
+        this.validations = {
+            name: {
+                method: 'ALL', //ADD 新增时检查, UPDATE 更新时检查, ALL 新增和更新都检查,如果属性不存在则不检查
+                valid: ['required', 'length'],
+                length_args: 10,
+                msg: {
+                    required: '姓名必填',
+                    length: '姓名长度必须大于10'
+                }
+            }
+        };
         // 关联关系
         this.relation = {
             Profile: {

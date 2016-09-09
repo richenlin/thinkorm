@@ -10,8 +10,9 @@
  * @return {[type]} [description]
  */
 import net from 'net';
+import lib from './lib';
 
-let Valid = {
+let rules = {
     /**
      * 长度区域
      * @param  {[type]} min [description]
@@ -216,70 +217,114 @@ let Valid = {
         return arr.indexOf(value) > -1;
     }
 };
+
 /**
- * data格式
- * [{
- *     value: xxx,
- *     name: '',
- *     valid: ['required', 'range'],
- *     range_args: [],
- *     msg:{
- *         required: '',
- *         range: ''
- *     }
- * },{
- *     value: xxx,
- *     name: '',
- *     valid: ['required', 'range'],
- *     range_args: [],
- *     msg:{
- *         required: '',
- *         range: ''
- *     }
- * }]
- * @param  {[type]} data [description]
- * @return {[type]}      [description]
+ * 数据类型检查
+ * @param name
+ * @param value
+ * @param type
+ * @returns {*}
  */
-export default function (data) {
+let dataCheck = function (name, value, type) {
     'use strict';
-    if (!data) {
-        return true;
-    }
-    if (!Array.isArray(data)) {
-        data = [data];
-    }
-    let result = {};
-    data.forEach(function (item) {
-        let valid = item.valid;
-        if (!Array.isArray(valid)) {
-            valid = [valid];
+    //数据类型存在则检查
+    if(type){
+        //字段类型严格验证
+        switch (type) {
+            case 'integer':
+            case 'float':
+                if(!lib.isNumber(value)){
+                    return {status: 0, msg: `${name}值类型错误!`};
+                }
+                break;
+            case 'json':
+                if(!lib.isJSONObj(value)){
+                    return {status: 0, msg: `${name}值类型错误!`};
+                }
+                break;
+            case 'array':
+                if(!lib.isArray(value)){
+                    return {status: 0, msg: `${name}值类型错误!`};
+                }
+                break;
+            case 'string':
+            case 'text':
+                if(!lib.isString(value)){
+                    return {status: 0, msg: `${name}值类型错误!`};
+                }
+                break;
+            default:
+                if(!lib.isString(value)){
+                    return {status: 0, msg: `${name}值类型错误!`};
+                }
+                break;
         }
-        valid.some(function (validItem) {
-            let flag = true;
-            //自定义检测方法
-            if (typeof validItem === 'function') {
-                flag = validItem(item.value, item);
-                if (Object.prototype.toString.call(flag) === '[object String]') {
-                    result[item.name] = flag;
-                    flag = false;
-                }
-            } else if (!typeof (Valid[validItem]) === 'function') {
-                return new Error(validItem + ' is not valid');
+    }
+
+    return {status: 1, msg: ''};
+};
+
+/**
+ * 自定义规则检查
+ * extra格式
+ * {
+ *     method: 'ADD', // ADD, UPDATE, ALL
+ *     valid: ['required', 'range'],
+ *     range_args: [],
+ *     msg:{
+ *         required: '必填',
+ *         range: '必须在xx--xx整数范围'
+ *     }
+ * }
+ * @param name
+ * @param value
+ * @param extra
+ * @param method
+ * @returns {{status: number, msg: string}}
+ */
+let ruleCheck = function (name, value, extra, method) {
+    'use strict';
+    let result = {status: 1, msg: ''};
+    if(!name){
+        return result;
+    }
+    //自定义规则存在则检查
+    if(extra && extra.valid){
+        let met;
+        if(extra.method){
+            met = (extra.method).toUpperCase();
+            if(met === 'ALL' || met === method){
+                met = true;
             } else {
-                let args = item[validItem + '_args'] || [];
-                if (!Array.isArray(args)) {
-                    args = [args];
-                }
-                args = [item.value].concat(args);
-                flag = Valid[validItem].apply(Valid, args);
-                if (flag === false) {
-                    let msg = ((!Buffer.isBuffer(item.msg) && toString.call(item.msg) === '[object Object]') ? item.msg[validItem] : item.msg) || '';
-                    msg = msg.replace('{name}', item.name).replace('{value}', item.value);
-                    result[item.name] = msg;
-                }
+                met = false;
             }
-            return !flag;
-        });
-    });
+        }
+        if(met){
+            let valid = extra.valid;
+            if (!Array.isArray(valid)) {
+                valid = [valid];
+            }
+            valid.some(function (validItem) {
+                //自定义检测方法
+                if (typeof validItem === 'function') {
+                    result = validItem(value);
+                } else if (typeof (rules[validItem]) === 'function') {
+                    let args = extra[validItem + '_args'] || [];
+                    if (!Array.isArray(args)) {
+                        args = [args];
+                    }
+                    args = [value].concat(args);
+                    if(rules[validItem].apply(rules, args) === false){
+                        result = {status: 0, msg: extra.msg[validItem] || `${name}值未通过检测!`};
+                    }
+                }
+            });
+        }
+    }
     return result;
 };
+
+export default {
+    dataCheck: dataCheck,
+    ruleCheck: ruleCheck
+}

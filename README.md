@@ -24,7 +24,9 @@ A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 
 6. 支持事务操作(mysql, postgresql)
 
-7. 支持 _before，_after等多种魔术方法
+7. 支持数据自动验证，自定义规则验证，且规则可扩展
+
+8. 支持 _before，_after等多种魔术方法
 
 # 计划
 
@@ -45,3 +47,4 @@ richerdlee
 -----
 
 MIT
+

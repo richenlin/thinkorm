@@ -70,6 +70,7 @@ function test() {
     //.where({id: 115}).update({name: 'tttttt',Group: [{userid: 115, groupid: 15}]})
     //    .query('select * from `think_profile` as `Profile` where `Profile`.`id` = 7')
     //    .where({id:1}).increment('num', 1)
+        .add({name: 'qqqesddfsdqqq'})
         .then(res => {
             console.log(res);
         });

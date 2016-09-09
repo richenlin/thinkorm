@@ -39,8 +39,6 @@ export default class extends base {
         this.__data = {};
         // 关联模型数据
         this.__relationData = {};
-        // 验证规则
-        this.__valid = vaild;
 
         // 配置
         this.config = {
@@ -257,15 +255,6 @@ export default class extends base {
         } catch (e) {
             return this.error(e);
         }
-    }
-
-    /**
-     * 自动验证开关
-     * @param data
-     */
-    verify(flag = false) {
-        this.__options.verify = !!flag;
-        return this;
     }
 
     /**
@@ -643,7 +632,7 @@ export default class extends base {
      * @param options
      * @returns {*}
      */
-    async increment(field, step = 1, options){
+    async increment(field, step = 1, options) {
         try {
             let parsedOptions = await this.__parseOptions(options);
             // init model
@@ -671,7 +660,7 @@ export default class extends base {
      * @param options
      * @returns {*}
      */
-    async decrement(field, step = 1, options){
+    async decrement(field, step = 1, options) {
         try {
             let parsedOptions = await this.__parseOptions(options);
             // init model
@@ -832,12 +821,12 @@ export default class extends base {
      * @param sqlStr
      */
     async query(sqlStr) {
-        try{
+        try {
             if (lib.isEmpty(sqlStr)) {
                 return this.error('_OPERATION_WRONG_');
             }
             if ((/[&(--);]/).test(sqlStr)) {
-                sqlStr =  sqlStr.
+                sqlStr = sqlStr.
                 replace(/&/g, '&amp;').
                 replace(/;/g, '').
                 replace(/--/g, '&minus;&minus;');
@@ -858,13 +847,13 @@ export default class extends base {
                 }
                 result = await model.native(tableName, quer);
             } else {
-                if(sqlStr.indexOf(this.tableName) === -1){
+                if (sqlStr.indexOf(this.tableName) === -1) {
                     return this.error('table name error');
                 }
                 result = await model.native(sqlStr);
             }
             return result;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -921,42 +910,13 @@ export default class extends base {
      * @param method
      * @private
      */
-    __checkData(data, options, method = ''){
-        try{
-            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1}, result = [];
+    __checkData(data, options, method = '') {
+        try {
+            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1}, flag = false,
+                result = {status: 1, msg: ''}, fields = this.fields, vaildRules = this.validations;
             //根据模型定义字段类型进行数据检查
             for (let field in data) {
-                if (this.fields[field]) {
-                    if (this.fields[field].type) {
-                        //字段类型严格验证
-                        switch (this.fields[field].type) {
-                            case 'integer':
-                            case 'float':
-                                if(!lib.isNumber(data[field])){
-                                    return this.error(`${ field }值类型错误`);
-                                }
-                                break;
-                            case 'json':
-                                if(!lib.isJSONObj(data[field])){
-                                    return this.error(`${ field }值类型错误`);
-                                }
-                                break;
-                            case 'array':
-                                if(!lib.isArray(data[field])){
-                                    return this.error(`${ field }值类型错误`);
-                                }
-                                break;
-                            case 'string':
-                            case 'text':
-                                if(!lib.isString(data[field])){
-                                    return this.error(`${ field }值类型错误`);
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                } else {
+                if (!fields[field]) {
                     //分离关联模型数据
                     if (this.relation[field]) {
                         !this.__relationData[field] && (this.__relationData[field] = {});
@@ -966,42 +926,38 @@ export default class extends base {
                     delete data[field];
                 }
             }
-
-            //字段默认值处理
-            for (let field in this.fields) {
+            //字段默认值处理以及合法性检查
+            for (let field in fields) {
                 if (method === 'ADD') {//新增数据add
-                    lib.isEmpty(data[field]) && !lib.isEmpty(this.fields[field].defaultsTo) && (data[field] = this.fields[field].defaultsTo);
+                    lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null) && (data[field] = fields[field].defaultsTo);
+                    //非主键字段做检查
+                    flag = !fields[field].primaryKey ? true : false;
                 } else if (method === 'UPDATE') {//编辑数据update
-                    data.hasOwnProperty(field) && lib.isEmpty(data[field]) && !lib.isEmpty(this.fields[field].defaultsTo) && (data[field] = this.fields[field].defaultsTo);
+                    data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null) && (data[field] = fields[field].defaultsTo);
+                    //更新包含字段做检查
+                    flag = data.hasOwnProperty(field) ? true : false;
+                }
+                //自定义规则验证
+                if (vaildRules[field]) {
+                    result = vaild.ruleCheck(field, data[field], vaildRules[field], method);
+                }
+                if (!result.status) {
+                    return this.error(result.msg);
+                }
+                //数据类型检查
+                if (flag) {
+                    result = vaild.dataCheck(field, data[field], fields[field].type);
+                }
+                if (!result.status) {
+                    return this.error(result.msg);
                 }
                 //处理特殊类型字段
-                if (adpCase[this.config.db_type] && data[field] && this.fields[field] && typeCase[this.fields[field].type]) {
+                if (adpCase[this.config.db_type] && data[field] && fields[field] && typeCase[fields[field].type]) {
                     !lib.isString(data[field]) && (data[field] = JSON.stringify(data[field]));
                 }
             }
-
-            //根据规则自动验证数据
-            if (options.verify) {
-                result = {};
-                if (lib.isEmpty(this.validations)) {
-                    return data;
-                }
-                let field, value, checkData = [];
-                for (field in this.validations) {
-                    value = lib.extend(this.validations[field], {name: field, value: data[field]});
-                    checkData.push(value);
-                }
-                if (lib.isEmpty(checkData)) {
-                    return data;
-                }
-                result = this.__valid(checkData);
-                if (lib.isEmpty(result)) {
-                    return data;
-                }
-                return this.error(Object.values(result)[0]);
-            }
             return data;
-        }catch (e){
+        } catch (e) {
             return this.error(e);
         }
     }
@@ -1017,14 +973,14 @@ export default class extends base {
      */
     __parseData(data, options, method = 0) {
         try {
-            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1};
+            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1}, fields = this.fields;
             //处理特殊类型字段
             if (adpCase[this.config.db_type]) {
                 if (lib.isArray(data)) {
                     data.map(item => {
                         for (let n in item) {
-                            if (this.fields[n] && typeCase[this.fields[n].type]) {
-                                switch (this.fields[n].type){
+                            if (fields[n] && typeCase[fields[n].type]) {
+                                switch (fields[n].type) {
                                     case 'json':
                                         item[n] = lib.isEmpty(item[n]) ? {} : JSON.parse(item[n]);
                                         break;
@@ -1037,8 +993,8 @@ export default class extends base {
                     });
                 } else if (lib.isObject(data)) {
                     for (let n in data) {
-                        if (this.fields[n] && typeCase[this.fields[n].type]) {
-                            switch (this.fields[n].type){
+                        if (fields[n] && typeCase[fields[n].type]) {
+                            switch (fields[n].type) {
                                 case 'json':
                                     data[n] = lib.isEmpty(data[n]) ? {} : JSON.parse(data[n]);
                                     break;
