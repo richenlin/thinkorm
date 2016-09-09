@@ -189,7 +189,7 @@ export default class extends base {
      */
     parseJoin(data, options) {
         //未实现
-        return Promise.reject('not support');
+        return Promise.reject('adapter not support join');
     }
     /**
      *

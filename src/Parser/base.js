@@ -42,6 +42,7 @@ const identifiers = {
 let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
     try {
         let idt = key.toUpperCase();
+        let _alias = alias ? `${alias}.` : '';
         switch (identifiers[idt]) {
             case 'OR':
                 if (lib.isArray(value)) {
@@ -55,39 +56,39 @@ let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
             case 'IN':
                 for (let n in value) {
                     if (lib.isArray(value[n])) {
-                        isor ? options.orwhere.in.push([`${alias}.${n}`, value[n]]) : options.where.in.push([`${alias}.${n}`, value[n]]);
+                        isor ? options.orwhere.in.push([`${_alias}${n}`, value[n]]) : options.where.in.push([`${_alias}${n}`, value[n]]);
                     }
                 }
                 break;
             case 'NOTIN':
                 for (let n in value) {
                     if (lib.isArray(value[n])) {
-                        isor ? options.orwhere.notin.push([`${alias}.${n}`, value[n]]) : options.where.notin.push([`${alias}.${n}`, value[n]]);
+                        isor ? options.orwhere.notin.push([`${_alias}${n}`, value[n]]) : options.where.notin.push([`${_alias}${n}`, value[n]]);
                     }
                 }
                 break;
             case 'NOT':
                 for (let n in value) {
                     if (lib.isArray(value[n])) {
-                        isor ? options.orwhere.notin.push([`${alias}.${n}`, value[n]]) : options.where.notin.push([`${alias}.${n}`, value[n]]);
+                        isor ? options.orwhere.notin.push([`${alias}${n}`, value[n]]) : options.where.notin.push([`${_alias}${n}`, value[n]]);
                     } else {
-                        isor ? options.orwhere.not.push([`${alias}.${n}`, value[n]]) : options.where.not.push([`${alias}.${n}`, value[n]]);
+                        isor ? options.orwhere.not.push([`${_alias}${n}`, value[n]]) : options.where.not.push([`${_alias}${n}`, value[n]]);
                     }
                 }
                 break;
             case 'OPERATOR':
-                isor ? options.orwhere.operation.push([`${alias}.${k}`, key, value]) : options.where.operation.push([`${alias}.${k}`, key, value]);
+                isor ? options.orwhere.operation.push([`${_alias}${k}`, key, value]) : options.where.operation.push([`${_alias}${k}`, key, value]);
                 break;
             case 'AND':
             default:
                 if (lib.isArray(value)) {
-                    isor ? options.orwhere.in.push([`${alias}.${key}`, value]) : options.where.in.push([`${alias}.${key}`, value]);
+                    isor ? options.orwhere.in.push([`${_alias}${key}`, value]) : options.where.in.push([`${_alias}${key}`, value]);
                 } else if (lib.isObject(value)) {
                     for (let n in value) {
                         preParseKnexWhere(options, n, value[n], key, alias, isor);
                     }
                 } else {
-                    isor ? options.orwhere.and.push([`${alias}.${key}`, '=', value]) : options.where.and.push([`${alias}.${key}`, '=', value]);
+                    isor ? options.orwhere.and.push([`${_alias}${key}`, '=', value]) : options.where.and.push([`${_alias}${key}`, '=', value]);
                 }
                 break;
         }
@@ -201,6 +202,8 @@ let parseKnexOrWhere = function (knex, optionOrWhere) {
  * @returns {string}
  */
 let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this') {
+    let _alias = alias ? `${alias}.` : '';
+    let _joinAlias = joinAlias ? `${joinAlias}.` : '';
     //解析on
     for (let n in onCondition) {
         if (n === 'or' || n === 'OR') {
@@ -211,18 +214,18 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
                 for (let i in it) {
                     //a join b, b join c的情况下,on条件内已经申明alias
                     if (i.indexOf('.') === -1) {
-                        funcTemp += `.orOn('${alias}.${i}', '=', '${joinAlias}.${it[i]}')`;
+                        funcTemp += `.orOn('${_alias}${i}', '=', '${_joinAlias}${it[i]}')`;
                     } else {
-                        funcTemp += `.orOn('${i}', '=', '${joinAlias}.${it[i]}')`;
+                        funcTemp += `.orOn('${i}', '=', '${_joinAlias}${it[i]}')`;
                     }
                 }
             })
         } else {
             //a join b, b join c的情况下,on条件内已经申明alias
             if (n.indexOf('.') === -1) {
-                funcTemp += `.on('${alias}.${n}', '=', '${joinAlias}.${onCondition[n]}')`;
+                funcTemp += `.on('${_alias}${n}', '=', '${_joinAlias}${onCondition[n]}')`;
             } else {
-                funcTemp += `.on('${n}', '=', '${joinAlias}.${onCondition[n]}')`;
+                funcTemp += `.on('${n}', '=', '${_joinAlias}${onCondition[n]}')`;
             }
         }
     }
@@ -375,7 +378,7 @@ export default class extends base {
         };
         //parse where options
         for (let key in options.where) {
-            preParseKnexWhere(optionsWhere, key, options.where[key], '', options.name);
+            preParseKnexWhere(optionsWhere, key, options.where[key], '', options.alias);
         }
 
         //parsed to knex
@@ -424,10 +427,9 @@ export default class extends base {
                     joinTable = `${config.db_prefix}${lib.parseName(item.from)}`;
                     //关联表字段
                     if (!lib.isEmpty(item.field) && lib.isArray(item.field)) {
-                        options.field = options.field || [];
                         item.field.forEach(it => {
                             //关联表字段必须指定,不能写*
-                            if (it.indexOf('*') === -1) {
+                            if (it && it.trim() !== '*') {
                                 options.field.push(`${item.from}.${it} AS ${joinAlias}_${it}`);
                             }
                         });
