@@ -936,8 +936,8 @@ export default class extends base {
                     ruleCheckFlag = vaildRules[field] ? true : false;
                 } else if (method === 'UPDATE') {//编辑数据update
                     data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null) && (data[field] = fields[field].defaultsTo);
-                    //更新包含字段就检查
-                    dataCheckFlag = data.hasOwnProperty(field) ? true : false;
+                    //更新包含字段就检查,主键除外(因为主键不会被更新)
+                    dataCheckFlag = (data.hasOwnProperty(field) && !fields[field].primaryKey) ? true : false;
                     //更新包含字段且定义了规则就检查
                     ruleCheckFlag = (data.hasOwnProperty(field) && vaildRules[field]) ? true : false;
                 }
