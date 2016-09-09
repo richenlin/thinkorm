@@ -45,7 +45,7 @@ function test() {
     "use strict";
     return model
         //.migrate()
-    //.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}]}).find()
+    //.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
     //.where({id: {'>=': 0}}).count()
     //.where({id: {'>=': 0}}).sum('id')
     //.where({id: {'>=': 0}}).select()
@@ -69,7 +69,7 @@ function test() {
     //.where({id: 115}).update({name: 'tttttt',Group: [{id: 15,name: 'ttttttt'}]})
     //.where({id: 115}).update({name: 'tttttt',Group: [{userid: 115, groupid: 15}]})
     //    .query('select * from `think_profile` as `Profile` where `Profile`.`id` = 7')
-        .where({id:1}).increment('num', 1)
+    //    .where({id:1}).increment('num', 1)
         .then(res => {
             console.log(res);
         });
@@ -79,6 +79,8 @@ test();
 
 //function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 //var lib = requireDefault(require('../lib/Util/lib.js')).default;
+//
+//console.log(parseInt(''))
 //console.log(lib.isJSONStr(111))
 //console.log(lib.isJSONStr(undefined))
 //console.log(lib.isJSONStr(''))
