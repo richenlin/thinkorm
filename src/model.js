@@ -487,7 +487,7 @@ export default class extends base {
             //copy data
             this.__data = lib.extend({}, data);
             this.__data = await this._beforeAdd(this.__data, parsedOptions);
-            this.__data = await this.__checkData(this.__data, parsedOptions, 1);
+            this.__data = await this.__checkData(this.__data, parsedOptions, 'ADD');
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -596,7 +596,7 @@ export default class extends base {
             //copy data
             this.__data = lib.extend({}, data);
             this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this.__checkData(this.__data, parsedOptions, 2);
+            this.__data = await this.__checkData(this.__data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -651,7 +651,7 @@ export default class extends base {
             //copy data
             this.__data = lib.extend({}, {[field]: step});
             this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this.__checkData(this.__data, parsedOptions, 2);
+            this.__data = await this.__checkData(this.__data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -679,7 +679,7 @@ export default class extends base {
             //copy data
             this.__data = lib.extend({}, {[field]: step});
             this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this.__checkData(this.__data, parsedOptions, 2);
+            this.__data = await this.__checkData(this.__data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -921,11 +921,10 @@ export default class extends base {
      * @param method
      * @private
      */
-    __checkData(data, options, method = 0){
+    __checkData(data, options, method = ''){
         try{
-            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1};
+            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1}, result = [];
             //根据模型定义字段类型进行数据检查
-            let result = [];
             for (let field in data) {
                 if (this.fields[field]) {
                     if (this.fields[field].type) {
@@ -933,17 +932,25 @@ export default class extends base {
                         switch (this.fields[field].type) {
                             case 'integer':
                             case 'float':
-                                !lib.isNumber(data[field]) && result.push(`${ field }值类型错误`);
+                                if(!lib.isNumber(data[field])){
+                                    return this.error(`${ field }值类型错误`);
+                                }
                                 break;
                             case 'json':
-                                !lib.isJSONObj(data[field]) && result.push(`${ field }值类型错误`);
+                                if(!lib.isJSONObj(data[field])){
+                                    return this.error(`${ field }值类型错误`);
+                                }
                                 break;
                             case 'array':
-                                !lib.isArray(data[field]) && result.push(`${ field }值类型错误`);
+                                if(!lib.isArray(data[field])){
+                                    return this.error(`${ field }值类型错误`);
+                                }
                                 break;
                             case 'string':
                             case 'text':
-                                !lib.isString(data[field]) && result.push(`${ field }值类型错误`);
+                                if(!lib.isString(data[field])){
+                                    return this.error(`${ field }值类型错误`);
+                                }
                                 break;
                             default:
                                 break;
@@ -959,11 +966,23 @@ export default class extends base {
                     delete data[field];
                 }
             }
-            if (result.length > 0) {
-                return this.error(result[0]);
+
+            //字段默认值处理
+            for (let field in this.fields) {
+                if (method === 'ADD') {//新增数据add
+                    lib.isEmpty(data[field]) && !lib.isEmpty(this.fields[field].defaultsTo) && (data[field] = this.fields[field].defaultsTo);
+                } else if (method === 'UPDATE') {//编辑数据update
+                    data.hasOwnProperty(field) && lib.isEmpty(data[field]) && !lib.isEmpty(this.fields[field].defaultsTo) && (data[field] = this.fields[field].defaultsTo);
+                }
+                //处理特殊类型字段
+                if (adpCase[this.config.db_type] && data[field] && this.fields[field] && typeCase[this.fields[field].type]) {
+                    !lib.isString(data[field]) && (data[field] = JSON.stringify(data[field]));
+                }
             }
+
             //根据规则自动验证数据
             if (options.verify) {
+                result = {};
                 if (lib.isEmpty(this.validations)) {
                     return data;
                 }
@@ -975,25 +994,11 @@ export default class extends base {
                 if (lib.isEmpty(checkData)) {
                     return data;
                 }
-                result = {};
                 result = this.__valid(checkData);
                 if (lib.isEmpty(result)) {
                     return data;
                 }
                 return this.error(Object.values(result)[0]);
-            }
-
-            //字段默认值处理
-            for (let field in this.fields) {
-                if (method === 1) {//新增数据add
-                    lib.isEmpty(data[field]) && (data[field] = !lib.isEmpty(this.fields[field].defaultsTo) ? this.fields[field].defaultsTo : data[field]);
-                } else if (method === 2) {//编辑数据update
-                    data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (data[field] = !lib.isEmpty(this.fields[field].defaultsTo) ? this.fields[field].defaultsTo : data[field]);
-                }
-                //处理特殊类型字段
-                if (adpCase[this.config.db_type] && data[field] && this.fields[field] && typeCase[this.fields[field].type]) {
-                    !lib.isString(data[field]) && (data[field] = JSON.stringify(data[field]));
-                }
             }
             return data;
         }catch (e){
