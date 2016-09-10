@@ -879,6 +879,8 @@ export default class extends base {
             options.table = options.table || this.tableName;
             //模型名称
             options.name = options.name || this.modelName;
+            //模型查询别名
+            options.alias = this.modelName;
             //模型主键
             options.pk = options.pk || this.getPk();
             //解析field,根据model的fields进行过滤

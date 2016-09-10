@@ -249,6 +249,7 @@ export default class extends base {
      */
     add(data, options = {}) {
         options.method = 'ADD';
+        options.alias = undefined;
         let knexCls = this.knexClient.insert(data).from(options.table);
         return this.parsers().buildSql(knexCls, data, options).then(sql => {
             return this.execute(sql);
@@ -264,6 +265,7 @@ export default class extends base {
      */
     delete(options = {}) {
         options.method = 'DELETE';
+        options.alias = undefined;
         let knexCls = this.knexClient.del().from(options.table);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.execute(sql);
@@ -279,6 +281,7 @@ export default class extends base {
      */
     update(data, options = {}) {
         options.method = 'UPDATE';
+        options.alias = undefined;
         let knexCls = this.knexClient.update(data).from(options.table);
         return this.parsers().buildSql(knexCls, data, options).then(sql => {
             return this.execute(sql);
@@ -296,6 +299,7 @@ export default class extends base {
      */
     increment(data, field, options = {}){
         options.method = 'UPDATE';
+        options.alias = undefined;
         let knexCls = this.knexClient;
         if(data[field]){
             knexCls = knexCls.increment(field, data[field]);
@@ -321,6 +325,7 @@ export default class extends base {
      */
     decrement(data, field, options = {}){
         options.method = 'UPDATE';
+        options.alias = undefined;
         let knexCls = this.knexClient;
         if(data[field]){
             knexCls = knexCls.decrement(field, data[field]);
@@ -347,7 +352,6 @@ export default class extends base {
     count(field, options = {}) {
         options.method = 'COUNT';
         options.limit = [0, 1];
-        options.alias = options.name;
         let knexCls = this.knexClient.count(`${field} AS count`).from(`${options.table} AS ${options.name}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
@@ -373,7 +377,6 @@ export default class extends base {
     sum(field, options = {}) {
         options.method = 'SUM';
         options.limit = [0, 1];
-        options.alias = options.name;
         //modify by lihao ${options.sum}改为${field}
         let knexCls = this.knexClient.sum(`${field} AS sum`).from(`${options.table} AS ${options.name}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
@@ -398,7 +401,6 @@ export default class extends base {
     find(options = {}) {
         options.method = 'SELECT';
         options.limit = [0, 1];
-        options.alias = options.name;
         let knexCls = this.knexClient.select().from(`${options.table} AS ${options.name}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
@@ -414,7 +416,6 @@ export default class extends base {
      */
     select(options = {}) {
         options.method = 'SELECT';
-        options.alias = options.name;
         let knexCls = this.knexClient.select().from(`${options.table} AS ${options.name}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
