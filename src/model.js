@@ -946,17 +946,19 @@ export default class extends base {
                 //自定义规则验证
                 if (ruleCheckFlag) {
                     result = vaild.ruleCheck(field, data[field], vaildRules[field], method);
+                    if (!result.status) {
+                        return this.error(result.msg);
+                    }
                 }
-                if (!result.status) {
-                    return this.error(result.msg);
-                }
-                //数据类型检查
+
+                //严格数据类型检查
                 if (dataCheckFlag) {
                     result = vaild.dataCheck(field, data[field], fields[field].type);
+                    if (!result.status) {
+                        return this.error(result.msg);
+                    }
                 }
-                if (!result.status) {
-                    return this.error(result.msg);
-                }
+
                 //处理特殊类型字段
                 if (adpCase[this.config.db_type] && data[field] && fields[field] && typeCase[fields[field].type]) {
                     !lib.isString(data[field]) && (data[field] = JSON.stringify(data[field]));
