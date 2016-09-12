@@ -95,13 +95,7 @@ export default class extends base {
             return;
         }
         let tableName = `${config.db_prefix}${lib.parseName(schema.name)}`;
-        return this.query(this.knexClient.schema.hasTable(tableName).toString()).then(exists => {
-            if(lib.isEmpty(exists)){
-                return Promise.resolve();
-            } else {
-                return this.execute(this.knexClient.schema.dropTableIfExists(tableName).toString());
-            }
-        }).then(() => {
+        return this.execute(this.knexClient.schema.dropTableIfExists(tableName).toString()).then(() => {
                 let options = {
                     method: 'MIGRATE',
                     schema: schema

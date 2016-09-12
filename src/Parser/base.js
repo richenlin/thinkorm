@@ -248,7 +248,7 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
 let preParseSchema = function (field, value){
     let str = '';
     if(value.hasOwnProperty('primaryKey') && value.primaryKey === true){
-        str += `t.increments('${field}').primary();`;
+        str += `t.increments('${field}').primary()`;
     } else {
         switch (value.type) {
             case 'integer':
