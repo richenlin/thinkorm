@@ -62,7 +62,7 @@ let whereParse = function (key, value, item) {
             }
             break;
         default:
-            if (lib.isJSONObj(value)) {
+            if (lib.isObject(value)) {
                 temp = {};
                 for (let k in value) {
                     temp = lib.extend(temp, whereParse(k, value[k], key));

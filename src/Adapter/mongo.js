@@ -377,7 +377,6 @@ export default class extends base {
         }).then(res => {
             if (lib.isEmpty(res.options.group)) {
                 this.sql = `db.${res.options.table}${res.options.where ? '.find(' + JSON.stringify(res.options.where) + ')' : '.find()'}`;
-                console.log(res.options.where)
                 handler = collection.find(res.options.where || {});
             } else {
                 res.options.group.cond = res.options.where;
