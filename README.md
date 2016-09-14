@@ -12,7 +12,7 @@ A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 
 -----
 
-1. 支持 Mysql,MongoDB,postgresSql 数据库,且书写语法一致
+1. 支持 Mysql,MongoDB(beta),postgresSql 数据库,且书写语法一致
 
 2. 支持schema自动迁移数据结构,通过migrate方法调用
 
@@ -31,6 +31,7 @@ A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 # 计划
 
 -----
+mongodb beta to release;目前mongodb支持未完善,请勿用于生产环境
 
 mongodb的join查询
 
