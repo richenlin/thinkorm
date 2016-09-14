@@ -187,9 +187,9 @@ export default class extends base {
             connection = conn.RW ? conn.master : conn;
             let fn = lib.promisify(connection.query, connection);
             return fn(ouputs.sql, ouputs.bindings);
-        }).then((rows = []) => {
+        }).then((res = {}) => {
             this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
-            return this.bufferToString(rows);
+            return this.bufferToString(res.rows);
         }).catch(err => {
             this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
             return Promise.reject(err);

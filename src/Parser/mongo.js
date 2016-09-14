@@ -53,16 +53,16 @@ let whereParse = function (key, value, item) {
         case '$regex':
             if(lib.isString(value)){
                 if(value.indexOf('%') === 0 && value.substring(value.length -1) === '%'){
-                    return {[key]: new RegExp(`${v}`)};
+                    return {[item]: new RegExp(`${value}`)};
                 } else if(value.indexOf('%') === 0){
-                    return {[key]: new RegExp(`${v}^`)};
+                    return {[item]: new RegExp(`${value}^`)};
                 }else if(value.substring(value.length -1) === '%'){
-                    return {[key]: new RegExp(`^${v}`)};
+                    return {[item]: new RegExp(`^${value}`)};
                 }
             }
             break;
         default:
-            if (lib.isObject(value)) {
+            if (lib.isJSONObj(value)) {
                 temp = {};
                 for (let k in value) {
                     temp = lib.extend(temp, whereParse(k, value[k], key));
@@ -136,7 +136,7 @@ export default class extends base {
             options.where = where || {};
         }
         //将主键转为ObjectID
-        options.pk && options.where[options.pk] && (options.where[options.pk] = new ObjectID(options.where[options.pk]))
+        //options.pk && options.where[options.pk] && (options.where[options.pk] = new ObjectID(options.where[options.pk]))
     }
 
     /**

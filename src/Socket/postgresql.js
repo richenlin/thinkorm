@@ -8,39 +8,40 @@
 import base from '../base';
 import lib from '../Util/lib';
 
-export default class extends base{
+export default class extends base {
 
-    init(config = {}){
+    init(config = {}) {
         this.config = {
             database: config.db_name,
             host: config.db_host || '127.0.0.1',
             user: config.db_user || 'root',
             password: config.db_pwd || '',
             port: config.db_port || 5432,
-            charset: config.db_charset || 'utf8',
-            idleTimeoutMillis: config.db_timeout * 1000 || 8 * 60 * 60 * 1000,
-            max: config.db_ext_config.db_pool_size || 10
+            encoding: config.db_charset || 'utf8',
+            connectTimeout: config.db_timeout * 1000 || 10000,//try connection timeout
+            poolSize: config.db_ext_config.db_pool_size || 10
         }
         this.connection = null;
     }
 
-    connect(){
-        if(this.connection){
+    connect() {
+        if (this.connection) {
             return Promise.resolve(this.connection);
         }
 
         let driver = require('pg');
         //use pool
-        if(this.config.max){
+        if (this.config.max) {
             driver.defaults.poolSize = this.config.poolSize;
         }
-        driver.defaults.poolIdleTimeout = this.config.poolIdleTimeout;
+        //set poolIdleTimeout, change default `30 seconds` to 8 hours
+        driver.defaults.poolIdleTimeout = 8 * 60 * 60 * 1000;
         let connectKey = `postgres://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}`;
         return lib.await(connectKey, () => {
             let deferred = lib.getDefer();
             let connection = driver;
             connection.connect(this.config, (err, client, done) => {
-                if(err){
+                if (err) {
                     this.close();
                     deferred.reject(err);
                 } else {
@@ -69,8 +70,8 @@ export default class extends base{
         });
     }
 
-    close(){
-        if(this.connection){
+    close() {
+        if (this.connection) {
             this.connection.end();
             this.connection = null;
         }

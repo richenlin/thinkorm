@@ -17,12 +17,12 @@ export default class extends base{
             user: config.db_user || 'root',
             password: config.db_pwd || '',
             port: config.db_port || 3306,
-            charset: config.db_charset || 'utf8',
-            timeout: config.db_timeout || 30,
+            encoding: config.db_charset || 'utf8',
+            connectTimeout: config.db_timeout * 1000 || 10000,//try connection timeout
             connectionLimit: config.db_ext_config.db_pool_size || 10
         }
         //node-mysql2 not support utf8 or utf-8
-        let charset = (this.config.charset || '').toLowerCase();
+        let charset = (this.config.encoding || '').toLowerCase();
         if (charset === 'utf8' || charset === 'utf-8') {
             this.config.charset = 'UTF8_GENERAL_CI';
         }

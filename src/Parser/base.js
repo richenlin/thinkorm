@@ -83,7 +83,7 @@ let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
             default:
                 if (lib.isArray(value)) {
                     isor ? options.orwhere.in.push([`${_alias}${key}`, value]) : options.where.in.push([`${_alias}${key}`, value]);
-                } else if (lib.isObject(value)) {
+                } else if (lib.isJSONObj(value)) {
                     for (let n in value) {
                         preParseKnexWhere(options, n, value[n], key, alias, isor);
                     }

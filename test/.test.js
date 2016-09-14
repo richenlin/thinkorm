@@ -9,17 +9,17 @@ var path = require('path');
 var thinkorm = require('../index.js');
 
 var config = {
-    db_type: 'mysql',
+    //db_type: 'mysql',
     //db_type: 'postgresql',
-    //db_type: 'mongo',
+    db_type: 'mongo',
     db_host: '192.168.99.100',
-    db_port: 3306,
+    //db_port: 3306,
     //db_port: 5432,
-    //db_port: 27017,
+    db_port: 27017,
     db_name: 'test',
-    db_user: 'root',
-    //db_user: '',
-    db_pwd: 'richenlin',
+    //db_user: 'root',
+    db_user: '',
+    //db_pwd: 'richenlin',
     //db_pwd: '',
     db_prefix: 'think_',
     db_charset: 'utf8',
@@ -49,7 +49,7 @@ function test() {
     //.where({id: {'>=': 0}}).count()
     //.where({id: {'>=': 0}}).sum('id')
     //.where({id: {'>=': 0}}).select()
-    //.where({name: {'like': 'r%'}}).select()
+    .where({name: {'like': 'r%'}}).select()
     //.where({not: {name: '', id: 1}}).select()
     //.where({notin: {'id': [1,2,3]}}).select()
     //.where({name: {'like': '%a'}}).select()
@@ -68,9 +68,9 @@ function test() {
     //.add({name: 'rrrrrrr',Group: [{name: 'ssfsssss'}]})
     //.where({id: 115}).update({name: 'tttttt',Group: [{id: 15,name: 'ttttttt'}]})
     //.where({id: 115}).update({name: 'tttttt',Group: [{userid: 115, groupid: 15}]})
-    //    .query('select * from `think_profile` as `Profile` where `Profile`.`id` = 7')
+    //    .query('select * from think_user where id = 1')
     //    .where({id:1}).increment('num', 1)
-        .add({name: 'qqqesddfsdqqq'})
+    //    .add({name: 'qqqesddfsdqqq'})
         .then(res => {
             console.log(res);
         });

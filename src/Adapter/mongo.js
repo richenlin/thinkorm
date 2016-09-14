@@ -376,11 +376,12 @@ export default class extends base {
             return this.parsers().buildSql(options);
         }).then(res => {
             if (lib.isEmpty(res.options.group)) {
-                this.sql = `${this.sql}${res.options.where ? '.find(' + JSON.stringify(res.options.where) + ')' : '.find()'}`;
+                this.sql = `db.${res.options.table}${res.options.where ? '.find(' + JSON.stringify(res.options.where) + ')' : '.find()'}`;
+                console.log(res.options.where)
                 handler = collection.find(res.options.where || {});
             } else {
                 res.options.group.cond = res.options.where;
-                this.sql = `${this.sql}.group(${res.options.group.key},${res.options.group.cond},${res.options.group.initial},${res.options.group.reduce})`;
+                this.sql = `db.${res.options.table}.group(${res.options.group.key},${res.options.group.cond},${res.options.group.initial},${res.options.group.reduce})`;
                 //handler = collection.group(res.options.group);
                 handler = collection.group(res.options.group.key, res.options.group.cond, res.options.group.initial, res.options.group.reduce);
             }
