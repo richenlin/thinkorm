@@ -50,6 +50,7 @@ export default class extends base {
             db_pwd: config.db_pwd,
             db_prefix: config.db_prefix,
             db_charset: config.db_charset,
+            db_timeout: config.db_timeout,
             db_ext_config: config.db_ext_config || {}
         };
         // 模型名
