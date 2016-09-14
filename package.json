@@ -1,6 +1,6 @@
 {
   "name": "thinkorm",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "index.js",
   "scripts": {
