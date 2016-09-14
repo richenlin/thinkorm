@@ -138,7 +138,7 @@ export default class extends base {
      */
     async migrate(rel = false) {
         try {
-            if (this.config.safe) {
+            if (this.safe) {
                 return;
             }
             // init model
