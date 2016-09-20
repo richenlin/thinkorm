@@ -101,32 +101,32 @@ let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
  * @param knex
  * @param optionWhere
  */
-let parseKnexWhere = function (knex, optionWhere) {
-    if (optionWhere.and) {
+let parseKnexAndWhere = function (knex, optionWhere) {
+    if (optionWhere.and.length > 0) {
         optionWhere.and.map(data=> {
             knex.where(data[0], data[1], data[2]);
         })
     }
 
-    if (optionWhere.in) {
+    if (optionWhere.in.length > 0) {
         optionWhere.in.map(data=> {
             knex.whereIn(data[0], data[1]);
         })
     }
 
-    if (optionWhere.not) {
+    if (optionWhere.not.length > 0) {
         optionWhere.not.map(data=> {
             knex.whereNot(data[0], data[1]);
         })
     }
 
-    if (optionWhere.notin) {
+    if (optionWhere.notin.length > 0) {
         optionWhere.notin.map(data=> {
             knex.whereNotIn(data[0], data[1]);
         })
     }
 
-    //if (optionWhere.null) {
+    //if (optionWhere.null.length > 0) {
     //    optionWhere.null.map(data=> {
     //        //knex.whereNull(...data);
     //        data.map(d=> {
@@ -135,7 +135,7 @@ let parseKnexWhere = function (knex, optionWhere) {
     //    })
     //}
     //
-    //if (optionWhere.notnull) {
+    //if (optionWhere.notnull.length > 0) {
     //    optionWhere.notnull.map(data=> {
     //        data.map(d=> {
     //            knex.whereNotNull(d);
@@ -143,24 +143,25 @@ let parseKnexWhere = function (knex, optionWhere) {
     //    })
     //}
     //
-    //if (optionWhere.between) {
+    //if (optionWhere.between.length > 0) {
     //    optionWhere.between.map(data=> {
     //        knex.whereBetween(data[0], data[1]);
     //    })
     //}
     //
-    //if (optionWhere.notbetween) {
+    //if (optionWhere.notbetween.length > 0) {
     //    optionWhere.notbetween.map(data=> {
     //        knex.whereNotBetween(data[0], data[1]);
     //    })
     //}
 
-    if (optionWhere.operation) {
+    if (optionWhere.operation.length > 0) {
         optionWhere.operation.map(data=> {
             knex.where(data[0], data[1], data[2]);
         })
     }
 };
+
 /**
  *
  * @param knex
@@ -194,60 +195,21 @@ let parseKnexOrWhere = function (knex, optionOrWhere) {
     }
 };
 
-//modify by lihao ,修改or条件的解析
-let parseKnexOrWhere1 = function (knex, optionOrWhere, optionWhere) {
-    let hasOr = false;
-    if (optionOrWhere.and) {
-        hasOr = true;
-        optionOrWhere.and.map(data=> {
-            knex.orWhere(function () {
-                this.andWhere(data[0], data[1], data[2]);
-                parseKnexWhere(this, optionWhere);
-            });
-        })
-    }
-    if (optionOrWhere.operation) {
-        hasOr = true;
-        optionOrWhere.operation.map(data=> {
-            knex.orWhere(function () {
-                this.andWhere(data[0], data[1], data[2]);
-                parseKnexWhere(this, optionWhere);
-            });
-        })
-    }
-    if (optionOrWhere.in) {
-        hasOr = true;
-        optionOrWhere.in.map(data=> {
-            knex.orWhere(function () {
-                this.whereIn(data[0], data[1]);
-                parseKnexWhere(this, optionWhere);
-            });
-        })
-    }
-    if (optionOrWhere.not) {
-        hasOr = true;
-        optionOrWhere.not.map(data=> {
-            knex.orWhere(function () {
-                this.whereNot(data[0], data[1]);
-                parseKnexWhere(this, optionWhere);
-            })
-        })
-    }
-    if (optionOrWhere.notin) {
-        hasOr = true;
-        optionOrWhere.notin.map(data=> {
-            knex.orWhere(function () {
-                this.whereNotIn(data[0], data[1]);
-                parseKnexWhere(this, optionWhere);
-            });
-        })
-    }
+/**
+ * modify by lihao ,修改or条件的解析
+ * @param knex
+ * @param optionOrWhere
+ * @param optionWhere
+ */
+let parseKnexWhere = function (knex, optionOrWhere, optionWhere) {
+    //parse where
+    parseKnexAndWhere(knex, optionWhere);
 
-    if (!hasOr) {
-        parseKnexWhere(knex, optionWhere);
-    }
-
-}
+    //parse orwhere
+    knex.andWhere(function () {
+        parseKnexOrWhere(this, optionOrWhere);
+    });
+};
 
 /**
  *
@@ -435,17 +397,8 @@ export default class extends base {
         for (let key in options.where) {
             preParseKnexWhere(optionsWhere, key, options.where[key], '', options.alias);
         }
-
         //parsed to knex
-        //for (let n in optionsWhere) {
-        //    if (n === 'where') {
-        //        parseKnexWhere(cls, optionsWhere[n]);
-        //    } else if (n === 'orwhere') {
-        //        parseKnexOrWhere(cls, optionsWhere[n], optionsWhere.where);
-        //    }
-        //}
-        //modify by lihao,修改or解析条件
-        parseKnexOrWhere1(cls, optionsWhere.orwhere, optionsWhere.where)
+        parseKnexWhere(cls, optionsWhere.orwhere, optionsWhere.where)
     }
 
     /**

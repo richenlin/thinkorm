@@ -9,17 +9,17 @@ var path = require('path');
 var thinkorm = require('../index.js');
 
 var config = {
-    //db_type: 'mysql',
+    db_type: 'mysql',
     //db_type: 'postgresql',
-    db_type: 'mongo',
+    //db_type: 'mongo',
     db_host: '192.168.99.100',
-    //db_port: 3306,
+    db_port: 3306,
     //db_port: 5432,
-    db_port: 27017,
+    //db_port: 27017,
     db_name: 'test',
-    //db_user: 'root',
-    db_user: '',
-    //db_pwd: 'richenlin',
+    db_user: 'root',
+    //db_user: '',
+    db_pwd: 'richenlin',
     //db_pwd: '',
     db_prefix: 'think_',
     db_charset: 'utf8',
@@ -45,17 +45,17 @@ function test() {
     "use strict";
     return model
         //.migrate()
-    //.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
+    //.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}, {or: [{name: '1111111'}, {name: 2222222, id: 3}]}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
     //.where({id: {'>=': 0}}).count()
     //.where({id: {'>=': 0}}).sum('id')
     //.where({id: {'>=': 0}}).select()
-    .where({name: {'like': 'r%'}}).select()
+    //.where({name: {'like': 'r%'}}).find()
     //.where({not: {name: '', id: 1}}).select()
     //.where({notin: {'id': [1,2,3]}}).select()
     //.where({name: {'like': '%a'}}).select()
     //.where({id: [1,2,3]}).select()
 
-    //.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
+    .where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
     //.countSelect()
     //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()

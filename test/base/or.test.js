@@ -28,7 +28,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {or: [{firstName: 'foo'}, {lastName: 'bar'}]}
                         },
-                        sql: "select * from `think_user` as `User` where `User`.`firstName` = 'foo' or `User`.`lastName` = 'bar'"
+                        sql: "select * from `think_user` as `User` where (`User`.`firstName` = 'foo' or `User`.`lastName` = 'bar')"
                     },
                     {
                         dialect: 'postgresql',
@@ -49,7 +49,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {or: [{firstName: 'foo'}, {lastName: 'bar'}]}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"firstName\" = 'foo' or \"User\".\"lastName\" = 'bar'"
+                        sql: "select * from \"think_user\" as \"User\" where (\"User\".\"firstName\" = 'foo' or \"User\".\"lastName\" = 'bar')"
                     }
                 ]
             }, done);

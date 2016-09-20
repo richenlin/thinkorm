@@ -28,7 +28,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {firstName: 'foo', lastName: 'bar', or: [{name: 'foo'}, {memo: 'bar'}]}
                         },
-                        sql: "select * from `think_user` as `User` where `User`.`firstName` = 'foo' and `User`.`lastName` = 'bar' or `User`.`name` = 'foo' or `User`.`memo` = 'bar'"
+                        sql: "select * from `think_user` as `User` where `User`.`firstName` = 'foo' and `User`.`lastName` = 'bar' and (`User`.`name` = 'foo' or `User`.`memo` = 'bar')"
                     },
                     {
                         dialect: 'postgresql',
@@ -49,7 +49,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {firstName: 'foo', lastName: 'bar', or: [{name: 'foo'}, {memo: 'bar'}]}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"firstName\" = 'foo' and \"User\".\"lastName\" = 'bar' or \"User\".\"name\" = 'foo' or \"User\".\"memo\" = 'bar'"
+                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"firstName\" = 'foo' and \"User\".\"lastName\" = 'bar' and (\"User\".\"name\" = 'foo' or \"User\".\"memo\" = 'bar')"
                     }
                 ]
             }, done);
