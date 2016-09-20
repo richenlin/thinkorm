@@ -194,6 +194,7 @@ let parseKnexOrWhere = function (knex, optionOrWhere) {
     }
 };
 
+//modify by lihao ,修改or条件的解析
 let parseKnexOrWhere1 = function (knex, optionOrWhere, optionWhere) {
     let hasOr = false;
     if (optionOrWhere.and) {
@@ -443,7 +444,7 @@ export default class extends base {
         //        parseKnexOrWhere(cls, optionsWhere[n], optionsWhere.where);
         //    }
         //}
-
+        //modify by lihao,修改or解析条件
         parseKnexOrWhere1(cls, optionsWhere.orwhere, optionsWhere.where)
     }
 
