@@ -194,6 +194,60 @@ let parseKnexOrWhere = function (knex, optionOrWhere) {
     }
 };
 
+let parseKnexOrWhere1 = function (knex, optionOrWhere, optionWhere) {
+    let hasOr = false;
+    if (optionOrWhere.and) {
+        hasOr = true;
+        optionOrWhere.and.map(data=> {
+            knex.orWhere(function () {
+                this.andWhere(data[0], data[1], data[2]);
+                parseKnexWhere(this, optionWhere);
+            });
+        })
+    }
+    if (optionOrWhere.operation) {
+        hasOr = true;
+        optionOrWhere.operation.map(data=> {
+            knex.orWhere(function () {
+                this.andWhere(data[0], data[1], data[2]);
+                parseKnexWhere(this, optionWhere);
+            });
+        })
+    }
+    if (optionOrWhere.in) {
+        hasOr = true;
+        optionOrWhere.in.map(data=> {
+            knex.orWhere(function () {
+                this.whereIn(data[0], data[1]);
+                parseKnexWhere(this, optionWhere);
+            });
+        })
+    }
+    if (optionOrWhere.not) {
+        hasOr = true;
+        optionOrWhere.not.map(data=> {
+            knex.orWhere(function () {
+                this.whereNot(data[0], data[1]);
+                parseKnexWhere(this, optionWhere);
+            })
+        })
+    }
+    if (optionOrWhere.notin) {
+        hasOr = true;
+        optionOrWhere.notin.map(data=> {
+            knex.orWhere(function () {
+                this.whereNotIn(data[0], data[1]);
+                parseKnexWhere(this, optionWhere);
+            });
+        })
+    }
+
+    if (!hasOr) {
+        parseKnexWhere(knex, optionWhere);
+    }
+
+}
+
 /**
  *
  * @param onCondition
@@ -245,9 +299,9 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
             text: {}
         };
  */
-let preParseSchema = function (field, value){
+let preParseSchema = function (field, value) {
     let str = '';
-    if(value.hasOwnProperty('primaryKey') && value.primaryKey === true){
+    if (value.hasOwnProperty('primaryKey') && value.primaryKey === true) {
         str += `t.increments('${field}').primary()`;
     } else {
         switch (value.type) {
@@ -382,13 +436,15 @@ export default class extends base {
         }
 
         //parsed to knex
-        for (let n in optionsWhere) {
-            if (n === 'where') {
-                parseKnexWhere(cls, optionsWhere[n]);
-            } else if (n === 'orwhere') {
-                parseKnexOrWhere(cls, optionsWhere[n]);
-            }
-        }
+        //for (let n in optionsWhere) {
+        //    if (n === 'where') {
+        //        parseKnexWhere(cls, optionsWhere[n]);
+        //    } else if (n === 'orwhere') {
+        //        parseKnexOrWhere(cls, optionsWhere[n], optionsWhere.where);
+        //    }
+        //}
+
+        parseKnexOrWhere1(cls, optionsWhere.orwhere, optionsWhere.where)
     }
 
     /**
@@ -450,13 +506,13 @@ export default class extends base {
      * @param data
      * @param options
      */
-    parseSchema(cls, data, options){
-        if(lib.isEmpty(data) || lib.isEmpty(options.schema)){
+    parseSchema(cls, data, options) {
+        if (lib.isEmpty(data) || lib.isEmpty(options.schema)) {
             return;
         }
         let tableName = `${data.db_prefix}${lib.parseName(options.schema.name)}`;
         let str = [], fields = options.schema.fields;
-        for(let v in fields){
+        for (let v in fields) {
             str.push(preParseSchema(v, fields[v]));
         }
         let func = new Function('t', str.join('\n'));
