@@ -35,6 +35,11 @@ mongodb 完善支持;(目前mongodb支持未完善,请勿用于生产环境)
 
 mongodb join查询
 
+# 文档
+-----
+
+[https://www.gitbook.com/book/richenlin/thinkorm-doc/](https://www.gitbook.com/book/richenlin/thinkorm-doc/)
+
 # 贡献者
 
 -----
