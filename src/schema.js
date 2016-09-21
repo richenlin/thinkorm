@@ -103,7 +103,7 @@ function getRelation(name, config) {
                         init(config){
                             super.init(config);
                             // 是否开启迁移(migrate方法可用)
-                            this.safe = true;
+                            this.safe = cls.safe;
                             // 数据表字段信息
                             this.fields = {
                                 [relation[n]['fkey']]: {
@@ -165,12 +165,11 @@ function migrate(config){
     let instance, ps = [];
     for(let n in ORM.collections){
         instance = new ORM.collections[n](config);
-        if (instance.safe) {
-            continue;
+        if (instance.safe !== true && config.db_ext_config['safe'] !== true) {
+            ps.push(instance.initModel().then(model => {
+                return model.migrate(ORM.collections[n].schema, config);
+            }));
         }
-        ps.push(instance.initModel().then(model => {
-            return model.migrate(ORM.collections[n].schema, config);
-        }));
     }
     return Promise.all(ps);
 }

@@ -57,8 +57,6 @@ export default class extends base {
         this.modelName = this.getModelName();
         // 表名
         this.tableName = this.getTableName();
-        // 安全模式
-        this.safe = (this.config.db_ext_config.safe === true);
         // collection instance
         this.instances = null;
     }
