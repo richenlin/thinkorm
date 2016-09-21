@@ -27,7 +27,7 @@ let parseType = function (type) {
     return type
 };
 /**
- *
+ * get connection key
  * @param config
  * @returns {*}
  */
@@ -35,19 +35,18 @@ let getKey = function (config) {
    return `${config.db_type}_${config.db_host}_${config.db_port}_${config.db_name}`;
 };
 /**
- *
+ * set collections
  * @param func
  * @param config
  * @returns {*}
  */
 let setCollection = function (func, config) {
-    let name;
     if(lib.isFile(func)){
         func = lib.thinkRequire(func);
     }
     if(lib.isFunction(func)){
         let collection = new func(config);
-        name = collection.modelName;
+        let name = collection.modelName;
 
         if(!ORM.collections[name]){
             ORM.collections[name] = func;
@@ -62,7 +61,7 @@ let setCollection = function (func, config) {
     return;
 };
 /**
- *
+ * get model relationship
  * @param name
  * @param config
  * @returns {*}
@@ -137,7 +136,7 @@ function getRelation(name, config) {
 }
 
 /**
- *
+ * set adapter connection
  * @param config
  * @returns {*}
  */
@@ -158,9 +157,28 @@ function setConnection(config){
     return ORM.connections[key];
 }
 
+/**
+ * auto migrate all model structure to database
+ * @param config
+ */
+function migrate(config){
+    let instance, ps = [];
+    for(let n in ORM.collections){
+        instance = new ORM.collections[n](config);
+        if (instance.safe) {
+            continue;
+        }
+        ps.push(instance.initModel().then(model => {
+            return model.migrate(ORM.collections[n].schema, config);
+        }));
+    }
+    return Promise.all(ps);
+}
+
 module.exports = {
     getKey: getKey,
     setCollection: setCollection,
     setConnection: setConnection,
-    getRelation: getRelation
+    getRelation: getRelation,
+    migrate: migrate
 };

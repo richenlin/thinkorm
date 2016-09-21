@@ -64,7 +64,7 @@ export default class extends base {
     }
 
     /**
-     *
+     * load realpath model class files
      * @param args
      * @returns {type[]}
      */
@@ -73,7 +73,7 @@ export default class extends base {
     }
 
     /**
-     *
+     * load collection
      * @param args
      * @returns {*}
      */
@@ -82,12 +82,21 @@ export default class extends base {
     }
 
     /**
-     *
+     * set adapter connection
      * @param args
      * @returns {*}
      */
     static setConnection(...args) {
         return schema.setConnection(...args);
+    }
+
+    /**
+     * auto migrate all model structure to database
+     * @param args
+     * @returns {*|{get}}
+     */
+    static migrate(...args){
+        return schema.migrate(...args);
     }
 
     /**
@@ -130,34 +139,6 @@ export default class extends base {
             //lib.log(msg);
         }
         return Promise.reject(msg);
-    }
-
-    /**
-     * 结构迁移
-     * @param rel 是否创建关联表
-     * @returns {*}
-     */
-    async migrate(rel = false) {
-        try {
-            if (this.safe) {
-                return;
-            }
-            // init model
-            let model = await this.initModel();
-            if (rel) {
-                let relation = schema.getRelation(this.modelName, this.config), ps = [];
-                if (!lib.isEmpty(relation)) {
-                    for (let n in relation) {
-                        ps.push(model.migrate(ORM.collections[n].schema, this.config));
-                    }
-                    await Promise.all(ps);
-                }
-            }
-            await model.migrate(ORM.collections[this.modelName].schema, this.config);
-            return;
-        } catch (e) {
-            return this.error(e);
-        }
     }
 
     /**
