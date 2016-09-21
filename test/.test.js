@@ -45,7 +45,7 @@ function test() {
     "use strict";
     return model
         //.migrate()
-    //.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}, {or: [{name: '1111111'}, {name: 2222222, id: 3}]}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
+    //.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
     //.where({id: {'>=': 0}}).count()
     //.where({id: {'>=': 0}}).sum('id')
     //.where({id: {'>=': 0}}).select()
@@ -55,9 +55,9 @@ function test() {
     //.where({name: {'like': '%a'}}).select()
     //.where({id: [1,2,3]}).select()
 
-    .where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
+    //.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
     //.countSelect()
-    //.join([{from: 'profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+    //.join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.where({id: {'>=': 0}}).group(['id','username']).find()
     //.rel(true).where({id: 10}).find()

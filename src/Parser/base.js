@@ -105,60 +105,31 @@ let parseKnexAndWhere = function (knex, optionWhere) {
     if (optionWhere.and.length > 0) {
         optionWhere.and.map(data=> {
             knex.where(data[0], data[1], data[2]);
-        })
+        });
     }
 
     if (optionWhere.in.length > 0) {
         optionWhere.in.map(data=> {
             knex.whereIn(data[0], data[1]);
-        })
+        });
     }
 
     if (optionWhere.not.length > 0) {
         optionWhere.not.map(data=> {
             knex.whereNot(data[0], data[1]);
-        })
+        });
     }
 
     if (optionWhere.notin.length > 0) {
         optionWhere.notin.map(data=> {
             knex.whereNotIn(data[0], data[1]);
-        })
+        });
     }
-
-    //if (optionWhere.null.length > 0) {
-    //    optionWhere.null.map(data=> {
-    //        //knex.whereNull(...data);
-    //        data.map(d=> {
-    //            knex.whereNull(d);
-    //        })
-    //    })
-    //}
-    //
-    //if (optionWhere.notnull.length > 0) {
-    //    optionWhere.notnull.map(data=> {
-    //        data.map(d=> {
-    //            knex.whereNotNull(d);
-    //        })
-    //    })
-    //}
-    //
-    //if (optionWhere.between.length > 0) {
-    //    optionWhere.between.map(data=> {
-    //        knex.whereBetween(data[0], data[1]);
-    //    })
-    //}
-    //
-    //if (optionWhere.notbetween.length > 0) {
-    //    optionWhere.notbetween.map(data=> {
-    //        knex.whereNotBetween(data[0], data[1]);
-    //    })
-    //}
 
     if (optionWhere.operation.length > 0) {
         optionWhere.operation.map(data=> {
             knex.where(data[0], data[1], data[2]);
-        })
+        });
     }
 };
 
@@ -375,10 +346,6 @@ export default class extends base {
                 "not": [],
                 "in": [],
                 "notin": [],
-                //"null": [],
-                //"notnull": [],
-                //"between": [],
-                //"notbetween": [],
                 "operation": []
             },
             orwhere: {
@@ -386,10 +353,6 @@ export default class extends base {
                 "not": [],
                 "in": [],
                 "notin": [],
-                //"null": [],
-                //"notnull": [],
-                //"between": [],
-                //"notbetween": [],
                 "operation": []
             }
         };
@@ -398,7 +361,7 @@ export default class extends base {
             preParseKnexWhere(optionsWhere, key, options.where[key], '', options.alias);
         }
         //parsed to knex
-        parseKnexWhere(cls, optionsWhere.orwhere, optionsWhere.where)
+        parseKnexWhere(cls, optionsWhere.orwhere, optionsWhere.where);
     }
 
     /**
