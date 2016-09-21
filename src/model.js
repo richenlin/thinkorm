@@ -991,10 +991,22 @@ export default class extends base {
                             if (fields[n] && typeCase[fields[n].type]) {
                                 switch (fields[n].type) {
                                     case 'json':
-                                        item[n] = lib.isEmpty(item[n]) ? {} : JSON.parse(item[n]);
+                                        if(lib.isEmpty(item[n])){
+                                            item[n] = {};
+                                        } else {
+                                            try{
+                                                item[n] = JSON.parse(item[n]);
+                                            }catch (e){}
+                                        }
                                         break;
                                     case 'array':
-                                        item[n] = lib.isEmpty(item[n]) ? [] : JSON.parse(item[n]);
+                                        if(lib.isEmpty(item[n])){
+                                            item[n] = [];
+                                        } else {
+                                            try{
+                                                item[n] = JSON.parse(item[n]);
+                                            }catch (e){}
+                                        }
                                         break;
                                 }
                             }
@@ -1005,10 +1017,22 @@ export default class extends base {
                         if (fields[n] && typeCase[fields[n].type]) {
                             switch (fields[n].type) {
                                 case 'json':
-                                    data[n] = lib.isEmpty(data[n]) ? {} : JSON.parse(data[n]);
+                                    if(lib.isEmpty(data[n])){
+                                        data[n] = {};
+                                    } else {
+                                        try{
+                                            data[n] = JSON.parse(data[n]);
+                                        }catch (e){}
+                                    }
                                     break;
                                 case 'array':
-                                    data[n] = lib.isEmpty(data[n]) ? [] : JSON.parse(data[n]);
+                                    if(lib.isEmpty(data[n])){
+                                        data[n] = [];
+                                    } else {
+                                        try{
+                                            data[n] = JSON.parse(data[n]);
+                                        }catch (e){}
+                                    }
                                     break;
                             }
                         }
