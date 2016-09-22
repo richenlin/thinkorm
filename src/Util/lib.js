@@ -5,11 +5,15 @@
  * @license    MIT
  * @version    16/7/26
  */
+"use strict";
+
 var fs = require('fs');
 var util = require('util');
-function _interopSafeRequire (obj) {return (obj && obj.__esModule && obj.default) ? obj.default : obj;}
+function _interopSafeRequire(obj) {
+    return (obj && obj.__esModule && obj.default) ? obj.default : obj;
+}
 
-if(!Date.prototype.Format){
+if (!Date.prototype.Format) {
     Date.prototype.Format = function (format) {
         let Week = ['日', '一', '二', '三', '四', '五', '六'];
         format = format.replace(/yyyy|YYYY/, this.getFullYear());
@@ -45,7 +49,6 @@ var isArray = Array.isArray;
  * @return {Boolean}
  */
 var isBoolean = function (obj) {
-    'use strict';
     return toString.call(obj) === '[object Boolean]';
 };
 /**
@@ -54,7 +57,6 @@ var isBoolean = function (obj) {
  * @return {Boolean}     [description]
  */
 var isNumber = function (obj) {
-    'use strict';
     return toString.call(obj) === '[object Number]';
 };
 /**
@@ -63,7 +65,6 @@ var isNumber = function (obj) {
  * @return {Boolean}     [description]
  */
 var isString = function (obj) {
-    'use strict';
     return toString.call(obj) === '[object String]';
 };
 /**
@@ -72,7 +73,6 @@ var isString = function (obj) {
  * @return {Boolean}     [description]
  */
 var isObject = function (obj) {
-    'use strict';
     if (Buffer.isBuffer(obj)) {
         return false;
     }
@@ -84,7 +84,6 @@ var isObject = function (obj) {
  * @return {Boolean}     [description]
  */
 var isNumberString = function (obj) {
-    'use strict';
     let numberReg = /^((\-?\d*\.?\d*(?:e[+-]?\d*(?:\d?\.?|\.?\d?)\d*)?)|(0[0-7]+)|(0x[0-9a-f]+))$/i;
     return numberReg.test(obj);
 };
@@ -94,7 +93,6 @@ var isNumberString = function (obj) {
  * @returns {boolean}
  */
 var isJSONObj = function (obj) {
-    'use strict';
     return typeof obj === 'object' && (Object.prototype.toString.call(obj).toLowerCase() === '[object object]' || Object.prototype.toString.call(obj).toLowerCase() === '[object array]');
 };
 /**
@@ -103,8 +101,7 @@ var isJSONObj = function (obj) {
  * @returns {boolean}
  */
 var isJSONStr = function (str) {
-    'use strict';
-    if(!isString(str)){
+    if (!isString(str)) {
         return false;
     }
     try {
@@ -119,7 +116,6 @@ var isJSONStr = function (str) {
  * @return {Boolean}     [description]
  */
 var isFunction = function (obj) {
-    'use strict';
     return typeof obj === 'function';
 };
 /**
@@ -127,7 +123,6 @@ var isFunction = function (obj) {
  * @return {Boolean} [description]
  */
 var isDate = function (obj) {
-    'use strict';
     return util.isDate(obj);
 };
 /**
@@ -136,7 +131,6 @@ var isDate = function (obj) {
  * @return {Boolean}     [description]
  */
 var isRegexp = function (obj) {
-    'use strict';
     return util.isRegExp(obj);
 };
 /**
@@ -145,7 +139,6 @@ var isRegexp = function (obj) {
  * @return {Boolean}     [description]
  */
 var isScalar = function (obj) {
-    'use strict';
     return isBoolean(obj) || isNumber(obj) || isString(obj);
 };
 /**
@@ -154,7 +147,6 @@ var isScalar = function (obj) {
  * @return {Boolean}   [description]
  */
 var isFile = function (p) {
-    'use strict';
     if (!fs.existsSync(p)) {
         return false;
     }
@@ -167,7 +159,6 @@ var isFile = function (p) {
  * @return {Boolean}     [description]
  */
 var isError = function (obj) {
-    'use strict';
     return util.isError(obj);
 };
 /**
@@ -176,8 +167,6 @@ var isError = function (obj) {
  * @return {Boolean}
  */
 var isEmpty = function (obj) {
-    'use strict';
-
     if (obj === null || obj === undefined || obj === '') {
         return true;
     } else if (isString(obj)) {
@@ -201,7 +190,6 @@ var isEmpty = function (obj) {
  * @returns {boolean}
  */
 var inArray = function (needle, haystack) {
-    'use strict';
     let length = haystack.length;
     for (let i = 0; i < length; i++) {
         if (haystack[i] == needle) return true;
@@ -214,7 +202,6 @@ var inArray = function (needle, haystack) {
  * @return {Boolean}     [description]
  */
 var isPromise = function (obj) {
-    'use strict';
     return !!(obj && typeof obj.then === 'function');
 };
 
@@ -223,7 +210,6 @@ var isPromise = function (obj) {
  * @returns {{}}
  */
 var getDefer = function () {
-    'use strict';
     let deferred = {};
     deferred.promise = new Promise(function (resolve, reject) {
         deferred.resolve = resolve;
@@ -238,7 +224,6 @@ var getDefer = function () {
  * @return {Promise}            []
  */
 var promisify = function (fn, receiver) {
-    'use strict';
     return function (...args) {
         return new Promise(function (resolve, reject) {
             fn.apply(receiver, [...args, function (err, res) {
@@ -253,7 +238,6 @@ var promisify = function (fn, receiver) {
  * @return {[type]}      [description]
  */
 var ucFirst = function (name) {
-    'use strict';
     name = (name || '') + '';
     return name.substr(0, 1).toUpperCase() + name.substr(1).toLowerCase();
 };
@@ -280,7 +264,6 @@ var parseName = function (name) {
  * @returns {string}
  */
 var hash = function (input) {
-    'use strict';
     let _hash = 5381;
     let I64BIT_TABLE =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
@@ -312,7 +295,6 @@ var hash = function (input) {
  * @constructor
  */
 var log = function (msg, type, showTime) {
-    'use strict';
     let d = new Date();
     let date = d.Format('yyyy-mm-dd');
     let time = d.Format('hh:mi:ss');
@@ -358,11 +340,10 @@ var _await = function (key, callback) {
  * @return {[type]}      [description]
  */
 var thinkRequire = function (file) {
-    'use strict';
     try {
         var obj = require(file);
         obj = _interopSafeRequire(obj);
-        if(isFunction(obj)){
+        if (isFunction(obj)) {
             obj.prototype.__filename = file;
         }
         return obj;
@@ -375,7 +356,6 @@ var thinkRequire = function (file) {
  * @return {[type]} [description]
  */
 var extend = function () {
-    'use strict';
     let args = [].slice.call(arguments);
     let deep = true;
     let target;
