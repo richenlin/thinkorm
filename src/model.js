@@ -1041,12 +1041,11 @@ export default class extends base {
             };
             let relationData = data;
             if (!lib.isEmpty(data)) {
-                let relation = options.rel, rtype, fkey, config = this.config, ps = [];
+                let relation = options.rel, rtype, config = this.config, ps = [];
                 let pk = await this.getPk();
                 for (let n in relation) {
                     rtype = relation[n]['type'];
-                    if (relation[n].fkey && rtype && rtype in caseList) {
-                        fkey = (rtype === 'MANYTOMANY') ? lib.parseName(relation[n].name) : relation[n].fkey;
+                    if (rtype && rtype in caseList) {
                         if (lib.isArray(data)) {
                             for (let [k,v] of data.entries()) {
                                 ps.push(caseList[rtype](config, relation[n], data[k]).then(res => {
@@ -1089,7 +1088,7 @@ export default class extends base {
                 let pk = await this.getPk();
                 for (let n in relationData) {
                     rtype = relation[n] ? relation[n]['type'] : null;
-                    if (relation[n].fkey && rtype && rtype in caseList) {
+                    if (rtype && rtype in caseList) {
                         ps.push(caseList[rtype](config, result, options, relation[n], relationData[n], postType));
                     }
                 }

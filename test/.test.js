@@ -60,7 +60,7 @@ function test() {
     //.join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.where({id: {'>=': 0}}).group(['id','username']).find()
-    //.rel(true).where({id: 10}).find()
+    .rel(true).where({id: 10}).find()
     //.add({name: 'rrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
     //.where({id: 60}).update({name: 'tttttt',Profile: {test: 'ttttttt'}})
     //.add({name: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
