@@ -319,12 +319,18 @@ export default class extends base {
         if (lib.isEmpty(options.field)) {
             return;
         }
-        let fds = [];
+        let fds = [], temp = [];
         options.field.forEach(item => {
-            if (item.indexOf('.') > -1) {
-                fds.push(item);
-            } else {
-                fds.push(`${options.name}.${item}`);
+            //不支持直接写*
+            if(item !== '*'){
+                if (item.indexOf('.') > -1) {
+                    temp = item.trim().split('.');
+                    if(temp[0] !== options.name && temp[1] !== '*'){
+                        fds.push(`${item} AS ${item.replace('.', '_')}`);
+                    }
+                } else {
+                    fds.push(`${options.name}.${item}`);
+                }
             }
         });
         cls.column(fds);
