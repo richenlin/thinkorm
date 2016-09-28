@@ -56,39 +56,39 @@ let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
             case 'IN':
                 for (let n in value) {
                     if (lib.isArray(value[n])) {
-                        isor ? options.orwhere.in.push([`${_alias}${n}`, value[n]]) : options.where.in.push([`${_alias}${n}`, value[n]]);
+                        isor ? options.orwhere.in.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.in.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
                     }
                 }
                 break;
             case 'NOTIN':
                 for (let n in value) {
                     if (lib.isArray(value[n])) {
-                        isor ? options.orwhere.notin.push([`${_alias}${n}`, value[n]]) : options.where.notin.push([`${_alias}${n}`, value[n]]);
+                        isor ? options.orwhere.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
                     }
                 }
                 break;
             case 'NOT':
                 for (let n in value) {
                     if (lib.isArray(value[n])) {
-                        isor ? options.orwhere.notin.push([`${alias}${n}`, value[n]]) : options.where.notin.push([`${_alias}${n}`, value[n]]);
+                        isor ? options.orwhere.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
                     } else {
-                        isor ? options.orwhere.not.push([`${_alias}${n}`, value[n]]) : options.where.not.push([`${_alias}${n}`, value[n]]);
+                        isor ? options.orwhere.not.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.not.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
                     }
                 }
                 break;
             case 'OPERATOR':
-                isor ? options.orwhere.operation.push([`${_alias}${k}`, key, value]) : options.where.operation.push([`${_alias}${k}`, key, value]);
+                isor ? options.orwhere.operation.push([`${k.indexOf('.') === -1 ? _alias : ''}${k}`, key, value]) : options.where.operation.push([`${k.indexOf('.') === -1 ? _alias : ''}${k}`, key, value]);
                 break;
             case 'AND':
             default:
                 if (lib.isArray(value)) {
-                    isor ? options.orwhere.in.push([`${_alias}${key}`, value]) : options.where.in.push([`${_alias}${key}`, value]);
+                    isor ? options.orwhere.in.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, value]) : options.where.in.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, value]);
                 } else if (lib.isObject(value)) {
                     for (let n in value) {
                         preParseKnexWhere(options, n, value[n], key, alias, isor);
                     }
                 } else {
-                    isor ? options.orwhere.and.push([`${_alias}${key}`, '=', value]) : options.where.and.push([`${_alias}${key}`, '=', value]);
+                    isor ? options.orwhere.and.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, '=', value]) : options.where.and.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, '=', value]);
                 }
                 break;
         }
@@ -400,8 +400,9 @@ export default class extends base {
                     joinTable = `${config.db_prefix}${lib.parseName(item.from)}`;
                     //关联表字段
                     if (!lib.isEmpty(item.field) && lib.isArray(item.field)) {
+                        !options.field && (options.field = [`${name}.*`]);
                         item.field.forEach(it => {
-                            //关联表字段必须指定,不能写*
+                            //关联表字段不能写*
                             if (it && it.trim() !== '*') {
                                 options.field.push(`${item.from}.${it} AS ${joinAlias}_${it}`);
                             }
