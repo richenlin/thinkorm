@@ -536,16 +536,19 @@ export default class extends base {
                 fkey && (await primaryModel.update({[rel.fkey]: fkey}, {where: {[rel.primaryPk]: result}}));
                 break;
             case 'UPDATE':
-                if (!relationData[rel.fkey]) {
-                    if (primaryModel) {
-                        let info = await primaryModel.field(rel.fkey).find(options);
-                        relationData[rel.fkey] = info[rel.fkey];
-                    }
-                }
-                //子表主键数据存在才更新
+                let condition = {}, keys = [];
+                //子表主键数据存在
                 if (relationData[rel.fkey]) {
-                    await model.update(relationData, {where: {[rel.rkey]: relationData[rel.fkey]}});
+                    condition[rel.rkey] = relationData[rel.fkey];
                 }
+                //限制只能更新关联数据
+                let info = await primaryModel.field([rel.primaryPk]).select(options).catch(e => []);
+                info.map(item => {
+                    keys.push(item[rel.primaryPk]);
+                });
+                condition['in'] = {[rel.rkey]: keys};
+
+                await model.update(relationData, {where: condition});
                 break;
         }
         return;
@@ -566,20 +569,32 @@ export default class extends base {
             return;
         }
         let model = new (rel.model)(config), rpk = model.getPk();
-        for (let [k, v] of relationData.entries()) {
-            switch (postType) {
-                case 'ADD':
+        switch (postType) {
+            case 'ADD':
+                for (let [k, v] of relationData.entries()) {
                     //子表插入数据
                     v[rel.rkey] = result;
                     await model.add(v);
-                    break;
-                case 'UPDATE':
-                    //子表主键数据存在才更新
+                }
+                break;
+            case 'UPDATE':
+                let condition = {}, keys = [];
+                let primaryModel = new (ORM.collections[rel.primaryName])(config);
+                //限制只能更新关联数据
+                let info = await primaryModel.field([rel.primaryPk]).select(options).catch(e => []);
+                info.map(item => {
+                    keys.push(item[rel.primaryPk]);
+                });
+                condition['in'] = {[rel.rkey]: keys};
+
+                for (let [k, v] of relationData.entries()) {
+                    //子表主键数据存在
                     if (v[rpk]) {
-                        await model.update(v, {where: {[rpk]: v[rpk]}});
+                        condition[rpk] = v[rpk];
                     }
-                    break;
-            }
+                    await model.update(v, {where: condition});
+                }
+                break;
         }
         return;
     }
@@ -601,10 +616,9 @@ export default class extends base {
         //子表主键
         let model = new (rel.model)(config), rpk = model.getPk();
         let mapModel = new (rel['mapModel'])(config);
-        //关系表
-        for (let [k, v] of relationData.entries()) {
-            switch (postType) {
-                case 'ADD':
+        switch (postType) {
+            case 'ADD':
+                for (let [k, v] of relationData.entries()) {
                     //子表增加数据
                     let fkey = await model.add(v);
                     //关系表增加数据,使用thenAdd
@@ -614,8 +628,24 @@ export default class extends base {
                             [rel.rkey]: fkey
                         }
                     }));
-                    break;
-                case 'UPDATE':
+                }
+                break;
+            case 'UPDATE':
+                let condition = {}, keys = [];
+                let primaryModel = new (ORM.collections[rel.primaryName])(config);
+                //限制只能更新关联数据
+                let info = await primaryModel.join([{
+                    from: mapModel.modelName,
+                    on: {[rel.primaryPk]: rel.fkey},
+                    field: [rel.fkey, rel.rkey],
+                    type: 'inner'
+                }]).select(options);
+                info.map(item => {
+                    keys.push(item[`${mapModel.modelName}_${rel.rkey}`]);
+                });
+                condition['in'] = {[rpk]: keys};
+
+                for (let [k, v] of relationData.entries()) {
                     //关系表两个外键都存在,更新关系表
                     if (v[rel.fkey] && v[rel.rkey]) {
                         //关系表增加数据,此处不考虑两个外键是否在相关表存在数据,因为关联查询会忽略
@@ -623,11 +653,16 @@ export default class extends base {
                             [rel.fkey]: v[rel.fkey],
                             [rel.rkey]: v[rel.rkey]
                         }, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
-                    } else if (v[rpk]) {//仅存在子表主键情况下,更新子表
-                        await model.update(v, {where: {[rpk]: v[rpk]}});
+                    } else {
+                        //仅存在子表主键
+                        if (v[rpk]) {
+                            condition[rpk] = v[rpk];
+                        }
+                        //更新
+                        await model.update(v, {where: condition});
                     }
-                    break;
-            }
+                }
+                break;
         }
         return;
     }

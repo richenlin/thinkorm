@@ -60,7 +60,7 @@ function test() {
     //.where({or: [{id: 1, name: {or: [{name: 'aa'}, {memo: 'aa'}]}}, {memo: 'aa'}]}).find()//or嵌套
     //.where({in: {id: [1,2,3], num: [2,3]}}).find()//in做key
     //.where({'operator': {id: {'<>': 1, '>=': 0}}}).find()//operator做key
-    .where({name: {'<>': '', not: 'aa', notin: ['aa', 'rrr'], like: '%a'}}).find()
+    //.where({name: {'<>': '', not: 'aa', notin: ['aa', 'rrr'], like: '%a'}}).find()
 
     //.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
     //.countSelect()
@@ -68,13 +68,13 @@ function test() {
     //.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.where({id: {'>=': 0}}).group(['id','username']).find()
     //.rel(true).where({id: 10}).find()
-    //.add({name: 'rrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
-    //.where({id: 60}).update({name: 'tttttt',Profile: {test: 'ttttttt'}})
-    //.add({name: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})
-    //.where({id: 99}).update({name: 'tttttt',Pet: [{id: 7,types: 'ttttttt'}]})
-    //.add({name: 'rrrrrrr',Group: [{name: 'ssfsssss'}]})
-    //.where({id: 115}).update({name: 'tttttt',Group: [{id: 15,name: 'ttttttt'}]})
-    //.where({id: 115}).update({name: 'tttttt',Group: [{userid: 115, groupid: 15}]})
+    //.add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
+    //.where({id: 41}).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})
+    //.add({name: 'rrrrrrrrrrrrr',Pet: [{types: 'ssfsssss'}]})
+    .where({id: 1}).update({name: 'ttrrrrrtttt',Pet: [{id: 7,types: 'ttttttt'}]})
+    //.add({name: 'rrrrrrrrrrr',Group: [{name: 'ssfsssss', type: ''}]})
+    //.where({id: 12}).update({name: 'ttttrrrrrtt',Group: [{id: 55,name: 'ttttttt'}]})
+    //.where({id: 115}).update({name: 'ttttrrrrrtt',Group: [{userid: 115, groupid: 15}]})
     //    .query('select * from think_user where id = 1')
     //    .where({id:1}).increment('num', 1)
     //    .add({name: 'qqqesddfsdqqq'})
