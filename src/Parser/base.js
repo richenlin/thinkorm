@@ -31,156 +31,248 @@ const identifiers = {
  * operator: {id: {'<>': 1}}
  * operator: {id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}
  * like: {name: {'like': '%a'}}
+ * @param knex
  * @param options
- * @param key
- * @param value
- * @param k
  * @param alias
- * @param isor
- * @returns {*}
+ * @param extkey
  */
-let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
-    try {
-        let idt = key.toUpperCase();
-        let _alias = alias ? `${alias}.` : '';
+let parseKnexWhere = function (knex, options, alias, extkey) {
+    let idt = '', _alias = alias || '';
+    for (let op in options) {
+        idt = op.toUpperCase();
         switch (identifiers[idt]) {
             case 'OR':
-                if (lib.isArray(value)) {
-                    for (let n of value) {
-                        for (let orKey in n) {
-                            preParseKnexWhere(options, orKey, n[orKey], orKey, alias, true);
-                        }
-                    }
+                if (lib.isArray(options[op])) {
+                    parseOr(knex, options[op], _alias);
                 }
                 break;
             case 'IN':
-                for (let n in value) {
-                    if (lib.isArray(value[n])) {
-                        isor ? options.orwhere.in.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.in.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
+                if (lib.isArray(options[op])) {
+                    parseIn(knex, op, options[op], _alias);
+                } else if (lib.isObject(options[op])) {
+                    for (let n in options[op]) {
+                        parseIn(knex, n, options[op][n], _alias);
                     }
                 }
                 break;
             case 'NOTIN':
-                for (let n in value) {
-                    if (lib.isArray(value[n])) {
-                        isor ? options.orwhere.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
-                    }
+                if (lib.isObject(options[op])) {
+                    parseNotIn(knex, options[op], _alias);
+                } else if (lib.isArray(options[op]) && extkey !== undefined) {
+                    parseNotIn(knex, {[extkey]: options[op]}, _alias);
                 }
                 break;
             case 'NOT':
-                for (let n in value) {
-                    if (lib.isArray(value[n])) {
-                        isor ? options.orwhere.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
-                    } else {
-                        isor ? options.orwhere.not.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.not.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
-                    }
+                if (lib.isObject(options[op])) {
+                    parseNot(knex, options[op], _alias);
+                } else if(extkey !== undefined){
+                    parseNot(knex, {[extkey]: options[op]}, _alias);
                 }
                 break;
             case 'OPERATOR':
-                isor ? options.orwhere.operation.push([`${k.indexOf('.') === -1 ? _alias : ''}${k}`, key, value]) : options.where.operation.push([`${k.indexOf('.') === -1 ? _alias : ''}${k}`, key, value]);
+                if (extkey !== undefined) {
+                    parseOperator(knex, extkey, op, options[op], _alias);
+                } else if (lib.isObject(options[op])) {
+                    for (let n in options[op]) {
+                        parseKnexWhere(knex, {[n]: options[op][n]}, _alias, op);
+                    }
+                }
                 break;
             case 'AND':
             default:
-                if (lib.isArray(value)) {
-                    isor ? options.orwhere.in.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, value]) : options.where.in.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, value]);
-                } else if (lib.isObject(value)) {
-                    for (let n in value) {
-                        preParseKnexWhere(options, n, value[n], key, alias, isor);
+                if (lib.isArray(options[op])) {
+                    parseIn(knex, op, options[op], _alias);
+                } else if (lib.isObject(options[op])) {
+                    for (let n in options[op]) {
+                        parseKnexWhere(knex, {[n]: options[op][n]}, _alias, op);
                     }
                 } else {
-                    isor ? options.orwhere.and.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, '=', value]) : options.where.and.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, '=', value]);
+                    let _key = op.indexOf('.') === -1 ? `${alias}.${op}` : op;
+                    knex.where(_key, '=', options[op]);
                 }
-                break;
         }
-    } catch (e) {
-        return options;
     }
 };
-/**
- *
- * @param knex
- * @param optionWhere
- */
-let parseKnexAndWhere = function (knex, optionWhere) {
-    if (optionWhere.and.length > 0) {
-        optionWhere.and.map(data=> {
-            knex.where(data[0], data[1], data[2]);
+//解析or条件
+function parseOr(knex, options, alias) {
+    knex.where(function () {
+        options.map(item => {
+            if (lib.isObject(item)) {
+                this.orWhere(function () {
+                    parseKnexWhere(this, item, alias);
+                });
+            }
         });
-    }
-
-    if (optionWhere.in.length > 0) {
-        optionWhere.in.map(data=> {
-            knex.whereIn(data[0], data[1]);
-        });
-    }
-
-    if (optionWhere.not.length > 0) {
-        optionWhere.not.map(data=> {
-            knex.whereNot(data[0], data[1]);
-        });
-    }
-
-    if (optionWhere.notin.length > 0) {
-        optionWhere.notin.map(data=> {
-            knex.whereNotIn(data[0], data[1]);
-        });
-    }
-
-    if (optionWhere.operation.length > 0) {
-        optionWhere.operation.map(data=> {
-            knex.where(data[0], data[1], data[2]);
-        });
-    }
-};
-
-/**
- *
- * @param knex
- * @param optionOrWhere
- */
-let parseKnexOrWhere = function (knex, optionOrWhere) {
-    if (optionOrWhere.and) {
-        optionOrWhere.and.map(data=> {
-            knex.orWhere(data[0], data[1], data[2]);
-        })
-    }
-    if (optionOrWhere.operation) {
-        optionOrWhere.operation.map(data=> {
-            knex.orWhere(data[0], data[1], data[2]);
-        })
-    }
-    if (optionOrWhere.in) {
-        optionOrWhere.in.map(data=> {
-            knex.orWhereIn(data[0], data[1]);
-        })
-    }
-    if (optionOrWhere.not) {
-        optionOrWhere.not.map(data=> {
-            knex.orWhereNot(data[0], data[1]);
-        })
-    }
-    if (optionOrWhere.notin) {
-        optionOrWhere.notin.map(data=> {
-            knex.orWhereNotIn(data[0], data[1]);
-        })
-    }
-};
-
-/**
- * modify by lihao ,修改or条件的解析
- * @param knex
- * @param optionOrWhere
- * @param optionWhere
- */
-let parseKnexWhere = function (knex, optionOrWhere, optionWhere) {
-    //parse where
-    parseKnexAndWhere(knex, optionWhere);
-
-    //parse orwhere
-    knex.andWhere(function () {
-        parseKnexOrWhere(this, optionOrWhere);
     });
-};
+}
+//解析not条件
+function parseNot(knex, options, alias) {
+    knex.whereNot(function () {
+        parseKnexWhere(this, options, alias);
+    });
+}
+//解析in条件
+function parseIn(knex, key, value, alias) {
+    let _key = key.indexOf('.') === -1 ? `${alias}.${key}` : key;
+    knex.whereIn(_key, value);
+}
+//解析notin条件
+function parseNotIn(knex, options, alias) {
+    let _key = '';
+    for (let n in options) {
+        _key = n.indexOf('.') === -1 ? `${alias}.${n}` : n;
+        knex.whereNotIn(_key, options[n]);
+    }
+}
+//解析operator等条件
+function parseOperator(knex, key, operator, value, alias) {
+    let _key = key.indexOf('.') === -1 ? `${alias}.${key}` : key;
+    knex.where(_key, operator, value);
+}
+
+
+//let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
+//    try {
+//        let idt = key.toUpperCase();
+//        let _alias = alias ? `${alias}.` : '';
+//        switch (identifiers[idt]) {
+//            case 'OR':
+//                if (lib.isArray(value)) {
+//                    for (let n of value) {
+//                        for (let orKey in n) {
+//                            preParseKnexWhere(options, orKey, n[orKey], orKey, alias, true);
+//                        }
+//                    }
+//                }
+//                break;
+//            case 'IN':
+//                for (let n in value) {
+//                    if (lib.isArray(value[n])) {
+//                        isor ? options.orwhere.in.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.in.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
+//                    }
+//                }
+//                break;
+//            case 'NOTIN':
+//                for (let n in value) {
+//                    if (lib.isArray(value[n])) {
+//                        isor ? options.orwhere.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
+//                    }
+//                }
+//                break;
+//            case 'NOT':
+//                for (let n in value) {
+//                    if (lib.isArray(value[n])) {
+//                        isor ? options.orwhere.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.notin.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
+//                    } else {
+//                        isor ? options.orwhere.not.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]) : options.where.not.push([`${n.indexOf('.') === -1 ? _alias : ''}${n}`, value[n]]);
+//                    }
+//                }
+//                break;
+//            case 'OPERATOR':
+//                isor ? options.orwhere.operation.push([`${k.indexOf('.') === -1 ? _alias : ''}${k}`, key, value]) : options.where.operation.push([`${k.indexOf('.') === -1 ? _alias : ''}${k}`, key, value]);
+//                break;
+//            case 'AND':
+//            default:
+//                if (lib.isArray(value)) {
+//                    isor ? options.orwhere.in.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, value]) : options.where.in.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, value]);
+//                } else if (lib.isObject(value)) {
+//                    for (let n in value) {
+//                        preParseKnexWhere(options, n, value[n], key, alias, isor);
+//                    }
+//                } else {
+//                    isor ? options.orwhere.and.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, '=', value]) : options.where.and.push([`${key.indexOf('.') === -1 ? _alias : ''}${key}`, '=', value]);
+//                }
+//                break;
+//        }
+//    } catch (e) {
+//        return options;
+//    }
+//};
+///**
+// *
+// * @param knex
+// * @param optionWhere
+// */
+//let parseKnexAndWhere = function (knex, optionWhere) {
+//    if (optionWhere.and.length > 0) {
+//        optionWhere.and.map(data=> {
+//            knex.where(data[0], data[1], data[2]);
+//        });
+//    }
+//
+//    if (optionWhere.in.length > 0) {
+//        optionWhere.in.map(data=> {
+//            knex.whereIn(data[0], data[1]);
+//        });
+//    }
+//
+//    if (optionWhere.not.length > 0) {
+//        optionWhere.not.map(data=> {
+//            knex.whereNot(data[0], data[1]);
+//        });
+//    }
+//
+//    if (optionWhere.notin.length > 0) {
+//        optionWhere.notin.map(data=> {
+//            knex.whereNotIn(data[0], data[1]);
+//        });
+//    }
+//
+//    if (optionWhere.operation.length > 0) {
+//        optionWhere.operation.map(data=> {
+//            knex.where(data[0], data[1], data[2]);
+//        });
+//    }
+//};
+//
+///**
+// *
+// * @param knex
+// * @param optionOrWhere
+// */
+//let parseKnexOrWhere = function (knex, optionOrWhere) {
+//    if (optionOrWhere.and.length > 0) {
+//        optionOrWhere.and.map(data=> {
+//            knex.orWhere(data[0], data[1], data[2]);
+//        })
+//    }
+//    if (optionOrWhere.operation.length > 0) {
+//        optionOrWhere.operation.map(data=> {
+//            knex.orWhere(data[0], data[1], data[2]);
+//        })
+//    }
+//    if (optionOrWhere.in.length > 0) {
+//        optionOrWhere.in.map(data=> {
+//            knex.orWhereIn(data[0], data[1]);
+//        })
+//    }
+//    if (optionOrWhere.not.length > 0) {
+//        optionOrWhere.not.map(data=> {
+//            knex.orWhereNot(data[0], data[1]);
+//        })
+//    }
+//    if (optionOrWhere.notin.length > 0) {
+//        optionOrWhere.notin.map(data=> {
+//            knex.orWhereNotIn(data[0], data[1]);
+//        })
+//    }
+//};
+//
+///**
+// * modify by lihao ,修改or条件的解析
+// * @param knex
+// * @param optionOrWhere
+// * @param optionWhere
+// */
+//let parseKnexWhere = function (knex, optionOrWhere, optionWhere) {
+//    //parse where
+//    parseKnexAndWhere(knex, optionWhere);
+//
+//    //parse orwhere
+//    knex.andWhere(function () {
+//        parseKnexOrWhere(this, optionOrWhere);
+//    });
+//};
 
 /**
  *
@@ -322,10 +414,10 @@ export default class extends base {
         let fds = [], temp = [];
         options.field.forEach(item => {
             //不支持直接写*
-            if(item !== '*'){
+            if (item !== '*') {
                 if (item.indexOf('.') > -1) {
                     temp = item.trim().split('.');
-                    if(temp[0] !== options.name && temp[1] !== '*'){
+                    if (temp[0] !== options.name && temp[1] !== '*') {
                         fds.push(`${item} AS ${item.replace('.', '_')}`);
                     }
                 } else {
@@ -346,28 +438,31 @@ export default class extends base {
         if (lib.isEmpty(options.where)) {
             return;
         }
-        let optionsWhere = {
-            where: {
-                "and": [],
-                "not": [],
-                "in": [],
-                "notin": [],
-                "operation": []
-            },
-            orwhere: {
-                "and": [],
-                "not": [],
-                "in": [],
-                "notin": [],
-                "operation": []
-            }
-        };
         //parse where options
-        for (let key in options.where) {
-            preParseKnexWhere(optionsWhere, key, options.where[key], '', options.alias);
-        }
-        //parsed to knex
-        parseKnexWhere(cls, optionsWhere.orwhere, optionsWhere.where);
+        parseKnexWhere(cls, options.where, options.alias);
+
+        //let optionsWhere = {
+        //    where: {
+        //        "and": [],
+        //        "not": [],
+        //        "in": [],
+        //        "notin": [],
+        //        "operation": []
+        //    },
+        //    orwhere: {
+        //        "and": [],
+        //        "not": [],
+        //        "in": [],
+        //        "notin": [],
+        //        "operation": []
+        //    }
+        //};
+        ////parse where options
+        //for (let key in options.where) {
+        //    preParseKnexWhere(optionsWhere, key, options.where[key], '', options.alias);
+        //}
+        ////parsed to knex
+        //parseKnexWhere(cls, optionsWhere.orwhere, optionsWhere.where);
     }
 
     /**

@@ -55,12 +55,19 @@ function test() {
     //.where({name: {'like': '%a'}}).select()
     //.where({id: [1,2,3]}).select()
 
+    //.where({id: {'<>': 1, '>=': 0, notin: [1,2,3]}, name: ['aa', 'rrrrrrr'], notin: {'id': [1,2,3], num: [1,2,3]}, not: {name: '', num: [1,2,3]}, memo: {'like': '%a'}, or: [{name: 'aa', id: 1}, {name: 'rrrrrrr', id: {'>': 1}}]}).find()
+    //.where({'and': {id: 1, name: 'aa'}}).find()//and做key
+    //.where({or: [{id: 1, name: {or: [{name: 'aa'}, {memo: 'aa'}]}}, {memo: 'aa'}]}).find()//or嵌套
+    //.where({in: {id: [1,2,3], num: [2,3]}}).find()//in做key
+    //.where({'operator': {id: {'<>': 1, '>=': 0}}}).find()//operator做key
+    .where({name: {'<>': '', not: 'aa', notin: ['aa', 'rrr'], like: '%a'}}).find()
+
     //.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
     //.countSelect()
     //.join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
     //.where({id: {'>=': 0}}).group(['id','username']).find()
-    .rel(true).where({id: 10}).find()
+    //.rel(true).where({id: 10}).find()
     //.add({name: 'rrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
     //.where({id: 60}).update({name: 'tttttt',Profile: {test: 'ttttttt'}})
     //.add({name: 'rrrrrrr',Pet: [{types: 'ssfsssss'}]})

@@ -34,6 +34,17 @@ if (!Date.prototype.Format) {
 global.toString = Object.prototype.toString;
 
 /**
+ * console.log 封装
+ * @param str
+ */
+global.echo = function (str) {
+    let date = new Date().Format('yyyy-mm-dd hh:mi:ss');
+    console.log(`----------${ date }----------`);
+    console.log(str);
+    console.log(`----------${ date }----------`);
+};
+
+/**
  * 是否是buffer
  * @type {Boolean}
  */
