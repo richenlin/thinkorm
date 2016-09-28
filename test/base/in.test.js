@@ -49,7 +49,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {id: [1, 2, 3]}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" in ('1', '2', '3')"
+                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" in (1, 2, 3)"
                     }
                 ]
             }, done);

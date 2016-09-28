@@ -98,7 +98,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {age: {'>': 10, '<=': 80}}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"age\" > '10' and \"User\".\"age\" <= '80'"
+                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"age\" > 10 and \"User\".\"age\" <= 80"
                     }
                 ]
             }, done);

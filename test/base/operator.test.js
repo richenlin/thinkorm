@@ -49,7 +49,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {id: {'>': 1}}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" > '1'"
+                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" > 1"
                     }
                 ]
             }, done);
@@ -98,7 +98,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {id: {'<': 1}}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" < '1'"
+                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" < 1"
                     }
                 ]
             }, done);
@@ -147,7 +147,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {id: {'>=': 1}}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" >= '1'"
+                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" >= 1"
                     }
                 ]
             }, done);
@@ -196,7 +196,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {id: {'<=': 1}}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" <= '1'"
+                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" <= 1"
                     }
                 ]
             }, done);
@@ -245,7 +245,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {id: {'<>': 1}}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" <> '1'"
+                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" <> 1"
                     }
                 ]
             }, done);
@@ -294,7 +294,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: {id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" <> '1' and \"User\".\"id\" >= '2' and \"User\".\"id\" > '0' and \"User\".\"id\" < '100' and \"User\".\"id\" <= '10'"
+                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" <> 1 and \"User\".\"id\" >= 2 and \"User\".\"id\" > 0 and \"User\".\"id\" < 100 and \"User\".\"id\" <= 10"
                     }
                 ]
             }, done);
