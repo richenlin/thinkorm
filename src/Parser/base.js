@@ -131,6 +131,7 @@ function parseOperator(knex, key, operator, value, alias) {
 }
 
 
+
 //let preParseKnexWhere = function (options, key, value, k, alias, isor = false) {
 //    try {
 //        let idt = key.toUpperCase();
@@ -505,7 +506,7 @@ export default class extends base {
                         item.field.forEach(it => {
                             //关联表字段不能写*
                             if (it && it.trim() !== '*') {
-                                options.field.push(`${item.from}.${it} AS ${joinAlias}_${it}`);
+                                options.field.push(`${item.from}.${it}`);
                             }
                         });
                     }

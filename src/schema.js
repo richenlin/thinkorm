@@ -127,7 +127,6 @@ function getRelation(name, config) {
                     //初始化map模型
                     this.setCollection(_class, cls.config);
                 }
-                ORM.collections[name]['relation'][mapName] = ORM.collections[mapName];
                 ORM.collections[name]['relation'][n]['mapModel'] = ORM.collections[mapName];
             }
         }
