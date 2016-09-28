@@ -37,57 +37,57 @@ const identifiers = {
  * @param extkey
  */
 let parseKnexWhere = function (knex, options, alias, extkey) {
-    let idt = '', _alias = alias || '';
+    let idt = '';
     for (let op in options) {
         idt = op.toUpperCase();
         switch (identifiers[idt]) {
             case 'OR':
                 if (lib.isArray(options[op])) {
-                    parseOr(knex, options[op], _alias);
+                    parseOr(knex, options[op], alias);
                 }
                 break;
             case 'IN':
                 if (lib.isArray(options[op])) {
-                    parseIn(knex, op, options[op], _alias);
+                    parseIn(knex, op, options[op], alias);
                 } else if (lib.isObject(options[op])) {
                     for (let n in options[op]) {
-                        parseIn(knex, n, options[op][n], _alias);
+                        parseIn(knex, n, options[op][n], alias);
                     }
                 }
                 break;
             case 'NOTIN':
                 if (lib.isObject(options[op])) {
-                    parseNotIn(knex, options[op], _alias);
+                    parseNotIn(knex, options[op], alias);
                 } else if (lib.isArray(options[op]) && extkey !== undefined) {
-                    parseNotIn(knex, {[extkey]: options[op]}, _alias);
+                    parseNotIn(knex, {[extkey]: options[op]}, alias);
                 }
                 break;
             case 'NOT':
                 if (lib.isObject(options[op])) {
-                    parseNot(knex, options[op], _alias);
+                    parseNot(knex, options[op], alias);
                 } else if(extkey !== undefined){
-                    parseNot(knex, {[extkey]: options[op]}, _alias);
+                    parseNot(knex, {[extkey]: options[op]}, alias);
                 }
                 break;
             case 'OPERATOR':
                 if (extkey !== undefined) {
-                    parseOperator(knex, extkey, op, options[op], _alias);
+                    parseOperator(knex, extkey, op, options[op], alias);
                 } else if (lib.isObject(options[op])) {
                     for (let n in options[op]) {
-                        parseKnexWhere(knex, {[n]: options[op][n]}, _alias, op);
+                        parseKnexWhere(knex, {[n]: options[op][n]}, alias, op);
                     }
                 }
                 break;
             case 'AND':
             default:
                 if (lib.isArray(options[op])) {
-                    parseIn(knex, op, options[op], _alias);
+                    parseIn(knex, op, options[op], alias);
                 } else if (lib.isObject(options[op])) {
                     for (let n in options[op]) {
-                        parseKnexWhere(knex, {[n]: options[op][n]}, _alias, op);
+                        parseKnexWhere(knex, {[n]: options[op][n]}, alias, op);
                     }
                 } else {
-                    let _key = op.indexOf('.') === -1 ? `${alias}.${op}` : op;
+                    let _key = (alias && op.indexOf('.') === -1) ? `${alias}.${op}` : op;
                     knex.where(_key, '=', options[op]);
                 }
         }
@@ -113,20 +113,20 @@ function parseNot(knex, options, alias) {
 }
 //解析in条件
 function parseIn(knex, key, value, alias) {
-    let _key = key.indexOf('.') === -1 ? `${alias}.${key}` : key;
+    let _key = (alias && key.indexOf('.') === -1) ? `${alias}.${key}` : key;
     knex.whereIn(_key, value);
 }
 //解析notin条件
 function parseNotIn(knex, options, alias) {
     let _key = '';
     for (let n in options) {
-        _key = n.indexOf('.') === -1 ? `${alias}.${n}` : n;
+        _key = (alias && n.indexOf('.') === -1) ? `${alias}.${n}` : n;
         knex.whereNotIn(_key, options[n]);
     }
 }
 //解析operator等条件
 function parseOperator(knex, key, operator, value, alias) {
-    let _key = key.indexOf('.') === -1 ? `${alias}.${key}` : key;
+    let _key = (alias && key.indexOf('.') === -1) ? `${alias}.${key}` : key;
     knex.where(_key, operator, value);
 }
 
