@@ -147,7 +147,7 @@ export default class extends base {
      * @returns {Promise}
      */
     parseGroup(data, options) {
-        //db.demo.group({
+        //db.getCollection('demo').group({
         //    "key": {
         //        "id": true,
         //            ...

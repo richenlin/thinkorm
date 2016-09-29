@@ -113,7 +113,7 @@ export default class extends base {
         let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
             collection = conn.collection(table);
-            this.sql = `db.${table}${sqlArr.join('.')}`;
+            this.sql = `db.getCollection('${table}')${sqlArr.join('.')}`;
             let func = new Function('process', 'return process.' + sqlArr.join('.') + ';');
             handler = func(collection);
             return this.execute(handler, startTime);
@@ -137,7 +137,7 @@ export default class extends base {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(_data, options);
         }).then(res => {
-            this.sql = `db.${res.options.table}.insertOne(${JSON.stringify(res.data)})`;
+            this.sql = `db.getCollection('${res.options.table}').insertOne(${JSON.stringify(res.data)})`;
             handler = collection.insertOne(res.data);
             return this.execute(handler, startTime);
         }).then(data => {
@@ -156,7 +156,7 @@ export default class extends base {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(options);
         }).then(res => {
-            this.sql = `db.${res.options.table}${res.options.where ? '.remove(' + JSON.stringify(res.options.where) + ')' : '.remove()'}`;
+            this.sql = `db.getCollection('${res.options.table}')${res.options.where ? '.remove(' + JSON.stringify(res.options.where) + ')' : '.remove()'}`;
             handler = collection.deleteMany(res.options.where || {});
             return this.execute(handler, startTime);
         }).then(data => {
@@ -175,7 +175,7 @@ export default class extends base {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(data, options);
         }).then(res => {
-            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$set:' + JSON.stringify(res.data) + '}, false, true)' : '.update({}, {$set:' + JSON.stringify(res.data) + '}, false, true)'}`;
+            this.sql = `db.getCollection('${res.options.table}')${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$set:' + JSON.stringify(res.data) + '}, false, true)' : '.update({}, {$set:' + JSON.stringify(res.data) + '}, false, true)'}`;
             handler = collection.updateMany(res.options.where || {}, {$set: res.data}, false, true);
             return this.execute(handler, startTime);
         }).then(data => {
@@ -200,7 +200,7 @@ export default class extends base {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(data, options);
         }).then(res => {
-            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:' + JSON.stringify(res.data) + ', false, true)' : '.update({}, {$inc:{' + field + ':' + data[field] + '}, false, true)'}`;
+            this.sql = `db.getCollection('${res.options.table}')${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:' + JSON.stringify(res.data) + ', false, true)' : '.update({}, {$inc:{' + field + ':' + data[field] + '}, false, true)'}`;
             handler = collection.updateMany(res.options.where || {}, {$inc: {[field]: data[field]}}, false, true);
             return this.execute(handler, startTime);
         }).then(res => {
@@ -229,7 +229,7 @@ export default class extends base {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(data, options);
         }).then(res => {
-            this.sql = `db.${res.options.table}${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:' + JSON.stringify(res.data) + ', false, true)' : '.update({}, {$inc:{' + field + ':' + (0 - data[field]) + '}, false, true)'}`;
+            this.sql = `db.getCollection('${res.options.table}')${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:' + JSON.stringify(res.data) + ', false, true)' : '.update({}, {$inc:{' + field + ':' + (0 - data[field]) + '}, false, true)'}`;
             handler = collection.updateMany(res.options.where || {}, {$inc: {[field]: (0 - data[field])}}, false, true);
             return this.execute(handler, startTime);
         }).then(res => {
@@ -265,7 +265,7 @@ export default class extends base {
                         count: {$sum: 1}
                     }
                 });
-                this.sql = `db.${res.options.table}.aggregate(${JSON.stringify(pipe)})`;
+                this.sql = `db.getCollection('${res.options.table}').aggregate(${JSON.stringify(pipe)})`;
                 handler = fn(pipe);
             } else {
                 res.options.group.initial = {
@@ -273,7 +273,7 @@ export default class extends base {
                 };
                 res.options.group.reduce = new Function('obj', 'prev', `if (obj.${res.options.count} != null) if (obj.${res.options.count} instanceof Array){prev.countid += obj.${res.options.count}.length; }else{ prev.countid++;}`);
                 res.options.group.cond = res.options.where;
-                this.sql = `db.${res.options.table}.group(${JSON.stringify(res.options.group)})`;
+                this.sql = `db.getCollection('${res.options.table}').group(${JSON.stringify(res.options.group)})`;
                 handler = collection.group(res.options.group);
             }
             return this.query(handler, startTime);
@@ -314,7 +314,7 @@ export default class extends base {
                         sum: {$sum: `$${res.options.sum}`}
                     }
                 });
-                this.sql = `db.${res.options.table}.aggregate(${JSON.stringify(pipe)})`;
+                this.sql = `db.getCollection('${res.options.table}').aggregate(${JSON.stringify(pipe)})`;
                 handler = fn(pipe);
             } else {
                 res.options.group.initial = {
@@ -322,7 +322,7 @@ export default class extends base {
                 };
                 res.options.group.reduce = new Function('obj', 'prev', `prev.sumid = prev.sumid + obj.${res.options.sum} - 0;`);
                 res.options.group.cond = res.options.where;
-                this.sql = `db.${res.options.table}.group(${JSON.stringify(res.options.group)})`;
+                this.sql = `db.getCollection('${res.options.table}').group(${JSON.stringify(res.options.group)})`;
                 handler = collection.group(res.options.group);
             }
             return this.query(handler, startTime);
@@ -352,11 +352,11 @@ export default class extends base {
             return this.parsers().buildSql(options);
         }).then(res => {
             if (lib.isEmpty(res.options.group)) {
-                this.sql = `db.${res.options.table}${res.options.where ? '.findOne(' + JSON.stringify(res.options.where) + ')' : '.findOne()'}`;
+                this.sql = `db.getCollection('${res.options.table}')${res.options.where ? '.findOne(' + JSON.stringify(res.options.where) + ')' : '.findOne()'}`;
                 handler = collection.findOne(res.options.where || {});
             } else {
                 res.options.group.cond = res.options.where;
-                this.sql = `db.${res.options.table}.group(${res.options.group.key},${res.options.group.cond},${res.options.group.initial},${res.options.group.reduce})`;
+                this.sql = `db.getCollection('${res.options.table}').group(${res.options.group.key},${res.options.group.cond},${res.options.group.initial},${res.options.group.reduce})`;
                 //handler = collection.group(res.options.group);
                 handler = collection.group(res.options.group.key, res.options.group.cond, res.options.group.initial, res.options.group.reduce);
             }
@@ -376,11 +376,11 @@ export default class extends base {
             return this.parsers().buildSql(options);
         }).then(res => {
             if (lib.isEmpty(res.options.group)) {
-                this.sql = `db.${res.options.table}${res.options.where ? '.find(' + JSON.stringify(res.options.where) + ')' : '.find()'}`;
+                this.sql = `db.getCollection('${res.options.table}')${res.options.where ? '.find(' + JSON.stringify(res.options.where) + ')' : '.find()'}`;
                 handler = collection.find(res.options.where || {});
             } else {
                 res.options.group.cond = res.options.where;
-                this.sql = `db.${res.options.table}.group(${res.options.group.key},${res.options.group.cond},${res.options.group.initial},${res.options.group.reduce})`;
+                this.sql = `db.getCollection('${res.options.table}').group(${res.options.group.key},${res.options.group.cond},${res.options.group.initial},${res.options.group.reduce})`;
                 //handler = collection.group(res.options.group);
                 handler = collection.group(res.options.group.key, res.options.group.cond, res.options.group.initial, res.options.group.reduce);
             }

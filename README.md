@@ -31,7 +31,9 @@ A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 # 计划
 
 -----
-mongodb 完善支持;(目前mongodb支持未完善,请勿用于生产环境)
+mongodb where解析重构
+
+mongodb 关联查询和操作完善
 
 mongodb join查询
 
