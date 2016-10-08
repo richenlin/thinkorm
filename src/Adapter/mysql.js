@@ -573,10 +573,7 @@ export default class extends base {
      * @private
      */
     async __postHasManyRelation(config, result, options, rel, relationData, postType) {
-        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
-            return;
-        }
-        if(!lib.isArray(relationData)){
+        if (lib.isEmpty(result) || !lib.isArray(relationData)) {
             return;
         }
         let model = new (rel.model)(config), rpk = model.getPk();
@@ -621,10 +618,7 @@ export default class extends base {
      * @private
      */
     async __postManyToManyRelation(config, result, options, rel, relationData, postType) {
-        if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
-            return;
-        }
-        if(!lib.isArray(relationData)){
+        if (lib.isEmpty(result) || !lib.isArray(relationData)) {
             return;
         }
         //子表主键
