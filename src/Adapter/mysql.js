@@ -532,7 +532,8 @@ export default class extends base {
      */
     async __postHasOneRelation(config, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
-            return;
+            lib.log('The main model\'s result is empty or the associated sub model\'s data is empty.', 'WARNING');
+            return Promise.resolve();
         }
         let model = new (rel.model)(config);
         let primaryModel = new (ORM.collections[rel.primaryName])(config);
@@ -574,7 +575,8 @@ export default class extends base {
      */
     async __postHasManyRelation(config, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || !lib.isArray(relationData)) {
-            return;
+            lib.log('The main model\'s result is empty or the associated sub model\'s data is not an array.', 'WARNING');
+            return Promise.resolve();
         }
         let model = new (rel.model)(config), rpk = model.getPk();
         switch (postType) {
@@ -619,7 +621,8 @@ export default class extends base {
      */
     async __postManyToManyRelation(config, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || !lib.isArray(relationData)) {
-            return;
+            lib.log('The main model\'s result is empty or the associated sub model\'s data is not an array.', 'WARNING');
+            return Promise.resolve();
         }
         //子表主键
         let model = new (rel.model)(config), rpk = model.getPk();
