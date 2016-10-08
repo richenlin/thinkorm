@@ -545,6 +545,9 @@ export default class extends base {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
             return;
         }
+        if(!lib.isArray(relationData)){
+            return;
+        }
         let model = new (rel.model)(config), rpk = model.getPk();
         //for (let [k, v] of relationData.entries()) {
         //    switch (postType) {
@@ -603,6 +606,9 @@ export default class extends base {
      */
     async __postManyToManyRelation(config, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
+            return;
+        }
+        if(!lib.isArray(relationData)){
             return;
         }
         //子表主键

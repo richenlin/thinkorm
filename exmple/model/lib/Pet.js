@@ -39,10 +39,12 @@ var _class = function (_thinkorm) {
                 primaryKey: true
             },
             types: {
-                type: 'string'
+                type: 'string',
+                defaultsTo: ''
             },
             user: {
-                type: 'integer'
+                type: 'integer',
+                defaultsTo: 0
             }
         };
         // 数据验证
