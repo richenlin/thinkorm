@@ -28,6 +28,8 @@ A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 
 8. 支持 _before，_after等多种魔术方法
 
+9. 支持数据库集群,支持读写分离(mysql, postgresql)
+
 # 计划
 
 -----
