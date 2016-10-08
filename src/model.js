@@ -930,15 +930,13 @@ export default class extends base {
                         return this.error(result.msg);
                     }
                 }
-
                 //严格数据类型检查
                 if (dataCheckFlag) {
-                    result = vaild.dataCheck(field, data[field], fields[field].type);
+                    result = vaild.dataCheck(field, data[field], fields[field].type || 'string');
                     if (!result.status) {
                         return this.error(result.msg);
                     }
                 }
-
                 //处理特殊类型字段
                 if (adpCase[this.config.db_type] && data[field] && fields[field] && typeCase[fields[field].type]) {
                     !lib.isString(data[field]) && (data[field] = JSON.stringify(data[field]));
