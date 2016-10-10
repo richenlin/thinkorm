@@ -129,7 +129,7 @@ export default class extends base {
             return fn(sql);
         }).then((rows = []) => {
             this.logSql && lib.log(sql, 'MySQL', startTime);
-            return this.bufferToString(rows);
+            return this.formatData(rows);
         }).catch(err => {
             //when socket is closed, try it
             if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'EPIPE') {
@@ -158,7 +158,7 @@ export default class extends base {
             return fn(sql);
         }).then((rows = []) => {
             this.logSql && lib.log(sql, 'MySQL', startTime);
-            return this.bufferToString(rows);
+            return this.formatData(rows);
         }).then(data => {
             if (data.insertId) {
                 this.lastInsertId = data.insertId;
@@ -178,9 +178,23 @@ export default class extends base {
 
     /**
      *
+     * @param tableName
      * @param sqlStr
+     * @returns {*}
      */
-    native(sqlStr) {
+    native(tableName, sqlStr) {
+        if (lib.isEmpty(sqlStr)) {
+            return Promise.reject('_OPERATION_WRONG_');
+        }
+        if ((/[&(--);]/).test(sqlStr)) {
+            sqlStr = sqlStr.
+            replace(/&/g, '&amp;').
+            replace(/;/g, '').
+            replace(/--/g, '&minus;&minus;');
+        }
+        if (sqlStr.indexOf(tableName) === -1) {
+            return Promise.reject('table name error');
+        }
         let ouputs = this.knexClient.raw(sqlStr).toSQL();
         if (lib.isEmpty(ouputs)) {
             return Promise.reject('SQL analytic result is empty');
@@ -193,7 +207,7 @@ export default class extends base {
             return fn(ouputs.sql, ouputs.bindings);
         }).then((rows = []) => {
             this.logSql && lib.log(ouputs.sql, 'MySQL', startTime);
-            return this.bufferToString(rows);
+            return this.formatData(rows);
         }).catch(err => {
             this.logSql && lib.log(ouputs.sql, 'MySQL', startTime);
             return Promise.reject(err);
@@ -424,7 +438,7 @@ export default class extends base {
      * @param data
      * @returns {*}
      */
-    bufferToString(data) {
+    formatData(data) {
         //if (lib.isArray(data)) {
         //    for (let i = 0, length = data.length; i < length; i++) {
         //        for (let key in data[i]) {
@@ -436,6 +450,87 @@ export default class extends base {
         //}
         if (!lib.isJSONObj(data)) {
             data = JSON.parse(JSON.stringify(data));
+        }
+        return data;
+    }
+
+    /**
+     * 入库前数据处理
+     * @param data
+     * @param type
+     * @returns {*}
+     * @private
+     */
+    __checkData(data, type){
+        let typeCase = {json: 1, array: 1};
+        if(!lib.isString(data) && typeCase[type]){
+            return JSON.stringify(data);
+        }
+        return data;
+    }
+
+    /**
+     * 查询后数据处理
+     * @param data
+     * @param fields
+     * @returns {*}
+     * @private
+     */
+    __parseData(data, fields){
+        let typeCase = {json: 1, array: 1};
+        //处理特殊类型字段
+        if (lib.isArray(data)) {
+            data.map(item => {
+                for (let n in item) {
+                    if (fields[n] && typeCase[fields[n].type]) {
+                        switch (fields[n].type) {
+                            case 'json':
+                                if(lib.isEmpty(item[n])){
+                                    item[n] = {};
+                                } else {
+                                    try{
+                                        item[n] = JSON.parse(item[n]);
+                                    }catch (e){}
+                                }
+                                break;
+                            case 'array':
+                                if(lib.isEmpty(item[n])){
+                                    item[n] = [];
+                                } else {
+                                    try{
+                                        item[n] = JSON.parse(item[n]);
+                                    }catch (e){}
+                                }
+                                break;
+                        }
+                    }
+                }
+            });
+        } else if (lib.isObject(data)) {
+            for (let n in data) {
+                if (fields[n] && typeCase[fields[n].type]) {
+                    switch (fields[n].type) {
+                        case 'json':
+                            if(lib.isEmpty(data[n])){
+                                data[n] = {};
+                            } else {
+                                try{
+                                    data[n] = JSON.parse(data[n]);
+                                }catch (e){}
+                            }
+                            break;
+                        case 'array':
+                            if(lib.isEmpty(data[n])){
+                                data[n] = [];
+                            } else {
+                                try{
+                                    data[n] = JSON.parse(data[n]);
+                                }catch (e){}
+                            }
+                            break;
+                    }
+                }
+            }
         }
         return data;
     }

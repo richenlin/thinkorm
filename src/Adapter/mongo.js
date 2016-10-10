@@ -88,7 +88,7 @@ export default class extends base {
         }
         return cls.then(data => {
             this.logSql && lib.log(this.sql, 'MongoDB', startTime);
-            return this.bufferToString(data);
+            return this.formatData(data);
         }).catch(err => {
             this.logSql && lib.log(this.sql, 'MongoDB', startTime);
             return Promise.reject(err);
@@ -107,13 +107,27 @@ export default class extends base {
 
     /**
      * Give access to a native mongo collection object for running custom queries.
+     * @param tableName
      * @param sqlStr
+     * @returns {*}
      */
-    native(table, sqlArr) {
+    native(tableName, sqlStr) {
+        if (lib.isEmpty(sqlStr)) {
+            return Promise.reject('_OPERATION_WRONG_');
+        }
+        let sqlArr = sqlStr.split('.');
+        if (lib.isEmpty(sqlArr) || lib.isEmpty(sqlArr[0]) || sqlArr[0] !== 'db' || lib.isEmpty(sqlArr[1])) {
+            return Promise.reject('query language error');
+        }
+        sqlArr.shift();
+        let table = sqlArr.shift();
+        if (table !== tableName) {
+            return Promise.reject('table name error');
+        }
         let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
-            collection = conn.collection(table);
-            this.sql = `db.getCollection('${table}')${sqlArr.join('.')}`;
+            collection = conn.collection(tableName);
+            this.sql = `db.getCollection('${tableName}')${sqlArr.join('.')}`;
             let func = new Function('process', 'return process.' + sqlArr.join('.') + ';');
             handler = func(collection);
             return this.execute(handler, startTime);
@@ -393,7 +407,7 @@ export default class extends base {
      * @param data
      * @returns {*}
      */
-    bufferToString(data) {
+    formatData(data) {
         //if (lib.isArray(data)) {
         //    for (let i = 0, length = data.length; i < length; i++) {
         //        for (let key in data[i]) {

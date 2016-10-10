@@ -456,7 +456,7 @@ export default class extends base {
             //copy data
             this.__data = lib.extend({}, data);
             this.__data = await this._beforeAdd(this.__data, parsedOptions);
-            this.__data = await this.__checkData(this.__data, parsedOptions, 'ADD');
+            this.__data = await this.__checkData(model, this.__data, parsedOptions, 'ADD');
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -565,7 +565,7 @@ export default class extends base {
             //copy data
             this.__data = lib.extend({}, data);
             this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this.__checkData(this.__data, parsedOptions, 'UPDATE');
+            this.__data = await this.__checkData(model, this.__data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -620,7 +620,7 @@ export default class extends base {
             //copy data
             this.__data = lib.extend({}, {[field]: step});
             this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this.__checkData(this.__data, parsedOptions, 'UPDATE');
+            this.__data = await this.__checkData(model, this.__data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -648,7 +648,7 @@ export default class extends base {
             //copy data
             this.__data = lib.extend({}, {[field]: step});
             this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this.__checkData(this.__data, parsedOptions, 'UPDATE');
+            this.__data = await this.__checkData(model, this.__data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(this.__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -711,7 +711,7 @@ export default class extends base {
             // init model
             let model = await this.initModel();
             let result = await model.find(parsedOptions);
-            result = await this.__parseData((lib.isArray(result) ? result[0] : result) || {}, parsedOptions);
+            result = await this.__parseData(model, (lib.isArray(result) ? result[0] : result) || {}, parsedOptions);
             if (!lib.isEmpty(parsedOptions.rel)) {
                 result = await this.__getRelationData(model, parsedOptions, result);
             }
@@ -740,7 +740,7 @@ export default class extends base {
             // init model
             let model = await this.initModel();
             let result = await model.select(parsedOptions);
-            result = await this.__parseData(result || [], parsedOptions);
+            result = await this.__parseData(model, result || [], parsedOptions);
             if (!lib.isEmpty(parsedOptions.rel)) {
                 result = await this.__getRelationData(model, parsedOptions, result);
             }
@@ -802,36 +802,9 @@ export default class extends base {
      */
     async query(sqlStr) {
         try {
-            if (lib.isEmpty(sqlStr)) {
-                return this.error('_OPERATION_WRONG_');
-            }
-            if ((/[&(--);]/).test(sqlStr)) {
-                sqlStr = sqlStr.
-                replace(/&/g, '&amp;').
-                replace(/;/g, '').
-                replace(/--/g, '&minus;&minus;');
-            }
             // init model
             let model = await this.initModel();
-
-            let adpCase = {mongo: 1}, result = null;
-            if (adpCase[this.config.db_type]) {
-                let quer = sqlStr.split('.');
-                if (lib.isEmpty(quer) || lib.isEmpty(quer[0]) || quer[0] !== 'db' || lib.isEmpty(quer[1])) {
-                    return this.error('query language error');
-                }
-                quer.shift();
-                let tableName = quer.shift();
-                if (tableName !== this.tableName) {
-                    return this.error('table name error');
-                }
-                result = await model.native(tableName, quer);
-            } else {
-                if (sqlStr.indexOf(this.tableName) === -1) {
-                    return this.error('table name error');
-                }
-                result = await model.native(sqlStr);
-            }
+            let result = await model.native(this.tableName, sqlStr);
             return result;
         } catch (e) {
             return this.error(e);
@@ -887,14 +860,16 @@ export default class extends base {
 
     /**
      * 数据合法性检测
+     * @param adapter
      * @param data
      * @param options
      * @param method
+     * @returns {*}
      * @private
      */
-    __checkData(data, options, method = '') {
+    __checkData(adapter, data, options, method = '') {
         try {
-            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1}, dataCheckFlag = false, ruleCheckFlag = false,
+            let dataCheckFlag = false, ruleCheckFlag = false,
                 result = {status: 1, msg: ''}, fields = this.fields, vaildRules = this.validations;
             //根据模型定义字段类型进行数据检查
             for (let field in data) {
@@ -937,9 +912,9 @@ export default class extends base {
                         return this.error(result.msg);
                     }
                 }
-                //处理特殊类型字段
-                if (adpCase[this.config.db_type] && data[field] && fields[field] && typeCase[fields[field].type]) {
-                    !lib.isString(data[field]) && (data[field] = JSON.stringify(data[field]));
+                //处理数据源特殊字段
+                if(adapter.__checkData){
+                    data[field] = adapter.__checkData(data[field], fields[field].type || 'string');
                 }
             }
             return data;
@@ -949,72 +924,18 @@ export default class extends base {
     }
 
     /**
-     * 操作结果处理
+     * 查询结果处理
      * @param data
      * @param options
-     * @param preCheck
      * @param method
      * @returns {*}
      * @private
      */
-    __parseData(data, options, method = 0) {
+    __parseData(adapter, data, options, method = '') {
         try {
-            let adpCase = {mysql: 1}, typeCase = {json: 1, array: 1}, fields = this.fields;
-            //处理特殊类型字段
-            if (adpCase[this.config.db_type]) {
-                if (lib.isArray(data)) {
-                    data.map(item => {
-                        for (let n in item) {
-                            if (fields[n] && typeCase[fields[n].type]) {
-                                switch (fields[n].type) {
-                                    case 'json':
-                                        if(lib.isEmpty(item[n])){
-                                            item[n] = {};
-                                        } else {
-                                            try{
-                                                item[n] = JSON.parse(item[n]);
-                                            }catch (e){}
-                                        }
-                                        break;
-                                    case 'array':
-                                        if(lib.isEmpty(item[n])){
-                                            item[n] = [];
-                                        } else {
-                                            try{
-                                                item[n] = JSON.parse(item[n]);
-                                            }catch (e){}
-                                        }
-                                        break;
-                                }
-                            }
-                        }
-                    });
-                } else if (lib.isObject(data)) {
-                    for (let n in data) {
-                        if (fields[n] && typeCase[fields[n].type]) {
-                            switch (fields[n].type) {
-                                case 'json':
-                                    if(lib.isEmpty(data[n])){
-                                        data[n] = {};
-                                    } else {
-                                        try{
-                                            data[n] = JSON.parse(data[n]);
-                                        }catch (e){}
-                                    }
-                                    break;
-                                case 'array':
-                                    if(lib.isEmpty(data[n])){
-                                        data[n] = [];
-                                    } else {
-                                        try{
-                                            data[n] = JSON.parse(data[n]);
-                                        }catch (e){}
-                                    }
-                                    break;
-                            }
-                        }
-                    }
-                }
+            //处理数据源特殊字段
+            if(adapter.__parseData){
+                data = adapter.__parseData(data, this.fields);
             }
             return data;
         } catch (e) {

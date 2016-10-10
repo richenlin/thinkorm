@@ -127,7 +127,7 @@ export default class extends base {
         }).then((rows = []) => {
             connection.release && connection.release();
             this.logSql && lib.log(sql, 'PostgreSQL', startTime);
-            return this.bufferToString(rows);
+            return this.formatData(rows);
         }).catch(err => {
             connection.release && connection.release();
             //when socket is closed, try it
@@ -154,7 +154,7 @@ export default class extends base {
         }).then((rows = []) => {
             connection.release && connection.release();
             this.logSql && lib.log(sql, 'PostgreSQL', startTime);
-            return this.bufferToString(rows);
+            return this.formatData(rows);
         }).then(data => {
             if (data.rows && data.rows[0] && data.rows[0].id) {
                 this.lastInsertId = data.rows[0].id;
@@ -174,9 +174,23 @@ export default class extends base {
 
     /**
      *
+     * @param tableName
      * @param sqlStr
+     * @returns {*}
      */
-    native(sqlStr){
+    native(tableName, sqlStr) {
+        if (lib.isEmpty(sqlStr)) {
+            return Promise.reject('_OPERATION_WRONG_');
+        }
+        if ((/[&(--);]/).test(sqlStr)) {
+            sqlStr = sqlStr.
+            replace(/&/g, '&amp;').
+            replace(/;/g, '').
+            replace(/--/g, '&minus;&minus;');
+        }
+        if (sqlStr.indexOf(tableName) === -1) {
+            return Promise.reject('table name error');
+        }
         let ouputs = this.knexClient.raw(sqlStr).toSQL();
         if (lib.isEmpty(ouputs)) {
             return Promise.reject('SQL analytic result is empty');
@@ -189,7 +203,7 @@ export default class extends base {
             return fn(ouputs.sql, ouputs.bindings);
         }).then((res = {}) => {
             this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
-            return this.bufferToString(res.rows);
+            return this.formatData(res.rows);
         }).catch(err => {
             this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
             return Promise.reject(err);
@@ -419,7 +433,7 @@ export default class extends base {
      * @param data
      * @returns {*}
      */
-    bufferToString(data) {
+    formatData(data) {
         //if (lib.isArray(data)) {
         //    for (let i = 0, length = data.length; i < length; i++) {
         //        for (let key in data[i]) {
