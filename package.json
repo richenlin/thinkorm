@@ -1,6 +1,6 @@
 {
   "name": "thinkorm",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "index.js",
   "scripts": {
@@ -40,6 +40,7 @@
     "node": ">4.0.0"
   },
   "devDependencies": {
+    "async": "^2.0.1",
     "babel-cli": "^6.16.0",
     "babel-core": "^6.17.0",
     "babel-eslint": "^7.0.0",
