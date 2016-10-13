@@ -5,7 +5,7 @@
  * @license    MIT
  * @version    16/7/25
  */
-import base from './base';
+import base from '../base';
 import lib from '../Util/lib';
 import mysql from 'mysql';
 
@@ -41,9 +41,10 @@ export default class extends base{
         if(config.db_ext_config.forceNewNum){
             connectKey = `${connectKey}_${config.db_ext_config.forceNewNum}`;
         }
+
         return lib.await(connectKey, () => {
             //use pool
-            if(config.connectionLimit){
+            if(this.connectionLimit){
                 this.pool = mysql.createPool(config);
                 let fn = lib.promisify(this.pool.getConnection, this.pool);
                 return fn().catch(e => {

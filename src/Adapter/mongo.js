@@ -24,7 +24,7 @@ export default class extends base {
         if (this.handel) {
             return Promise.resolve(this.handel);
         }
-        this.handel = socket.getInstance(this.config);
+        this.handel = new socket(this.config);
         return Promise.resolve(this.handel);
     }
 

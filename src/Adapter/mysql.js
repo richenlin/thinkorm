@@ -8,7 +8,7 @@
 import knex from 'knex';
 import base from '../base';
 import lib from '../Util/lib';
-import parser from '../Parser/knexBase';
+import parser from '../Parser/knex';
 import socket from '../Socket/mysql';
 
 export default class extends base {
@@ -52,15 +52,15 @@ export default class extends base {
                 db_timeout: this.config.db_timeout,
                 db_ext_config: this.config.db_ext_config
             };
-            return Promise.all([socket.getInstance(configMaster), socket.getInstance(configSlave)]).then(cons => {
+            return Promise.all([new socket(configMaster).connect(), new socket(configSlave).connect()]).then(cons => {
                 this.handel = {RW: true};
                 this.handel.master = cons[0];
                 this.handel.slave = cons[1];
                 return this.handel;
             });
         } else {
-            this.handel = socket.getInstance(this.config);
-            return Promise.resolve(this.handel);
+            this.handel = new socket(this.config).connect();
+            return this.handel;
         }
     }
 

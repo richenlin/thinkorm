@@ -3,7 +3,7 @@ var Test = require('../support/test-runner');
 function requireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
 }
-var baseparser = requireDefault(require('../../lib/Parser/knexBase.js')).default;
+var baseparser = requireDefault(require('../../lib/Parser/knex.js')).default;
 
 
 describe('Query Generation ::', function () {
