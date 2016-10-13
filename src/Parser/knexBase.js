@@ -5,7 +5,7 @@
  * @license    MIT
  * @version    16/8/14
  */
-import base from '../base';
+import base from './base';
 import lib from '../Util/lib';
 
 const identifiers = {
