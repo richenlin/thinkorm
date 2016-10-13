@@ -119,9 +119,9 @@ export default class extends base {
      */
     query(sql) {
         let startTime = Date.now();
-        let connection;
+        let connection = {};
         return this.connect().then(conn => {
-            connection = conn.RW ? conn.slave : conn;
+            connection = conn.RW ? conn.slave : conn || {};
             let fn = lib.promisify(connection.query, connection);
             return fn(sql);
         }).then((rows = []) => {
