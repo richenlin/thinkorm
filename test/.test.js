@@ -93,15 +93,20 @@ return model.transaction(function *(t) {
     //     yield model.add({name: 'rrrrrrrrrrrrr'});
     // }
     //Promise.all并行
-    var ps = [];
-    for (var i = 1; i < 5; i++) {
-        ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
-        ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
-        ps.push(model.add({name: 'rrrr'}));
-        ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
-        ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
-    }
-    return Promise.all(ps);
+    // var ps = [];
+    // for (var i = 1; i < 5; i++) {
+    //     ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
+    //     ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
+    //     ps.push(model.add({name: 'rrrr'}));
+    //     ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
+    //     ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
+    // }
+    // return Promise.all(ps);
+
+    //跨模型执行
+    yield model.add({name: 'rrrrrrrrrrrrr'});
+    let profileModel = new Profile(config);
+    yield profileModel.initDB(t).add({test: ['rrrtest']});
 });
 
 
