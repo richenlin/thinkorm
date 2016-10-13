@@ -128,9 +128,11 @@ export default class extends base {
             let fn = lib.promisify(connection.query, connection);
             return fn(sql);
         }).then((rows = []) => {
+            connection.release && connection.release();
             this.logSql && lib.log(sql, 'MySQL', startTime);
             return this.formatData(rows);
         }).catch(err => {
+            connection.release && connection.release();
             //when socket is closed, try it
             if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'EPIPE') {
                 return this.close().then(() => {
@@ -157,6 +159,7 @@ export default class extends base {
             let fn = lib.promisify(connection.query, connection);
             return fn(sql);
         }).then((rows = []) => {
+            connection.release && connection.release();
             this.logSql && lib.log(sql, 'MySQL', startTime);
             return this.formatData(rows);
         }).then(data => {
@@ -165,6 +168,7 @@ export default class extends base {
             }
             return data.affectedRows || 0;
         }).catch(err => {
+            connection.release && connection.release();
             //when socket is closed, try it
             if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'EPIPE') {
                 return this.close().then(() => {
