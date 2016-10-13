@@ -60,7 +60,7 @@ export default class extends base {
             });
         } else {
             this.handel = socket.getInstance(this.config);
-            return this.handel;
+            return Promise.resolve(this.handel);
         }
     }
 

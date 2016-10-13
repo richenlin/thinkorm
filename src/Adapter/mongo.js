@@ -22,10 +22,10 @@ export default class extends base {
 
     connect() {
         if (this.handel) {
-            return this.handel;
+            return Promise.resolve(this.handel);
         }
         this.handel = socket.getInstance(this.config);
-        return this.handel;
+        return Promise.resolve(this.handel);
     }
 
     close() {
