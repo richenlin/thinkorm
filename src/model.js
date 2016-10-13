@@ -33,10 +33,10 @@ export default class extends base {
         this.validations = {};
         // 关联关系
         this.relation = {};
+        // 模型Adapter实例
+        this.__model = null;
         // 参数
         this.__options = {};
-        // 数据
-        this.__data = {};
         // 关联模型数据
         this.__relationData = {};
 
@@ -57,8 +57,6 @@ export default class extends base {
         this.modelName = this.getModelName();
         // 表名
         this.tableName = this.getTableName();
-        // collection instance
-        this.instances = null;
     }
 
     /**
@@ -80,15 +78,6 @@ export default class extends base {
     }
 
     /**
-     * set adapter connection
-     * @param args
-     * @returns {*}
-     */
-    static setConnection(...args) {
-        return schema.setConnection(...args);
-    }
-
-    /**
      * auto migrate all model structure to database
      * @param args
      * @returns {*|{get}}
@@ -106,11 +95,19 @@ export default class extends base {
             if (!ORM.collections[this.modelName]) {
                 return this.error(`Collections ${this.modelName} is undefined.`);
             }
-            this.instances = ORM.connections[schema.getKey(this.config)];
-            if (!this.instances) {
-                this.instances = await schema.setConnection(this.config);
+            if(this.__model){
+                return this.__model;
             }
-            return this.instances;
+            let adapterList = {
+                mysql: __dirname + '/Adapter/mysql.js',
+                postgresql: __dirname + '/Adapter/postgresql.js',
+                mongo: __dirname + '/Adapter/mongo.js'
+            }, config = this.config, dbType = config.db_type ? config.db_type.toLowerCase() : '';
+            if (!dbType in adapterList) {
+                return this.error(`adapter ${dbType} is not support.`);
+            }
+            this.__model = new (lib.thinkRequire(adapterList[dbType]))(config);
+            return this.__model;
         } catch (e) {
             return this.error(e);
         }
@@ -454,21 +451,21 @@ export default class extends base {
             // init model
             let model = await this.initModel();
             //copy data
-            this.__data = lib.extend({}, data);
-            this.__data = await this._beforeAdd(this.__data, parsedOptions);
-            this.__data = await this.__checkData(model, this.__data, parsedOptions, 'ADD');
-            if (lib.isEmpty(this.__data)) {
+            let __data = lib.extend({}, data);
+            __data = await this._beforeAdd(__data, parsedOptions);
+            __data = await this.__checkData(model, __data, parsedOptions, 'ADD');
+            if (lib.isEmpty(__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
-            let result = await model.add(this.__data, parsedOptions);
+            let result = await model.add(__data, parsedOptions);
             let pk = await this.getPk();
 
-            this.__data[pk] = this.__data[pk] ? this.__data[pk] : result;
+            __data[pk] = __data[pk] ? __data[pk] : result;
             if (!lib.isEmpty(this.__relationData)) {
                 await this.__postRelationData(model, result, parsedOptions, this.__relationData, 'ADD');
             }
-            await this._afterAdd(this.__data, parsedOptions);
-            return this.__data[pk] || 0;
+            await this._afterAdd(__data, parsedOptions);
+            return __data[pk] || 0;
         } catch (e) {
             return this.error(e);
         }
@@ -563,32 +560,32 @@ export default class extends base {
             // init model
             let model = await this.initModel();
             //copy data
-            this.__data = lib.extend({}, data);
-            this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this.__checkData(model, this.__data, parsedOptions, 'UPDATE');
-            if (lib.isEmpty(this.__data)) {
+            let __data = lib.extend({}, data);
+            __data = await this._beforeUpdate(__data, parsedOptions);
+            __data = await this.__checkData(model, __data, parsedOptions, 'UPDATE');
+            if (lib.isEmpty(__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
             let pk = await this.getPk();
             // 如果存在主键数据 则自动作为更新条件
             if (lib.isEmpty(parsedOptions.where)) {
-                if (!lib.isEmpty(this.__data[pk])) {
+                if (!lib.isEmpty(__data[pk])) {
                     parsedOptions.where = {};
-                    parsedOptions.where[pk] = this.__data[pk];
-                    delete this.__data[pk];
+                    parsedOptions.where[pk] = __data[pk];
+                    delete __data[pk];
                 } else {
                     return this.error('_OPERATION_WRONG_');
                 }
             } else {
-                if (!lib.isEmpty(this.__data[pk])) {
-                    delete this.__data[pk];
+                if (!lib.isEmpty(__data[pk])) {
+                    delete __data[pk];
                 }
             }
-            let result = await model.update(this.__data, parsedOptions);
+            let result = await model.update(__data, parsedOptions);
             if (!lib.isEmpty(this.__relationData)) {
                 await this.__postRelationData(model, result, parsedOptions, this.__relationData, 'UPDATE');
             }
-            await this._afterUpdate(this.__data, parsedOptions);
+            await this._afterUpdate(__data, parsedOptions);
             return result || [];
         } catch (e) {
             return this.error(e);
@@ -618,15 +615,15 @@ export default class extends base {
             // init model
             let model = await this.initModel();
             //copy data
-            this.__data = lib.extend({}, {[field]: step});
-            this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this.__checkData(model, this.__data, parsedOptions, 'UPDATE');
-            if (lib.isEmpty(this.__data)) {
+            let __data = lib.extend({}, {[field]: step});
+            __data = await this._beforeUpdate(__data, parsedOptions);
+            __data = await this.__checkData(model, __data, parsedOptions, 'UPDATE');
+            if (lib.isEmpty(__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
 
-            let result = await model.increment(this.__data, field, parsedOptions);
-            await this._afterUpdate(this.__data, parsedOptions);
+            let result = await model.increment(__data, field, parsedOptions);
+            await this._afterUpdate(__data, parsedOptions);
             return result || [];
         } catch (e) {
             return this.error(e);
@@ -646,15 +643,15 @@ export default class extends base {
             // init model
             let model = await this.initModel();
             //copy data
-            this.__data = lib.extend({}, {[field]: step});
-            this.__data = await this._beforeUpdate(this.__data, parsedOptions);
-            this.__data = await this.__checkData(model, this.__data, parsedOptions, 'UPDATE');
-            if (lib.isEmpty(this.__data)) {
+            let __data = lib.extend({}, {[field]: step});
+            __data = await this._beforeUpdate(__data, parsedOptions);
+            __data = await this.__checkData(model, __data, parsedOptions, 'UPDATE');
+            if (lib.isEmpty(__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
 
-            let result = await model.decrement(this.__data, field, parsedOptions);
-            await this._afterUpdate(this.__data, parsedOptions);
+            let result = await model.decrement(__data, field, parsedOptions);
+            await this._afterUpdate(__data, parsedOptions);
             return result || [];
         } catch (e) {
             return this.error(e);

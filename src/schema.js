@@ -26,14 +26,7 @@ let parseType = function (type) {
     }
     return type
 };
-/**
- * get connection key
- * @param config
- * @returns {*}
- */
-let getKey = function (config) {
-   return `${config.db_type}_${config.db_host}_${config.db_port}_${config.db_name}`;
-};
+
 /**
  * set collections
  * @param func
@@ -135,28 +128,6 @@ function getRelation(name, config) {
 }
 
 /**
- * set adapter connection
- * @param config
- * @returns {*}
- */
-function setConnection(config){
-    let key = getKey(config);
-    if(!ORM.connections[key]){
-        let adapterList = {
-            mysql: __dirname + '/Adapter/mysql.js',
-            postgresql: __dirname + '/Adapter/postgresql.js',
-            mongo: __dirname + '/Adapter/mongo.js'
-        };
-        if (!config.db_type.toLowerCase() in adapterList) {
-            throw new Error(`adapter is not support.`);
-            return;
-        }
-        ORM.connections[key] = new (lib.thinkRequire(adapterList[config.db_type]))(config);
-    }
-    return ORM.connections[key];
-}
-
-/**
  * auto migrate all model structure to database
  * @param config
  */
@@ -174,9 +145,7 @@ function migrate(config){
 }
 
 module.exports = {
-    getKey: getKey,
     setCollection: setCollection,
-    setConnection: setConnection,
     getRelation: getRelation,
     migrate: migrate
 };
