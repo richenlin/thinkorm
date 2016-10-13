@@ -24,7 +24,7 @@ export default class extends base {
         if (this.handel) {
             return this.handel;
         }
-        this.handel = socket.getInstance(this.config).connect();
+        this.handel = socket.getInstance(this.config);
         return this.handel;
     }
 
@@ -33,6 +33,7 @@ export default class extends base {
             this.handel.close && this.handel.close();
             this.handel = null;
         }
+        return;
     }
 
     parsers() {

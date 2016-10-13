@@ -346,6 +346,18 @@ var _await = function (key, callback) {
     return _ormAwaitInstance.run(key, callback);
 };
 /**
+ * alias co module
+ * @type {Object}
+ */
+var co = require('co');
+var thinkCo = function (obj) {
+    //optimize invoke co package
+    if(obj && typeof obj.next === 'function'){
+        return co(obj);
+    }
+    return Promise.resolve(obj);
+};
+/**
  * 加载文件
  * @param  {[type]} file [description]
  * @return {[type]}      [description]
@@ -439,5 +451,6 @@ module.exports = {
     log: log,
     await: _await,
     extend: extend,
-    thinkRequire: thinkRequire
+    thinkRequire: thinkRequire,
+    thinkCo: thinkCo
 };

@@ -7,6 +7,7 @@
  */
 import base from './base';
 import lib from '../Util/lib';
+import mongodb from 'mongodb';
 
 export default class extends base{
 
@@ -21,8 +22,9 @@ export default class extends base{
             reconnectTries: config.db_timeout * 1000 || 10000,//try connection timeout
             poolSize: config.db_ext_config.db_pool_size || 10,
             replicaSet: config.db_ext_config.db_replicaset || '',
-            connect_url: config.db_ext_config.db_conn_url || ''
-        }
+            connect_url: config.db_ext_config.db_conn_url || '',
+            db_ext_config: config.db_ext_config || {}
+        };
         this.connection = null;
     }
 
@@ -30,8 +32,6 @@ export default class extends base{
         if(this.connection){
             return Promise.resolve(this.connection);
         }
-
-        let driver = require('mongodb');
 
         //connection URL format
         if(lib.isEmpty(this.config.connect_url)){
@@ -61,8 +61,12 @@ export default class extends base{
             }
         }
 
-        return lib.await(this.config.connect_url, () => {
-            let fn = lib.promisify(driver.MongoClient.connect, driver.MongoClient);
+        let connectKey = `mongodb://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}`;
+        if(this.config.db_ext_config.forceNewNum){
+            connectKey = `${connectKey}_${this.config.db_ext_config.forceNewNum}`;
+        }
+        return lib.await(connectKey, () => {
+            let fn = lib.promisify(mongodb.MongoClient.connect, mongodb.MongoClient);
             return fn(this.config.connect_url, this.config).then(conn => {
                 this.connection = conn;
                 return conn;

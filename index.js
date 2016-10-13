@@ -12,7 +12,6 @@ require('babel-runtime/core-js/promise').default = Promise;
 //define ORM object
 global.ORM = {};
 ORM.collections = {};
-ORM.connections = {};
 //export
 function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 module.exports = requireDefault(require('./lib/model.js')).default;

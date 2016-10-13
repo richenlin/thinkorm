@@ -10,6 +10,8 @@ import schema from './schema';
 import lib from './Util/lib';
 import vaild from './Util/valid';
 
+let forceNewNum = 1;
+
 export default class extends base {
     /**
      * init
@@ -33,8 +35,6 @@ export default class extends base {
         this.validations = {};
         // 关联关系
         this.relation = {};
-        // 模型Adapter实例
-        this.__model = null;
         // 参数
         this.__options = {};
         // 关联模型数据
@@ -87,16 +87,23 @@ export default class extends base {
     }
 
     /**
-     * 初始化模型
+     * 初始化
+     * @param forceNew
+     * @returns {*}
      */
-    async initModel() {
+    initDB(forceNew = false) {
         try {
             //check collection
             if (!ORM.collections[this.modelName]) {
                 return this.error(`Collections ${this.modelName} is undefined.`);
             }
-            if(this.__model){
-                return this.__model;
+            //set db
+            if(lib.isObject(forceNew)){
+                this.instances = forceNew;
+                return this;
+            }
+            if(this.instances && !forceNew){
+                return this.instances;
             }
             let adapterList = {
                 mysql: __dirname + '/Adapter/mysql.js',
@@ -106,8 +113,12 @@ export default class extends base {
             if (!dbType in adapterList) {
                 return this.error(`adapter ${dbType} is not support.`);
             }
-            this.__model = new (lib.thinkRequire(adapterList[dbType]))(config);
-            return this.__model;
+
+            if(forceNew){
+                config.db_ext_config['forceNewNum'] = ++ forceNewNum ;
+            }
+            this.instances = new (lib.thinkRequire(adapterList[dbType]))(config);
+            return this.instances;
         } catch (e) {
             return this.error(e);
         }
@@ -137,40 +148,20 @@ export default class extends base {
     }
 
     /**
-     * 事务开始
+     * transaction exec functions
+     * @param  {Function} fn [exec function]
+     * @return {Promise}      []
      */
-    async startTrans() {
-        try {
-            // init model
-            let model = await this.initModel();
-            return model.startTrans();
-        } catch (e) {
-            return this.error(e);
-        }
-    }
-
-    /**
-     * 事务提交
-     */
-    async commit() {
-        try {
-            // init model
-            let model = await this.initModel();
-            return model.commit();
-        } catch (e) {
-            return this.error(e);
-        }
-    }
-
-    /**
-     * 事务回滚
-     */
-    async rollback() {
-        try {
-            // init model
-            let model = await this.initModel();
-            return model.rollback();
-        } catch (e) {
+    async transaction(fn){
+        //init db
+        let db = this.initDB(true);
+        try{
+            await db.startTrans();
+            let result = await lib.thinkCo(fn(db));
+            await db.commit();
+            return result;
+        } catch (e){
+            await db.rollback();
             return this.error(e);
         }
     }
@@ -448,21 +439,21 @@ export default class extends base {
                 return this.error('_DATA_TYPE_INVALID_');
             }
             let parsedOptions = await this.__parseOptions(options);
-            // init model
-            let model = await this.initModel();
+            // init db
+            let db = await this.initDB();
             //copy data
             let __data = lib.extend({}, data);
             __data = await this._beforeAdd(__data, parsedOptions);
-            __data = await this.__checkData(model, __data, parsedOptions, 'ADD');
+            __data = await this.__checkData(db, __data, parsedOptions, 'ADD');
             if (lib.isEmpty(__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
-            let result = await model.add(__data, parsedOptions);
+            let result = await db.add(__data, parsedOptions);
             let pk = await this.getPk();
 
             __data[pk] = __data[pk] ? __data[pk] : result;
             if (!lib.isEmpty(this.__relationData)) {
-                await this.__postRelationData(model, result, parsedOptions, this.__relationData, 'ADD');
+                await this.__postRelationData(db, result, parsedOptions, this.__relationData, 'ADD');
             }
             await this._afterAdd(__data, parsedOptions);
             return __data[pk] || 0;
@@ -521,10 +512,10 @@ export default class extends base {
             if (lib.isEmpty(parsedOptions.where)) {
                 return this.error('_OPERATION_WRONG_');
             }
-            // init model
-            let model = await this.initModel();
+            // init db
+            let db = await this.initDB();
             await this._beforeDelete(parsedOptions);
-            let result = await model.delete(parsedOptions);
+            let result = await db.delete(parsedOptions);
             await this._afterDelete(parsedOptions);
             return result || [];
         } catch (e) {
@@ -557,12 +548,12 @@ export default class extends base {
     async update(data, options) {
         try {
             let parsedOptions = await this.__parseOptions(options);
-            // init model
-            let model = await this.initModel();
+            // init db
+            let db = await this.initDB();
             //copy data
             let __data = lib.extend({}, data);
             __data = await this._beforeUpdate(__data, parsedOptions);
-            __data = await this.__checkData(model, __data, parsedOptions, 'UPDATE');
+            __data = await this.__checkData(db, __data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
@@ -581,9 +572,9 @@ export default class extends base {
                     delete __data[pk];
                 }
             }
-            let result = await model.update(__data, parsedOptions);
+            let result = await db.update(__data, parsedOptions);
             if (!lib.isEmpty(this.__relationData)) {
-                await this.__postRelationData(model, result, parsedOptions, this.__relationData, 'UPDATE');
+                await this.__postRelationData(db, result, parsedOptions, this.__relationData, 'UPDATE');
             }
             await this._afterUpdate(__data, parsedOptions);
             return result || [];
@@ -612,17 +603,17 @@ export default class extends base {
     async increment(field, step = 1, options) {
         try {
             let parsedOptions = await this.__parseOptions(options);
-            // init model
-            let model = await this.initModel();
+            // init db
+            let db = await this.initDB();
             //copy data
             let __data = lib.extend({}, {[field]: step});
             __data = await this._beforeUpdate(__data, parsedOptions);
-            __data = await this.__checkData(model, __data, parsedOptions, 'UPDATE');
+            __data = await this.__checkData(db, __data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
 
-            let result = await model.increment(__data, field, parsedOptions);
+            let result = await db.increment(__data, field, parsedOptions);
             await this._afterUpdate(__data, parsedOptions);
             return result || [];
         } catch (e) {
@@ -640,17 +631,17 @@ export default class extends base {
     async decrement(field, step = 1, options) {
         try {
             let parsedOptions = await this.__parseOptions(options);
-            // init model
-            let model = await this.initModel();
+            // init db
+            let db = await this.initDB();
             //copy data
             let __data = lib.extend({}, {[field]: step});
             __data = await this._beforeUpdate(__data, parsedOptions);
-            __data = await this.__checkData(model, __data, parsedOptions, 'UPDATE');
+            __data = await this.__checkData(db, __data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
 
-            let result = await model.decrement(__data, field, parsedOptions);
+            let result = await db.decrement(__data, field, parsedOptions);
             await this._afterUpdate(__data, parsedOptions);
             return result || [];
         } catch (e) {
@@ -668,9 +659,9 @@ export default class extends base {
         try {
             let parsedOptions = await this.__parseOptions(options);
             let pk = await this.getPk();
-            // init model
-            let model = await this.initModel();
-            let result = await model.count(pk, parsedOptions);
+            // init db
+            let db = await this.initDB();
+            let result = await db.count(pk, parsedOptions);
             return result || 0;
         } catch (e) {
             return this.error(e);
@@ -689,9 +680,9 @@ export default class extends base {
             let parsedOptions = await this.__parseOptions(options);
             let pk = await this.getPk();
             field = field || pk;
-            // init model
-            let model = await this.initModel();
-            let result = await model.sum(field, parsedOptions);
+            // init db
+            let db = await this.initDB();
+            let result = await db.sum(field, parsedOptions);
             return result || 0;
         } catch (e) {
             return this.error(e);
@@ -705,12 +696,12 @@ export default class extends base {
     async find(options) {
         try {
             let parsedOptions = await this.__parseOptions(options);
-            // init model
-            let model = await this.initModel();
-            let result = await model.find(parsedOptions);
-            result = await this.__parseData(model, (lib.isArray(result) ? result[0] : result) || {}, parsedOptions);
+            // init db
+            let db = await this.initDB();
+            let result = await db.find(parsedOptions);
+            result = await this.__parseData(db, (lib.isArray(result) ? result[0] : result) || {}, parsedOptions);
             if (!lib.isEmpty(parsedOptions.rel)) {
-                result = await this.__getRelationData(model, parsedOptions, result);
+                result = await this.__getRelationData(db, parsedOptions, result);
             }
             await this._afterFind(result, parsedOptions);
             return result;
@@ -734,12 +725,12 @@ export default class extends base {
     async select(options) {
         try {
             let parsedOptions = await this.__parseOptions(options);
-            // init model
-            let model = await this.initModel();
-            let result = await model.select(parsedOptions);
-            result = await this.__parseData(model, result || [], parsedOptions);
+            // init db
+            let db = await this.initDB();
+            let result = await db.select(parsedOptions);
+            result = await this.__parseData(db, result || [], parsedOptions);
             if (!lib.isEmpty(parsedOptions.rel)) {
-                result = await this.__getRelationData(model, parsedOptions, result);
+                result = await this.__getRelationData(db, parsedOptions, result);
             }
             await this._afterSelect(result, parsedOptions);
             return result;
@@ -799,9 +790,9 @@ export default class extends base {
      */
     async query(sqlStr) {
         try {
-            // init model
-            let model = await this.initModel();
-            let result = await model.native(this.tableName, sqlStr);
+            // init db
+            let db = await this.initDB();
+            let result = await db.native(this.tableName, sqlStr);
             return result;
         } catch (e) {
             return this.error(e);

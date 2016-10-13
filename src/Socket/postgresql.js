@@ -7,6 +7,7 @@
  */
 import base from './base';
 import lib from '../Util/lib';
+import pg from 'pg';
 
 export default class extends base {
 
@@ -19,7 +20,8 @@ export default class extends base {
             port: config.db_port || 5432,
             encoding: config.db_charset || 'utf8',
             connectTimeout: config.db_timeout * 1000 || 10000,//try connection timeout
-            poolSize: config.db_ext_config.db_pool_size || 10
+            poolSize: config.db_ext_config.db_pool_size || 10,
+            db_ext_config: config.db_ext_config || {}
         }
         this.connection = null;
     }
@@ -29,18 +31,20 @@ export default class extends base {
             return Promise.resolve(this.connection);
         }
 
-        let driver = require('pg');
         //use pool
         if (this.config.max) {
-            driver.defaults.poolSize = this.config.poolSize;
+            pg.defaults.poolSize = this.config.poolSize;
         }
         //set poolIdleTimeout, change default `30 seconds` to 8 hours
-        driver.defaults.poolIdleTimeout = 8 * 60 * 60 * 1000;
+        pg.defaults.poolIdleTimeout = 8 * 60 * 60 * 1000;
+
         let connectKey = `postgres://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}`;
+        if(this.config.db_ext_config.forceNewNum){
+            connectKey = `${connectKey}_${this.config.db_ext_config.forceNewNum}`;
+        }
         return lib.await(connectKey, () => {
             let deferred = lib.getDefer();
-            let connection = driver;
-            connection.connect(this.config, (err, client, done) => {
+            pg.connect(this.config, (err, client, done) => {
                 if (err) {
                     this.close();
                     deferred.reject(err);
@@ -50,18 +54,18 @@ export default class extends base {
                     deferred.resolve(this.connection);
                 }
             });
-            connection.on('error', () => {
+            pg.on('error', () => {
                 this.close();
                 deferred.reject('DB connection error');
-            })
-            connection.on('end', () => {
+            });
+            pg.on('end', () => {
                 this.close();
                 deferred.reject('DB connection end');
-            })
-            connection.on('close', () => {
+            });
+            pg.on('close', () => {
                 this.close();
                 deferred.reject('DB connection close');
-            })
+            });
             if (this.deferred) {
                 this.deferred.reject(new Error('DB connection closed'));
             }

@@ -23,7 +23,7 @@ var config = {
     //db_pwd: '',
     db_prefix: 'think_',
     db_charset: 'utf8',
-    db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
+    db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10, read_write: false}
 };
 
 //thinkorm.require需要使用绝对路径
@@ -41,48 +41,68 @@ thinkorm.setCollection(Group, config);
 //实例化模型
 var model = new User(config);
 
-function test() {
-    "use strict";
-    return model
-        //.migrate()
-    .where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
-    //.where({id: {'>=': 0}}).count()
-    //.where({id: {'>=': 0}}).sum('id')
-    //.where({id: {'>=': 0}}).select()
-    //.where({name: {'like': 'r%'}}).find()
-    //.where({not: {name: '', id: 1}}).select()
-    //.where({notin: {'id': [1,2,3]}}).select()
-    //.where({name: {'like': '%a'}}).select()
-    //.where({id: [1,2,3]}).select()
+//查询语言测试
+//return model
+//.migrate()
+//.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
+//.where({id: {'>=': 0}}).count()
+//.where({id: {'>=': 0}}).sum('id')
+//.where({id: {'>=': 0}}).select()
+//.where({name: {'like': 'r%'}}).find()
+//.where({not: {name: '', id: 1}}).select()
+//.where({notin: {'id': [1,2,3]}}).select()
+//.where({name: {'like': '%a'}}).select()
+//.where({id: [1,2,3]}).select()
 
-    // .where({id: {'<>': 1, '>=': 0, notin: [1,2,3]}, name: ['aa', 'rrrrrrr'], notin: {'id': [1,2,3], num: [1,2,3]}, not: {name: '', num: [1,2,3]}, memo: {'like': '%a'}, or: [{name: 'aa', id: 1}, {name: 'rrrrrrr', id: {'>': 1}}]}).find()
-    //.where({'and': {id: 1, name: 'aa'}}).find()//and做key
-    //.where({or: [{id: 1, name: {or: [{name: 'aa'}, {memo: 'aa'}]}}, {memo: 'aa'}]}).find()//or嵌套
-    //.where({in: {id: [1,2,3], num: [2,3]}}).find()//in做key
-    //.where({'operator': {id: {'<>': 1, '>=': 0}}}).find()//operator做key
-    //.where({name: {'<>': '', not: 'aa', notin: ['aa', 'rrr'], like: '%a'}}).find()
+// .where({id: {'<>': 1, '>=': 0, notin: [1,2,3]}, name: ['aa', 'rrrrrrr'], notin: {'id': [1,2,3], num: [1,2,3]}, not: {name: '', num: [1,2,3]}, memo: {'like': '%a'}, or: [{name: 'aa', id: 1}, {name: 'rrrrrrr', id: {'>': 1}}]}).find()
+//.where({'and': {id: 1, name: 'aa'}}).find()//and做key
+//.where({or: [{id: 1, name: {or: [{name: 'aa'}, {memo: 'aa'}]}}, {memo: 'aa'}]}).find()//or嵌套
+//.where({in: {id: [1,2,3], num: [2,3]}}).find()//in做key
+//.where({'operator': {id: {'<>': 1, '>=': 0}}}).find()//operator做key
+//.where({name: {'<>': '', not: 'aa', notin: ['aa', 'rrr'], like: '%a'}}).find()
 
-    //.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
-    //.countSelect()
-    //.join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
-    //.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
-    //.where({id: {'>=': 0}}).group(['id','username']).find()
-    // .rel(true).find()
-    // .add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
-    //.where({id: 41}).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})、、、
-    //.add({name: 'rrrrrrrrrrrrr',Pet: [{types: 'ssfsssss'}]})
-    // .where({id: 1}).update({name: 'ttrrrrrtttt',Pet: [{id: 7,types: 'ttttttt'}]})
-    //.add({name: 'rrrrrrrrrrr',Group: [{name: 'ssfsssss', type: ''}]})
-    //.where({id: 12}).update({name: 'ttttrrrrrtt',Group: [{id: 55,name: 'ttttttt'}]})
-    //.where({id: 115}).update({name: 'ttttrrrrrtt',Group: [{userid: 115, groupid: 15}]})
-    //    .query('select * from think_user where id = 1')
-    //    .where({id:1}).increment('num', 1)
-    //    .add({name: 'qqqesddfsdqqq'})
-        .then(res => {
-            echo(res);
-        });
-}
-test();
+//.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
+//.countSelect()
+//.join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+//.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+//.where({id: {'>=': 0}}).group(['id','username']).find()
+//.rel(true).find()
+//.add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
+//.where({id: 41}).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})、、、
+//.add({name: 'rrrrrrrrrrrrr',Pet: [{types: 'ssfsssss'}]})
+//.where({id: 1}).update({name: 'ttrrrrrtttt',Pet: [{id: 7,types: 'ttttttt'}]})
+//.add({name: 'rrrrrrrrrrr',Group: [{name: 'ssfsssss', type: ''}]})
+//.where({id: 12}).update({name: 'ttttrrrrrtt',Group: [{id: 55,name: 'ttttttt'}]})
+//.where({id: 115}).update({name: 'ttttrrrrrtt',Group: [{userid: 115, groupid: 15}]})
+//.query('select * from think_user where id = 1')
+//.where({id:1}).increment('num', 1)
+//.add({name: 'qqqesddfsdqqq'})
+
+// .then(res => {
+//     echo(res);
+// });
+
+
+//事务测试
+return model.transaction(function *(t) {
+    // for (var i = 1; i < 5; i++) {
+    //     yield model.add({name: 'rrrrrrrrrrrrr'});
+    //     yield model.add({name: 'rrrrrrrrrrrrr'});
+    //     yield model.add({name: 'rrrrrrr'});
+    //     yield model.add({name: 'rrrrrrrrrrrrr'});
+    //     yield model.add({name: 'rrrrrrrrrrrrr'});
+    // }
+    //Promise.all并行
+    var ps = [];
+    for (var i = 1; i < 5; i++) {
+        ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
+        ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
+        ps.push(model.add({name: 'rrrr'}));
+        ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
+        ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
+    }
+    return Promise.all(ps);
+});
 
 
 //function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }

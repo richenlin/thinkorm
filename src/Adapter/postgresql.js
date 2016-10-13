@@ -17,7 +17,6 @@ export default class extends base {
         this.config = config;
         this.logSql = config.db_ext_config.db_log_sql || false;
         this.transTimes = 0; //transaction times
-        this.lastInsertId = 0;
 
         this.knexClient = knex({
             client: 'postgresql'
@@ -29,7 +28,7 @@ export default class extends base {
 
     connect() {
         if (this.handel) {
-            return this.handel;
+            return Promise.resolve(this.handel);
         }
         //读写分离配置
         if(this.config.db_ext_config.read_write && lib.isArray(this.config.db_host)){
@@ -53,21 +52,21 @@ export default class extends base {
                 db_timeout: this.config.db_timeout,
                 db_ext_config: this.config.db_ext_config
             };
-            return Promise.all([socket.getInstance(configMaster).connect(), socket.getInstance(configSlave).connect()]).then(cons => {
+            return Promise.all([socket.getInstance(configMaster), socket.getInstance(configSlave)]).then(cons => {
                 this.handel = {RW: true};
                 this.handel.master = cons[0];
                 this.handel.slave = cons[1];
                 return this.handel;
             });
         } else {
-            this.handel = socket.getInstance(this.config).connect();
+            this.handel = socket.getInstance(this.config);
+            return this.handel;
         }
-        return this.handel;
     }
 
     close() {
         if (this.handel) {
-            if(this.handel.RW){
+            if (this.handel.RW) {
                 this.handel.master && this.handel.master.close && this.handel.master.close();
                 this.handel.slave && this.handel.slave.close && this.handel.slave.close();
             } else {
@@ -75,6 +74,7 @@ export default class extends base {
             }
             this.handel = null;
         }
+        return;
     }
 
     parsers() {
@@ -157,7 +157,7 @@ export default class extends base {
             return this.formatData(rows);
         }).then(data => {
             if (data.rows && data.rows[0] && data.rows[0].id) {
-                this.lastInsertId = data.rows[0].id;
+                return data.rows[0].id;
             }
             return data.rowCount || 0;
         }).catch(err => {
@@ -228,7 +228,10 @@ export default class extends base {
     commit() {
         if (this.transTimes > 0) {
             this.transTimes = 0;
-            return this.execute('COMMIT');
+            return this.execute('COMMIT').then(data => {
+                this.close();
+                return data;
+            });
         }
         return Promise.resolve();
     }
@@ -240,7 +243,10 @@ export default class extends base {
     rollback() {
         if (this.transTimes > 0) {
             this.transTimes = 0;
-            return this.execute('ROLLBACK');
+            return this.execute('ROLLBACK').then(data => {
+                this.close();
+                return data;
+            });
         }
         return Promise.resolve();
     }
@@ -259,7 +265,7 @@ export default class extends base {
             return this.execute(sql);
         }).then(data => {
             //
-            return this.lastInsertId;
+            return data;
         });
     }
 
