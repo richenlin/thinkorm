@@ -85,7 +85,7 @@ export default class extends base {
         startTime = startTime || Date.now();
         if (!cls) {
             this.logSql && lib.log(this.sql, 'MongoDB', startTime);
-            return Promise.reject('Analytic result is empty');
+            return Promise.reject('SQL analytic result is empty');
         }
         return cls.then(data => {
             this.logSql && lib.log(this.sql, 'MongoDB', startTime);
