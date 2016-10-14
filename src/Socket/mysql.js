@@ -41,13 +41,19 @@ export default class extends base{
         if(config.db_ext_config.forceNewNum){
             connectKey = `${connectKey}_${config.db_ext_config.forceNewNum}`;
         }
+        //use pool
+        if(this.connectionLimit && !this.pool){
+            this.pool = mysql.createPool(config);
+        }
 
         return lib.await(connectKey, () => {
             //use pool
-            if(this.connectionLimit){
-                this.pool = mysql.createPool(config);
+            if(this.pool){
                 let fn = lib.promisify(this.pool.getConnection, this.pool);
-                return fn().catch(e => {
+                return fn().then(conn => {
+                    this.connection = conn;
+                    return this.connection;
+                }).catch(e => {
                     this.close();
                     return Promise.reject(e);
                 });

@@ -15,7 +15,6 @@ let forceNewNum = 1;
 export default class extends base {
     /**
      * init
-     * @param name
      * @param config
      */
     init(config = {}) {
@@ -115,7 +114,7 @@ export default class extends base {
             }
 
             if(forceNew){
-                config.db_ext_config['forceNewNum'] = ++ forceNewNum ;
+                config.db_ext_config['forceNewNum'] = forceNewNum ++ ;
             }
             this.instances = new (lib.thinkRequire(adapterList[dbType]))(config);
             return this.instances;
@@ -185,10 +184,9 @@ export default class extends base {
 
     /**
      * 获取模型名
-     * @access public
-     * @return string
+     * @returns {*}
      */
-    getModelName(name) {
+    getModelName() {
         try {
             if (!this.modelName) {
                 let filename = this.__filename;
@@ -429,9 +427,9 @@ export default class extends base {
 
     /**
      * 添加一条数据
-     * @param {[type]} data    [description]
-     * @param {[type]} options [description]
-     * @param int 返回插入的id
+     * @param data
+     * @param options
+     * @returns {*}
      */
     async add(data, options) {
         try {
@@ -494,7 +492,6 @@ export default class extends base {
 
     /**
      * 数据删除之前操作，可以返回一个promise
-     * @param  {[type]} data    [description]
      * @param  {[type]} options [description]
      * @return {[type]}         [description]
      */
@@ -913,6 +910,7 @@ export default class extends base {
 
     /**
      * 查询结果处理
+     * @param adapter
      * @param data
      * @param options
      * @param method
