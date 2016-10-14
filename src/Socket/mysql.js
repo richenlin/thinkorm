@@ -5,7 +5,7 @@
  * @license    MIT
  * @version    16/7/25
  */
-import base from '../base';
+import base from './base';
 import lib from '../Util/lib';
 import mysql from 'mysql';
 
@@ -36,64 +36,64 @@ export default class extends base{
         if(this.connection){
             return Promise.resolve(this.connection);
         }
+        //use pool
+        if(this.pool){
+            let fn = lib.promisify(this.pool.getConnection, this.pool);
+            return fn().then(conn => {
+                this.connection = conn;
+                return this.connection;
+            }).catch(e => {
+                this.close();
+                return Promise.reject(e);
+            });
+        }
         let config = this.config;
+        if(this.connectionLimit){
+            this.pool = mysql.createPool(config);
+            return this.connect();
+        }
+
         let connectKey = `mysql://${config.user}:${config.password}@${config.host}:${config.port}/${config.database}`;
         if(config.db_ext_config.forceNewNum){
             connectKey = `${connectKey}_${config.db_ext_config.forceNewNum}`;
         }
-        //use pool
-        if(this.connectionLimit && !this.pool){
-            this.pool = mysql.createPool(config);
-        }
 
         return lib.await(connectKey, () => {
-            //use pool
-            if(this.pool){
-                let fn = lib.promisify(this.pool.getConnection, this.pool);
-                return fn().then(conn => {
-                    this.connection = conn;
-                    return this.connection;
-                }).catch(e => {
+            let deferred = lib.getDefer();
+            let connection = mysql.createConnection(config);
+            connection.connect(err => {
+                if(err){
                     this.close();
-                    return Promise.reject(e);
-                });
-            } else {
-                let deferred = lib.getDefer();
-                let connection = mysql.createConnection(config);
-                connection.connect(err => {
-                    if(err){
-                        this.close();
-                        deferred.reject(err);
-                    } else {
-                        deferred.resolve(connection);
-                    }
-                });
-                connection.on('error', () => {
-                    this.close();
-                    deferred.reject('DB connection error');
-                });
-                connection.on('end', () => {
-                    this.close();
-                    deferred.reject('DB connection end');
-                });
-                this.connection = connection;
-                if (this.deferred) {
-                    this.deferred.reject(new Error('DB connection closed'));
+                    deferred.reject(err);
+                } else {
+                    deferred.resolve(connection);
                 }
-                this.deferred = deferred;
-                return this.deferred.promise;
+            });
+            connection.on('error', () => {
+                this.close();
+                deferred.reject('DB connection error');
+            });
+            connection.on('end', () => {
+                this.close();
+                deferred.reject('DB connection end');
+            });
+            this.connection = connection;
+            if (this.deferred) {
+                this.deferred.reject(new Error('DB connection closed'));
             }
+            this.deferred = deferred;
+            return this.deferred.promise;
         });
     }
 
     close(){
         if(this.pool){
-            let fn = lib.promisify(this.pool.end, this.pool);
-            return fn().then(() => this.pool = null);
+            this.pool.end();
+            this.pool = null;
         } else {
-            if(this.connection){
-                let fn = lib.promisify(this.connection.end, this.connection);
-                return fn().then(() => this.connection = null);
+            if (this.connection) {
+                this.connection.end();
+                this.connection = null;
             }
         }
     }

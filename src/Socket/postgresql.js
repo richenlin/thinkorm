@@ -5,7 +5,7 @@
  * @license    MIT
  * @version    16/7/25
  */
-import base from '../base';
+import base from './base';
 import lib from '../Util/lib';
 import pg from 'pg';
 
@@ -22,7 +22,7 @@ export default class extends base {
             connectTimeout: config.db_timeout * 1000 || 10000,//try connection timeout
             poolSize: config.db_ext_config.db_pool_size || 10,
             db_ext_config: config.db_ext_config || {}
-        }
+        };
         this.connection = null;
     }
 

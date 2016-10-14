@@ -24,16 +24,16 @@ export default class extends base {
         if (this.handel) {
             return Promise.resolve(this.handel);
         }
-        this.handel = new socket(this.config);
-        return Promise.resolve(this.handel);
+        this.handel = socket.getInstance(this.config).connect();
+        return this.handel;
     }
 
     close() {
         if (this.handel) {
             this.handel.close && this.handel.close();
-            this.handel = null;
         }
-        return;
+        this.handel = null;
+        return Promise.resolve();
     }
 
     parsers() {
@@ -91,6 +91,7 @@ export default class extends base {
             this.logSql && lib.log(this.sql, 'MongoDB', startTime);
             return this.formatData(data);
         }).catch(err => {
+            this.close();
             this.logSql && lib.log(this.sql, 'MongoDB', startTime);
             return Promise.reject(err);
         });
@@ -131,7 +132,7 @@ export default class extends base {
             this.sql = `db.getCollection('${tableName}')${sqlArr.join('.')}`;
             let func = new Function('process', 'return process.' + sqlArr.join('.') + ';');
             handler = func(collection);
-            return this.execute(handler, startTime);
+            return this.query(handler, startTime);
         }).then(data => {
             return data.insertedId.toHexString() || 0;
         });

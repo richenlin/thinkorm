@@ -52,14 +52,14 @@ export default class extends base {
                 db_timeout: this.config.db_timeout,
                 db_ext_config: this.config.db_ext_config
             };
-            return Promise.all([new socket(configMaster).connect(), new socket(configSlave).connect()]).then(cons => {
+            return Promise.all([socket.getInstance(configMaster).connect(), socket.getInstance(configSlave).connect()]).then(cons => {
                 this.handel = {RW: true};
                 this.handel.master = cons[0];
                 this.handel.slave = cons[1];
                 return this.handel;
             });
         } else {
-            this.handel = new socket(this.config).connect();
+            this.handel = socket.getInstance(this.config).connect();
             return this.handel;
         }
     }
@@ -72,9 +72,9 @@ export default class extends base {
             } else {
                 this.handel.close && this.handel.close();
             }
-            this.handel = null;
         }
-        return;
+        this.handel = null;
+        return Promise.resolve();
     }
 
     parsers() {
@@ -124,17 +124,16 @@ export default class extends base {
             connection = conn.RW ? conn.slave : conn || {};
             let fn = lib.promisify(connection.query, connection);
             return fn(sql);
+        }).catch(err => {
+            this.close();
+            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            return Promise.reject(err);
         }).then((rows = []) => {
             connection.release && connection.release();
             this.logSql && lib.log(sql, 'PostgreSQL', startTime);
             return this.formatData(rows);
         }).catch(err => {
             connection.release && connection.release();
-            //when socket is closed, try it
-            if(err.code === 'EPIPE'){
-                this.close();
-                return this.query(sql);
-            }
             this.logSql && lib.log(sql, 'PostgreSQL', startTime);
             return Promise.reject(err);
         });
@@ -151,6 +150,10 @@ export default class extends base {
             connection = conn.RW ? conn.master : conn || {};
             let fn = lib.promisify(connection.query, connection);
             return fn(sql);
+        }).catch(err => {
+            this.close();
+            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            return Promise.reject(err);
         }).then((rows = []) => {
             connection.release && connection.release();
             this.logSql && lib.log(sql, 'PostgreSQL', startTime);
@@ -162,11 +165,6 @@ export default class extends base {
             return data.rowCount || 0;
         }).catch(err => {
             connection.release && connection.release();
-            //when socket is closed, try it
-            if(err.code === 'EPIPE'){
-                this.close();
-                return this.execute(sql);
-            }
             this.logSql && lib.log(sql, 'PostgreSQL', startTime);
             return Promise.reject(err);
         });
@@ -201,10 +199,16 @@ export default class extends base {
             connection = conn.RW ? conn.master : conn;
             let fn = lib.promisify(connection.query, connection);
             return fn(ouputs.sql, ouputs.bindings);
+        }).catch(err => {
+            this.close();
+            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            return Promise.reject(err);
         }).then((res = {}) => {
+            connection.release && connection.release();
             this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
             return this.formatData(res.rows);
         }).catch(err => {
+            connection.release && connection.release();
             this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
             return Promise.reject(err);
         });
