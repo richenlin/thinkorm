@@ -10,7 +10,7 @@ var thinkorm = require('../index.js');
 var ObjectID = require('mongodb').ObjectID;
 var config = {
     db_type: 'mongo',
-    db_host: '192.168.99.100',
+    db_host: '127.0.0.1',
     db_port: 27017,
     db_name: 'test',
     //db_pwd: '',

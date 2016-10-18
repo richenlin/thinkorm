@@ -99,10 +99,10 @@ export default class extends base {
             //set db
             if(lib.isObject(forceNew)){
                 this.instances = forceNew;
-                return this;
+                return Promise.resolve(this);
             }
             if(this.instances && !forceNew){
-                return this.instances;
+                return Promise.resolve(this.instances);
             }
             let adapterList = {
                 mysql: __dirname + '/Adapter/mysql.js',
@@ -117,7 +117,7 @@ export default class extends base {
                 config.db_ext_config['forceNewNum'] = forceNewNum ++ ;
             }
             this.instances = new (lib.thinkRequire(adapterList[dbType]))(config);
-            return this.instances;
+            return Promise.resolve(this.instances);
         } catch (e) {
             return this.error(e);
         }
@@ -153,7 +153,7 @@ export default class extends base {
      */
     async transaction(fn){
         //init db
-        let db = this.initDB(true);
+        let db = await this.initDB(true);
         try{
             await db.startTrans();
             let result = await lib.thinkCo(fn(db));
