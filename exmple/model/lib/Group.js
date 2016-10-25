@@ -31,7 +31,7 @@ var _class = function (_thinkorm) {
     _class.prototype.init = function init(config) {
         _thinkorm.prototype.init.call(this, config);
         // 是否自动迁移(默认安全模式)
-        this.safe = true;
+        // this.safe = false;
         // 数据表字段信息
         this.fields = {
             id: {

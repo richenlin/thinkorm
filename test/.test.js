@@ -23,7 +23,7 @@ var config = {
     //db_pwd: '',
     db_prefix: 'think_',
     db_charset: 'utf8',
-    db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10, read_write: false}
+    db_ext_config: {safe: false, db_log_sql: true, db_pool_size: 10, read_write: false}
 };
 
 //thinkorm.require需要使用绝对路径
@@ -38,12 +38,14 @@ thinkorm.setCollection(Profile, config);
 thinkorm.setCollection(Pet, config);
 thinkorm.setCollection(Group, config);
 
+//数据结构迁移
+// thinkorm.migrate(config);
+
 //实例化模型
 var model = new User(config);
 
 //查询语言测试
-// return model
-//.migrate()
+return model
 //.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
 //.where({id: {'>=': 0}}).count()
 //.where({id: {'>=': 0}}).sum('id')
@@ -64,7 +66,7 @@ var model = new User(config);
 //.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).select()
 //.countSelect()
 //.join([{from: 'Profile', on: {or: [{profile: 'id'}, {username: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
-//.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).find()
+.field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).count('Profile.id')
 //.where({id: {'>=': 0}}).group(['id','username']).find()
 // .rel(true).find()
 // .add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
@@ -78,13 +80,13 @@ var model = new User(config);
 //.where({id:1}).increment('num', 1)
 //.add({name: 'qqqesddfsdqqq'})
 
-// .then(res => {
-//     echo(res);
-// });
+.then(res => {
+    echo(res);
+});
 
 
 //事务测试
-return model.transaction(function *(t) {
+/*return model.transaction(function *(t) {
     // for (var i = 1; i < 5; i++) {
     //     yield model.add({name: 'rrrrrrrrrrrrr'});
     //     yield model.add({name: 'rrrrrrr'});
@@ -103,7 +105,7 @@ return model.transaction(function *(t) {
     // yield model.add({name: 'rrrrrrrrrrrrr'});
     // let profileModel = new Profile(config);
     // yield profileModel.initDB(t).add({test: ['rrrtest']});
-});
+});*/
 
 
 //function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }

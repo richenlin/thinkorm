@@ -648,17 +648,19 @@ export default class extends base {
 
     /**
      * 查询数据条数
-     * count('xxx')
+     * count('xxx', {})
+     * @param field
      * @param options
      * @returns {*}
      */
-    async count(options) {
+    async count(field, options) {
         try {
             let parsedOptions = await this.__parseOptions(options);
             let pk = await this.getPk();
+            field = field || `${this.modelName}.${pk}`;
             // init db
             let db = await this.initDB();
-            let result = await db.count(pk, parsedOptions);
+            let result = await db.count(field, parsedOptions);
             return result || 0;
         } catch (e) {
             return this.error(e);
@@ -667,7 +669,7 @@ export default class extends base {
 
     /**
      * 统计数据数量和
-     * sum('xxx')
+     * sum('xxx', {})
      * @param field
      * @param options
      * @returns {*}
@@ -676,7 +678,7 @@ export default class extends base {
         try {
             let parsedOptions = await this.__parseOptions(options);
             let pk = await this.getPk();
-            field = field || pk;
+            field = field || `${this.modelName}.${pk}`;
             // init db
             let db = await this.initDB();
             let result = await db.sum(field, parsedOptions);
@@ -759,7 +761,7 @@ export default class extends base {
                 options = {};
             }
             let parsedOptions = await this.__parseOptions(options);
-            let countNum = await this.count(parsedOptions);
+            let countNum = await this.count(null, parsedOptions);
             let pageOptions = parsedOptions.page || {page: 1, num: 10};
             let totalPage = Math.ceil(countNum / pageOptions.num);
             if (lib.isBoolean(pageFlag)) {
