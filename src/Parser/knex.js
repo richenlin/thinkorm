@@ -331,20 +331,15 @@ export default class extends base {
         //    this.on('accounts.id', '=', 'users.account_id').on('accounts.owner_id', '=', 'users.id').orOn('accounts.owner_id', '=', 'users.id')
         //})
         if (lib.isArray(options.join)) {
-            let type, config = this.config, name = options.alias, joinAlias = '', joinTable = '', onCondition, func = '', _field;
+            let type, config = this.config, name = options.alias, joinAlias = '', joinTable = '', onCondition, func = '', _field = [];
             options.join.map(item => {
                 if (item && item.from && item.on) {
                     onCondition = item.on;
                     joinAlias = item.alias || item.from;
                     joinTable = `${config.db_prefix}${lib.parseName(item.from)}`;
+                    !options.field && (options.field = ['*']);
                     //关联表字段
                     if (lib.isArray(item.field)) {
-                        !options.field && (options.field = ['*']);
-                        _field = [];
-                        options.field.forEach(it => {
-                            _field.push(it.indexOf('.') > -1 ? it : `${name}.${it}`);
-                        });
-                        options.field = _field;
                         item.field.forEach(it => {
                             options.field.push(it.indexOf('.') > -1 ? it : `${joinAlias}.${it}`);
                         });
@@ -356,6 +351,10 @@ export default class extends base {
                     cls[`${type}Join`](`${joinTable} AS ${joinAlias}`, func);
                 }
             });
+            options.field.forEach(it => {
+                _field.push(it.indexOf('.') > -1 ? it : `${name}.${it}`);
+            });
+            options.field = _field;
         }
     }
 
