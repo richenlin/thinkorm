@@ -141,7 +141,6 @@ function getRelation(name, config) {
  */
 function migrate(config){
     let instance, ps = [];
-    echo(ORM.collections)
     for(let n in ORM.collections){
         instance = new ORM.collections[n](config);
         if (instance.safe === false && config.db_ext_config && config.db_ext_config['safe'] === false) {
