@@ -14,17 +14,15 @@ export default class extends thinkorm{
         this.safe = false;
         // 数据表字段信息
         this.fields = {
-            id: {
+            userid: {
                 type: 'integer',
-                primaryKey: true
+                index: true,
+                defaultsTo: 0
             },
-            name: {
-                type: 'string',
-                defaultsTo: ''
-            },
-            type: {
-                type: 'string',
-                defaultsTo: ''
+            groupid: {
+                type: 'integer',
+                index: true,
+                defaultsTo: 0
             }
         };
         // 数据验证

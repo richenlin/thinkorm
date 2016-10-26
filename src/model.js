@@ -81,7 +81,7 @@ export default class extends base {
      * @param args
      * @returns {*|{get}}
      */
-    static migrate(...args){
+    static migrate(...args) {
         return schema.migrate(...args);
     }
 
@@ -97,11 +97,11 @@ export default class extends base {
                 return this.error(`Collections ${this.modelName} is undefined.`);
             }
             //set db
-            if(lib.isObject(forceNew)){
+            if (lib.isObject(forceNew)) {
                 this.instances = forceNew;
                 return Promise.resolve(this);
             }
-            if(this.instances && !forceNew){
+            if (this.instances && !forceNew) {
                 return Promise.resolve(this.instances);
             }
             let adapterList = {
@@ -113,8 +113,8 @@ export default class extends base {
                 return this.error(`adapter ${dbType} is not support.`);
             }
 
-            if(forceNew){
-                config.db_ext_config['forceNewNum'] = forceNewNum ++ ;
+            if (forceNew) {
+                config.db_ext_config['forceNewNum'] = forceNewNum++;
             }
             this.instances = new (lib.thinkRequire(adapterList[dbType]))(config);
             return Promise.resolve(this.instances);
@@ -144,25 +144,6 @@ export default class extends base {
             //lib.log(msg);
         }
         return Promise.reject(msg);
-    }
-
-    /**
-     * transaction exec functions
-     * @param  {Function} fn [exec function]
-     * @return {Promise}      []
-     */
-    async transaction(fn){
-        //init db
-        let db = await this.initDB(true);
-        try{
-            await db.startTrans();
-            let result = await lib.thinkCo(fn(db));
-            await db.commit();
-            return result;
-        } catch (e){
-            await db.rollback();
-            return this.error(e);
-        }
     }
 
     /**
@@ -208,9 +189,11 @@ export default class extends base {
         try {
             if (!lib.isEmpty(this.fields)) {
                 for (let v in this.fields) {
-                    if (this.fields[v].hasOwnProperty('primaryKey') && this.fields[v].primaryKey === true) {
-                        this.pk = v;
-                    }
+                    (t => {
+                        if (this.fields[t].hasOwnProperty('primaryKey') && this.fields[t].primaryKey === true) {
+                            this.pk = t;
+                        }
+                    })(v)
                 }
             } else {
                 if (this.config.db_type === 'mongo') {
@@ -224,15 +207,21 @@ export default class extends base {
     }
 
     /**
-     * 根据查询结果生成分页
-     * @return {[type]} [description]
+     * 要查询的字段
+     * @param  {[type]} field   [description]
+     * @return {[type]}         [description]
      */
-    page(page, listRows) {
+    field(field) {
         try {
-            if (page === undefined) {
+            if (!field) {
                 return this;
             }
-            this.__options.page = listRows === undefined ? page : page + ',' + listRows;
+            if (lib.isString(field)) {
+                field = field.replace(/ +/g, '').split(',');
+            }
+            if (lib.isArray(field)) {
+                this.__options.field = this.__options.field ? lib.extend(false, this.__options.field, field) : field;
+            }
             return this;
         } catch (e) {
             return this.error(e);
@@ -240,36 +229,43 @@ export default class extends base {
     }
 
     /**
-     * 关联操作
-     * @param table
-     * @param field
+     * 表别名
+     * @param alias
      */
-    rel(table = false, field = {}) {
+    alias(alias) {
         try {
-            if (table) {
-                //获取关联关系
-                let rels = schema.getRelation(this.modelName, this.config);
-                if (table === true) {
-                    this.__options.rel = rels;
-                } else {
-                    if (lib.isString(table)) {
-                        table = table.replace(/ +/g, '').split(',');
-                    }
-                    if (lib.isArray(table)) {
-                        this.__options.rel = {};
-                        table.forEach(item => {
-                            rels[item] && (this.__options.rel[item] = rels[item]);
-                        });
-                    }
-                }
-                //关联表字段
-                if (!lib.isEmpty(field)) {
-                    for (let n in field) {
-                        if (n in this.__options.rel) {
-                            this.__options.rel[n]['field'] = field[n];
-                        }
-                    }
-                }
+            if (!alias) {
+                return this;
+            }
+            if (lib.isString(alias)) {
+                this.__options.alias = this.__options.alias ? lib.extend(false, this.__options.alias, alias) : alias;
+            }
+            return this;
+        } catch (e) {
+            return this.error(e);
+        }
+    }
+
+    /**
+     * where条件
+     * 书写方法:
+     * or:  {or: [{...}, {...}]}
+     * not: {not: {name: '', id: 1}}
+     * notin: {notin: {'id': [1,2,3]}}
+     * in: {id: [1,2,3]}
+     * and: {id: 1, name: 'a'},
+     * operator: {id: {'<>': 1}}
+     * operator: {id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}
+     * like: {name: {'like': '%a'}}
+     * @return {[type]} [description]
+     */
+    where(where) {
+        try {
+            if (!where) {
+                return this;
+            }
+            if (lib.isObject(where)) {
+                this.__options.where = this.__options.where ? lib.extend(false, this.__options.where, where) : where;
             }
             return this;
         } catch (e) {
@@ -299,7 +295,7 @@ export default class extends base {
             if (length) {
                 length = Math.max(parseInt(length) || 0, 0);
             }
-            this.__options.limit = [offset, length];
+            this.__options.limit = this.__options.limit ? lib.extend(false, this.__options.limit, [offset, length]) : [offset, length];
             return this;
         } catch (e) {
             return this.error(e);
@@ -313,12 +309,10 @@ export default class extends base {
      */
     order(order) {
         try {
-            if (order === undefined) {
+            if (!order) {
                 return this;
             }
-            if (lib.isObject(order)) {
-                this.__options.order = order;
-            } else if (lib.isString(order)) {
+            if (lib.isString(order)) {
                 let strToObj = function (_str) {
                     return _str.replace(/^ +/, '').replace(/ +$/, '')
                         .replace(/( +, +)+|( +,)+|(, +)/, ',')
@@ -326,7 +320,10 @@ export default class extends base {
                         .replace(/^/, '{"').replace(/$/, '"}')
                         .replace(/:/g, '":"').replace(/,/g, '","');
                 };
-                this.__options.order = JSON.parse(strToObj(order));
+                order = JSON.parse(strToObj(order));
+            }
+            if (lib.isObject(order)) {
+                this.__options.order = this.__options.order ? lib.extend(false, this.__options.order, order) : order;
             }
             return this;
         } catch (e) {
@@ -335,52 +332,7 @@ export default class extends base {
     }
 
     /**
-     * 要查询的字段
-     * @param  {[type]} field   [description]
-     * @return {[type]}         [description]
-     */
-    field(field) {
-        try {
-            if (lib.isEmpty(field)) {
-                return this;
-            }
-            if (lib.isString(field)) {
-                field = field.replace(/ +/g, '').split(',');
-            }
-            this.__options.field = field;
-            return this;
-        } catch (e) {
-            return this.error(e);
-        }
-    }
-
-    /**
-     * where条件
-     * 书写方法:
-     * or:  {or: [{...}, {...}]}
-     * not: {not: {name: '', id: 1}}
-     * notin: {notin: {'id': [1,2,3]}}
-     * in: {id: [1,2,3]}
-     * and: {id: 1, name: 'a'},
-     * operator: {id: {'<>': 1}}
-     * operator: {id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}}
-     * like: {name: {'like': '%a'}}
-     * @return {[type]} [description]
-     */
-    where(where) {
-        try {
-            if (!where) {
-                return this;
-            }
-            this.__options.where = lib.extend(false, this.__options.where || {}, where);
-            return this;
-        } catch (e) {
-            return this.error(e);
-        }
-    }
-
-    /**
-     *
+     * group查询
      * group('xxx')
      * group(['xxx', 'xxx'])
      * @param group
@@ -390,7 +342,9 @@ export default class extends base {
             if (!group) {
                 return this;
             }
-            this.__options.group = group;
+            if (lib.isString(group) || lib.isArray(group)) {
+                this.__options.group = this.__options.group ? lib.extend(false, this.__options.group, group) : group;
+            }
             return this;
         } catch (e) {
             return this.error(e);
@@ -398,17 +352,83 @@ export default class extends base {
     }
 
     /**
-     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'inner'}])
-     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name'], type: 'left'}])
-     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'right'}])
+     * join查询
+     * join([{from: 'Test', alias: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'inner'}])
+     * join([{from: 'Test', alias: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name'], type: 'left'}])
+     * join([{from: 'Test', alias: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'right'}])
      * @param join
      */
     join(join) {
         try {
-            if (!join || !lib.isArray(join) || join.length === 0) {
+            if (!join) {
                 return this;
             }
-            this.__options.join = join;
+            if (lib.isArray(join)) {
+                this.__options.join = this.__options.join ? lib.extend(false, this.__options.join, join) : join;
+            }
+            return this;
+        } catch (e) {
+            return this.error(e);
+        }
+    }
+
+    /**
+     * 分页
+     * @return {[type]} [description]
+     */
+    page(page, listRows) {
+        try {
+            if (page === undefined) {
+                return this;
+            }
+            if (lib.isArray(page)) {
+                listRows = page[1];
+                page = page[0];
+            }
+            this.__options.page = this.__options.page ? lib.extend(false, this.__options.page, {
+                page: page || 1,
+                num: listRows || 10
+            }) : {page: page || 1, num: listRows || 10};
+            return this;
+        } catch (e) {
+            return this.error(e);
+        }
+    }
+
+    /**
+     * 关联操作
+     * @param relation
+     * @param field
+     */
+    rel(relation = false, field) {
+        try {
+            if (lib.isArray(relation) && field === undefined) {
+                field = relation[0];
+                relation = relation[1];
+            }
+            if (!lib.isEmpty(relation)) {
+                //获取关联关系
+                let rels = schema.getRelation(this.modelName, this.config);
+                if (relation === true) {
+                    this.__options.rel = rels;
+                } else {
+                    if (lib.isString(relation)) {
+                        relation = relation.replace(/ +/g, '').split(',');
+                    }
+                    if (lib.isArray(relation)) {
+                        this.__options.rel = {};
+                        relation.forEach(item => {
+                            if (rels[item]) {
+                                this.__options.rel[item] = rels[item];
+                                //关联表自动筛选
+                                if (field && field[item]) {
+                                    this.__options.rel[item]['field'] = field[item];
+                                }
+                            }
+                        });
+                    }
+                }
+            }
             return this;
         } catch (e) {
             return this.error(e);
@@ -447,7 +467,7 @@ export default class extends base {
                 return this.error('_DATA_TYPE_INVALID_');
             }
             let result = await db.add(__data, parsedOptions);
-            let pk = await this.getPk();
+            let pk = this.getPk();
 
             __data[pk] = __data[pk] ? __data[pk] : result;
             if (!lib.isEmpty(this.__relationData)) {
@@ -554,7 +574,7 @@ export default class extends base {
             if (lib.isEmpty(__data)) {
                 return this.error('_DATA_TYPE_INVALID_');
             }
-            let pk = await this.getPk();
+            let pk = this.getPk();
             // 如果存在主键数据 则自动作为更新条件
             if (lib.isEmpty(parsedOptions.where)) {
                 if (!lib.isEmpty(__data[pk])) {
@@ -656,8 +676,6 @@ export default class extends base {
     async count(field, options) {
         try {
             let parsedOptions = await this.__parseOptions(options);
-            let pk = await this.getPk();
-            field = field || `${this.modelName}.${pk}`;
             // init db
             let db = await this.initDB();
             let result = await db.count(field, parsedOptions);
@@ -677,8 +695,6 @@ export default class extends base {
     async sum(field, options) {
         try {
             let parsedOptions = await this.__parseOptions(options);
-            let pk = await this.getPk();
-            field = field || `${this.modelName}.${pk}`;
             // init db
             let db = await this.initDB();
             let result = await db.sum(field, parsedOptions);
@@ -768,7 +784,7 @@ export default class extends base {
                 if (pageOptions.page > totalPage) {
                     pageOptions.page = pageFlag === true ? 1 : totalPage;
                 }
-                parsedOptions.page = pageOptions.page + ',' + pageOptions.num;
+                parsedOptions.page = [pageOptions.page, pageOptions.num];
             }
             //传入分页参数
             let offset = (pageOptions.page - 1) < 0 ? 0 : (pageOptions.page - 1) * pageOptions.num;
@@ -799,46 +815,57 @@ export default class extends base {
     }
 
     /**
-     * 解析参数
+     * transaction exec functions
+     * @param  {Function} fn [exec function]
+     * @return {Promise}      []
+     */
+    async transaction(fn) {
+        //init db
+        let db = await this.initDB(true);
+        try {
+            await db.startTrans();
+            let result = await lib.thinkCo(fn(db));
+            await db.commit();
+            return result;
+        } catch (e) {
+            await db.rollback();
+            return this.error(e);
+        }
+    }
+
+    /**
+     * 解析查询参数
      * @param oriOpts
      * @param extraOptions
      * @returns {*}
      * @private
      */
-    __parseOptions(oriOpts, extraOptions) {
+    __parseOptions(oriOpts, extraOptions = {}) {
         try {
-            let options;
-            if (lib.isScalar(oriOpts)) {
-                options = lib.extend({}, this.__options);
-            } else {
-                options = lib.extend({}, this.__options, oriOpts, extraOptions);
+            //解析扩展写法参数
+            if (lib.isObject(oriOpts)) {
+                let parseCase = {alias: 1, field: 1, where: 1, limit: 1, order: 1, group: 1, join: 1, page: 1, rel: 1};
+                for (let n in oriOpts) {
+                    (t => {
+                        if (parseCase[t]) {
+                            //需要保证上述非中断方法为同步方法
+                            this[t](oriOpts[t]);
+                        }
+                    })(n)
+                }
             }
-            //查询过后清空sql表达式组装 避免影响下次查询
+            let options;
+            options = lib.extend({}, this.__options, extraOptions);
+            //清空__options,避免影响下次查询
             this.__options = {};
             //获取表名
-            options.table = options.table || this.tableName;
+            options.table = this.tableName;
             //模型名称
-            options.name = options.name || this.modelName;
+            options.name = this.modelName;
             //模型查询别名
-            options.alias = this.modelName;
+            options.alias = options.alias || this.modelName;
             //模型主键
-            options.pk = options.pk || this.getPk();
-            //解析field,根据model的fields进行过滤
-            let field = [];
-            if (lib.isEmpty(options.field) && !lib.isEmpty(options.fields)) options.field = options.fields;
-            //解析分页
-            if (options['page']) {
-                let page = options.page + '';
-                let num = 0;
-                if (page.indexOf(',') > -1) {
-                    page = page.split(',');
-                    num = parseInt(page[1], 10);
-                    page = page[0];
-                }
-                num = num || 10;
-                page = parseInt(page, 10) || 1;
-                options.page = {page: page, num: num};
-            }
+            options.pk = this.getPk();
             return options;
         } catch (e) {
             return this.error(e);
@@ -894,14 +921,14 @@ export default class extends base {
                 }
                 //严格数据类型检查
                 if (dataCheckFlag) {
-                    result = vaild.dataCheck(field, data[field], fields[field].type || 'string');
+                    result = vaild.dataCheck(field, data[field], (fields[field].type || 'string'));
                     if (!result.status) {
                         return this.error(result.msg);
                     }
                 }
                 //处理数据源特殊字段
-                if(adapter.__checkData){
-                    data[field] = adapter.__checkData(data[field], fields[field].type || 'string');
+                if (adapter.__checkData && data[field]) {
+                    data[field] = adapter.__checkData(data[field], (fields[field].type || 'string'));
                 }
             }
             return data;
@@ -922,7 +949,7 @@ export default class extends base {
     __parseData(adapter, data, options, method = '') {
         try {
             //处理数据源特殊字段
-            if(adapter.__parseData){
+            if (adapter.__parseData) {
                 data = adapter.__parseData(data, this.fields);
             }
             return data;
@@ -949,7 +976,7 @@ export default class extends base {
             let relationData = data;
             if (!lib.isEmpty(data)) {
                 let relation = options.rel, rtype, config = this.config, ps = [];
-                let pk = await this.getPk();
+                let pk = this.getPk();
                 for (let n in relation) {
                     rtype = relation[n]['type'];
                     if (rtype && rtype in caseList) {
@@ -992,7 +1019,7 @@ export default class extends base {
             }, ps = [];
             if (!lib.isEmpty(result)) {
                 let relation = schema.getRelation(this.modelName, this.config), rtype, config = this.config;
-                let pk = await this.getPk();
+                let pk = this.getPk();
                 for (let n in relationData) {
                     rtype = relation[n] ? relation[n]['type'] : null;
                     if (rtype && rtype in caseList) {

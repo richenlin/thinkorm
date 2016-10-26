@@ -188,10 +188,7 @@ export default class extends base {
             return Promise.reject('_OPERATION_WRONG_');
         }
         if ((/[&(--);]/).test(sqlStr)) {
-            sqlStr = sqlStr.
-            replace(/&/g, '&amp;').
-            replace(/;/g, '').
-            replace(/--/g, '&minus;&minus;');
+            sqlStr = sqlStr.replace(/&/g, '&amp;').replace(/;/g, '').replace(/--/g, '&minus;&minus;');
         }
         if (sqlStr.indexOf(tableName) === -1) {
             return Promise.reject('table name error');
@@ -373,7 +370,8 @@ export default class extends base {
     count(field, options = {}) {
         options.method = 'COUNT';
         options.limit = [0, 1];
-        let knexCls = this.knexClient.count(`${field} AS count`).from(`${options.table} AS ${options.name}`);
+        field = field || `${options.alias}.${options.pk}`;
+        let knexCls = this.knexClient.count(`${field} AS count`).from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -398,8 +396,8 @@ export default class extends base {
     sum(field, options = {}) {
         options.method = 'SUM';
         options.limit = [0, 1];
-        //modify by lihao ${options.sum}改为${field}
-        let knexCls = this.knexClient.sum(`${field} AS sum`).from(`${options.table} AS ${options.name}`);
+        field = field || `${options.alias}.${options.pk}`;
+        let knexCls = this.knexClient.sum(`${field} AS sum`).from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -422,7 +420,7 @@ export default class extends base {
     find(options = {}) {
         options.method = 'SELECT';
         options.limit = [0, 1];
-        let knexCls = this.knexClient.select().from(`${options.table} AS ${options.name}`);
+        let knexCls = this.knexClient.select().from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -437,7 +435,7 @@ export default class extends base {
      */
     select(options = {}) {
         options.method = 'SELECT';
-        let knexCls = this.knexClient.select().from(`${options.table} AS ${options.name}`);
+        let knexCls = this.knexClient.select().from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -474,9 +472,9 @@ export default class extends base {
      * @returns {*}
      * @private
      */
-    __checkData(data, type){
+    __checkData(data, type) {
         let typeCase = {json: 1, array: 1};
-        if(!lib.isString(data) && typeCase[type]){
+        if (!lib.isString(data) && typeCase[type]) {
             return JSON.stringify(data);
         }
         return data;
@@ -489,60 +487,72 @@ export default class extends base {
      * @returns {*}
      * @private
      */
-    __parseData(data, fields){
-        let typeCase = {json: 1, array: 1};
+    __parseData(data, fields) {
+        // let typeCase = {json: 1, array: 1};
         //处理特殊类型字段
         if (lib.isArray(data)) {
             data.map(item => {
                 for (let n in item) {
-                    if (fields[n] && typeCase[fields[n].type]) {
-                        switch (fields[n].type) {
-                            case 'json':
-                                if(lib.isEmpty(item[n])){
-                                    item[n] = {};
-                                } else {
-                                    try{
-                                        item[n] = JSON.parse(item[n]);
-                                    }catch (e){}
-                                }
-                                break;
-                            case 'array':
-                                if(lib.isEmpty(item[n])){
-                                    item[n] = [];
-                                } else {
-                                    try{
-                                        item[n] = JSON.parse(item[n]);
-                                    }catch (e){}
-                                }
-                                break;
+                    if (lib.isJSONStr(item[n])) {
+                        try {
+                            item[n] = JSON.parse(item[n]);
+                        } catch (e) {
                         }
                     }
+                    //     if (fields[n] && typeCase[fields[n].type]) {
+                    //         switch (fields[n].type) {
+                    //             case 'json':
+                    //                 if(lib.isEmpty(item[n])){
+                    //                     item[n] = {};
+                    //                 } else {
+                    //                     try{
+                    //                         item[n] = JSON.parse(item[n]);
+                    //                     }catch (e){}
+                    //                 }
+                    //                 break;
+                    //             case 'array':
+                    //                 if(lib.isEmpty(item[n])){
+                    //                     item[n] = [];
+                    //                 } else {
+                    //                     try{
+                    //                         item[n] = JSON.parse(item[n]);
+                    //                     }catch (e){}
+                    //                 }
+                    //                 break;
+                    //         }
+                    //     }
                 }
             });
         } else if (lib.isObject(data)) {
             for (let n in data) {
-                if (fields[n] && typeCase[fields[n].type]) {
-                    switch (fields[n].type) {
-                        case 'json':
-                            if(lib.isEmpty(data[n])){
-                                data[n] = {};
-                            } else {
-                                try{
-                                    data[n] = JSON.parse(data[n]);
-                                }catch (e){}
-                            }
-                            break;
-                        case 'array':
-                            if(lib.isEmpty(data[n])){
-                                data[n] = [];
-                            } else {
-                                try{
-                                    data[n] = JSON.parse(data[n]);
-                                }catch (e){}
-                            }
-                            break;
+                if (lib.isJSONStr(data[n])) {
+                    try {
+                        data[n] = JSON.parse(data[n]);
+                    } catch (e) {
                     }
                 }
+                // if (fields[n] && typeCase[fields[n].type]) {
+                //     switch (fields[n].type) {
+                //         case 'json':
+                //             if(lib.isEmpty(data[n])){
+                //                 data[n] = {};
+                //             } else {
+                //                 try{
+                //                     data[n] = JSON.parse(data[n]);
+                //                 }catch (e){}
+                //             }
+                //             break;
+                //         case 'array':
+                //             if(lib.isEmpty(data[n])){
+                //                 data[n] = [];
+                //             } else {
+                //                 try{
+                //                     data[n] = JSON.parse(data[n]);
+                //                 }catch (e){}
+                //             }
+                //             break;
+                //     }
+                // }
             }
         }
         return data;
@@ -601,10 +611,10 @@ export default class extends base {
         let mapModel = new rel.mapModel(config);
         //let mapName = `${rel.primaryName}${rel.name}Map`;
         //if(model.config.db_type === 'mongo'){
-        return mapModel.field(rel.fkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
+        return mapModel.field(rel.rkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
             let keys = [];
             data.map(item => {
-                item[rel.fkey] && keys.push(item[rel.fkey]);
+                item[rel.rkey] && keys.push(item[rel.rkey]);
             });
             return model.select({where: {[rpk]: keys}});
         });
@@ -661,11 +671,12 @@ export default class extends base {
                 //限制只能更新关联数据
                 let info = await primaryModel.field([rel.primaryPk]).select(options).catch(e => []);
                 info.map(item => {
-                    keys.push(item[rel.primaryPk]);
+                    item[rel.primaryPk] && keys.push(item[rel.primaryPk]);
                 });
-                condition['in'] = {[rel.rkey]: keys};
-
-                await model.update(relationData, {where: condition});
+                if (keys.length > 0) {
+                    condition['in'] = {[rel.rkey]: keys};
+                    await model.update(relationData, {where: condition});
+                }
                 break;
         }
         return;
@@ -701,16 +712,17 @@ export default class extends base {
                 //限制只能更新关联数据
                 let info = await primaryModel.field([rel.primaryPk]).select(options).catch(e => []);
                 info.map(item => {
-                    keys.push(item[rel.primaryPk]);
+                    item[rel.primaryPk] && keys.push(item[rel.primaryPk]);
                 });
-                condition['in'] = {[rel.rkey]: keys};
-
-                for (let [k, v] of relationData.entries()) {
-                    //子表主键数据存在
-                    if (v[rpk]) {
-                        condition[rpk] = v[rpk];
+                if (keys.length > 0) {
+                    condition['in'] = {[rel.rkey]: keys};
+                    for (let [k, v] of relationData.entries()) {
+                        //子表主键数据存在
+                        if (v[rpk]) {
+                            condition[rpk] = v[rpk];
+                        }
+                        await model.update(v, {where: condition});
                     }
-                    await model.update(v, {where: condition});
                 }
                 break;
         }
@@ -760,25 +772,26 @@ export default class extends base {
                     type: 'inner'
                 }]).select(options);
                 info.map(item => {
-                    keys.push(item[`${mapModel.modelName}_${rel.rkey}`]);
+                    item[rel.rkey] && keys.push(item[rel.rkey]);
                 });
-                condition['in'] = {[rpk]: keys};
-
-                for (let [k, v] of relationData.entries()) {
-                    //关系表两个外键都存在,更新关系表
-                    if (v[rel.fkey] && v[rel.rkey]) {
-                        //关系表增加数据,此处不考虑两个外键是否在相关表存在数据,因为关联查询会忽略
-                        await mapModel.thenAdd({
-                            [rel.fkey]: v[rel.fkey],
-                            [rel.rkey]: v[rel.rkey]
-                        }, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
-                    } else {
-                        //仅存在子表主键
-                        if (v[rpk]) {
-                            condition[rpk] = v[rpk];
+                if (keys.length > 0) {
+                    condition['in'] = {[rpk]: keys};
+                    for (let [k, v] of relationData.entries()) {
+                        //关系表两个外键都存在,更新关系表
+                        if (v[rel.fkey] && v[rel.rkey]) {
+                            //关系表增加数据,此处不考虑两个外键是否在相关表存在数据,因为关联查询会忽略
+                            await mapModel.thenAdd({
+                                [rel.fkey]: v[rel.fkey],
+                                [rel.rkey]: v[rel.rkey]
+                            }, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
+                        } else {
+                            //仅存在子表主键
+                            if (v[rpk]) {
+                                condition[rpk] = v[rpk];
+                            }
+                            //更新
+                            await model.update(v, {where: condition});
                         }
-                        //更新
-                        await model.update(v, {where: condition});
                     }
                 }
                 break;

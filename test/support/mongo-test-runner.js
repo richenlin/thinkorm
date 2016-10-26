@@ -25,7 +25,7 @@ module.exports = function (test, cb) {
         for (var n in outcome.query) {
             model = model[n](outcome.query[n]);
         }
-        var options = model.__parseOptions(outcome.options);
+        var options = model.__parseOptions({}, outcome.options);
         return (0, _asyncToGenerator.default)(function* () {
             var queryBody = yield parser.buildSql(outcome.client, options);
 

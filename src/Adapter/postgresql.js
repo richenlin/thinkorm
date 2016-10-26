@@ -31,7 +31,7 @@ export default class extends base {
             return Promise.resolve(this.handel);
         }
         //读写分离配置
-        if(this.config.db_ext_config.read_write && lib.isArray(this.config.db_host)){
+        if (this.config.db_ext_config.read_write && lib.isArray(this.config.db_host)) {
             let configMaster = {
                 db_name: lib.isArray(this.config.db_name) ? this.config.db_name[0] : this.config.db_name,
                 db_host: lib.isArray(this.config.db_host) ? this.config.db_host[0] : this.config.db_host,
@@ -91,7 +91,7 @@ export default class extends base {
      * @param config
      */
     migrate(schema, config) {
-        if(lib.isEmpty(schema) || lib.isEmpty(config)){
+        if (lib.isEmpty(schema) || lib.isEmpty(config)) {
             return;
         }
         let tableName = `${config.db_prefix}${lib.parseName(schema.name)}`;
@@ -181,10 +181,7 @@ export default class extends base {
             return Promise.reject('_OPERATION_WRONG_');
         }
         if ((/[&(--);]/).test(sqlStr)) {
-            sqlStr = sqlStr.
-            replace(/&/g, '&amp;').
-            replace(/;/g, '').
-            replace(/--/g, '&minus;&minus;');
+            sqlStr = sqlStr.replace(/&/g, '&amp;').replace(/;/g, '').replace(/--/g, '&minus;&minus;');
         }
         if (sqlStr.indexOf(tableName) === -1) {
             return Promise.reject('table name error');
@@ -311,11 +308,11 @@ export default class extends base {
      * @param field
      * @param options
      */
-    increment(data, field, options = {}){
+    increment(data, field, options = {}) {
         options.method = 'UPDATE';
         options.alias = undefined;
         let knexCls = this.knexClient;
-        if(data[field]){
+        if (data[field]) {
             knexCls = knexCls.increment(field, data[field]);
             delete data[field];
         }
@@ -324,7 +321,7 @@ export default class extends base {
             return this.execute(sql);
         }).then(res => {
             //更新前置操作内会改变data的值
-            if(!lib.isEmpty(data)){
+            if (!lib.isEmpty(data)) {
                 this.update(data, options);
             }
             return res;
@@ -337,11 +334,11 @@ export default class extends base {
      * @param field
      * @param options
      */
-    decrement(data, field, options = {}){
+    decrement(data, field, options = {}) {
         options.method = 'UPDATE';
         options.alias = undefined;
         let knexCls = this.knexClient;
-        if(data[field]){
+        if (data[field]) {
             knexCls = knexCls.decrement(field, data[field]);
             delete data[field];
         }
@@ -350,7 +347,7 @@ export default class extends base {
             return this.execute(sql);
         }).then(res => {
             //更新前置操作内会改变data的值
-            if(!lib.isEmpty(data)){
+            if (!lib.isEmpty(data)) {
                 this.update(data, options);
             }
             return res;
@@ -366,7 +363,8 @@ export default class extends base {
     count(field, options = {}) {
         options.method = 'COUNT';
         options.limit = [0, 1];
-        let knexCls = this.knexClient.count(`${field} AS count`).from(`${options.table} AS ${options.name}`);
+        field = field || `${options.alias}.${options.pk}`;
+        let knexCls = this.knexClient.count(`${field} AS count`).from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -391,7 +389,8 @@ export default class extends base {
     sum(field, options = {}) {
         options.method = 'SUM';
         options.limit = [0, 1];
-        let knexCls = this.knexClient.sum(`${options.sum} AS sum`).from(`${options.table} AS ${options.name}`);
+        field = field || `${options.alias}.${options.pk}`;
+        let knexCls = this.knexClient.sum(`${field} AS sum`).from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -414,7 +413,7 @@ export default class extends base {
     find(options = {}) {
         options.method = 'SELECT';
         options.limit = [0, 1];
-        let knexCls = this.knexClient.select().from(`${options.table} AS ${options.name}`);
+        let knexCls = this.knexClient.select().from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -429,7 +428,7 @@ export default class extends base {
      */
     select(options = {}) {
         options.method = 'SELECT';
-        let knexCls = this.knexClient.select().from(`${options.table} AS ${options.name}`);
+        let knexCls = this.knexClient.select().from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
         }).then(data => {
@@ -509,10 +508,10 @@ export default class extends base {
         let mapModel = new rel.mapModel(config);
         //let mapName = `${rel.primaryName}${rel.name}Map`;
         //if(model.config.db_type === 'mongo'){
-        return mapModel.field(rel.fkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
+        return mapModel.field(rel.rkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
             let keys = [];
             data.map(item => {
-                item[rel.fkey] && keys.push(item[rel.fkey]);
+                item[rel.rkey] && keys.push(item[rel.rkey]);
             });
             return model.select({where: {[rpk]: keys}});
         });
@@ -569,11 +568,12 @@ export default class extends base {
                 //限制只能更新关联数据
                 let info = await primaryModel.field([rel.primaryPk]).select(options).catch(e => []);
                 info.map(item => {
-                    keys.push(item[rel.primaryPk]);
+                    item[rel.primaryPk] && keys.push(item[rel.primaryPk]);
                 });
-                condition['in'] = {[rel.rkey]: keys};
-
-                await model.update(relationData, {where: condition});
+                if (keys.length > 0) {
+                    condition['in'] = {[rel.rkey]: keys};
+                    await model.update(relationData, {where: condition});
+                }
                 break;
         }
         return;
@@ -609,16 +609,17 @@ export default class extends base {
                 //限制只能更新关联数据
                 let info = await primaryModel.field([rel.primaryPk]).select(options).catch(e => []);
                 info.map(item => {
-                    keys.push(item[rel.primaryPk]);
+                    item[rel.primaryPk] && keys.push(item[rel.primaryPk]);
                 });
-                condition['in'] = {[rel.rkey]: keys};
-
-                for (let [k, v] of relationData.entries()) {
-                    //子表主键数据存在
-                    if (v[rpk]) {
-                        condition[rpk] = v[rpk];
+                if (keys.length > 0) {
+                    condition['in'] = {[rel.rkey]: keys};
+                    for (let [k, v] of relationData.entries()) {
+                        //子表主键数据存在
+                        if (v[rpk]) {
+                            condition[rpk] = v[rpk];
+                        }
+                        await model.update(v, {where: condition});
                     }
-                    await model.update(v, {where: condition});
                 }
                 break;
         }
@@ -668,25 +669,26 @@ export default class extends base {
                     type: 'inner'
                 }]).select(options);
                 info.map(item => {
-                    keys.push(item[`${mapModel.modelName}_${rel.rkey}`]);
+                    item[rel.rkey] && keys.push(item[rel.rkey]);
                 });
-                condition['in'] = {[rpk]: keys};
-
-                for (let [k, v] of relationData.entries()) {
-                    //关系表两个外键都存在,更新关系表
-                    if (v[rel.fkey] && v[rel.rkey]) {
-                        //关系表增加数据,此处不考虑两个外键是否在相关表存在数据,因为关联查询会忽略
-                        await mapModel.thenAdd({
-                            [rel.fkey]: v[rel.fkey],
-                            [rel.rkey]: v[rel.rkey]
-                        }, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
-                    } else {
-                        //仅存在子表主键
-                        if (v[rpk]) {
-                            condition[rpk] = v[rpk];
+                if (keys.length > 0) {
+                    condition['in'] = {[rpk]: keys};
+                    for (let [k, v] of relationData.entries()) {
+                        //关系表两个外键都存在,更新关系表
+                        if (v[rel.fkey] && v[rel.rkey]) {
+                            //关系表增加数据,此处不考虑两个外键是否在相关表存在数据,因为关联查询会忽略
+                            await mapModel.thenAdd({
+                                [rel.fkey]: v[rel.fkey],
+                                [rel.rkey]: v[rel.rkey]
+                            }, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
+                        } else {
+                            //仅存在子表主键
+                            if (v[rpk]) {
+                                condition[rpk] = v[rpk];
+                            }
+                            //更新
+                            await model.update(v, {where: condition});
                         }
-                        //更新
-                        await model.update(v, {where: condition});
                     }
                 }
                 break;

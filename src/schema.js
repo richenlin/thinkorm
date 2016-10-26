@@ -89,38 +89,46 @@ function getRelation(name, config) {
             };
             //MANYTOMANY map
             if(type === 'MANYTOMANY'){
-                let mapName = `${cls.modelName}${n}Map`;
-                if(!ORM.collections[mapName]){
-                    let model = lib.thinkRequire(__dirname + '/model.js');
-                    let _class = class extends model{
-                        init(config){
-                            super.init(config);
-                            // 是否开启迁移(migrate方法可用)
-                            this.safe = cls.safe;
-                            // 数据表字段信息
-                            this.fields = {
-                                [relation[n]['fkey']]: {
-                                    type: 'integer',
-                                    index: true
-                                },
-                                [relation[n]['rkey']]: {
-                                    type: 'integer',
-                                    index: true
-                                }
-                            };
-                            // 数据验证
-                            this.validations = {};
-                            // 关联关系
-                            this.relation = {};
-
-                            this.modelName = mapName;
-                            this.tableName = `${this.config.db_prefix}${lib.parseName(mapName)}`;
-                        }
-                    };
-                    //初始化map模型
-                    this.setCollection(_class, cls.config);
+                let mapName = relation[n]['map'];
+                if(!mapName || !ORM.collections[mapName]){
+                    throw new Error(`collection ${mapName} is undefined.`);
+                    return;
                 }
+                ORM.collections[name]['relation'][n]['mapModel'] = mapName;
                 ORM.collections[name]['relation'][n]['mapModel'] = ORM.collections[mapName];
+
+                // let mapName = `${cls.modelName}${n}Map`;
+                // if(!ORM.collections[mapName]){
+                //     let model = lib.thinkRequire(__dirname + '/model.js');
+                //     let _class = class extends model{
+                //         init(config){
+                //             super.init(config);
+                //             // 是否开启迁移(migrate方法可用)
+                //             this.safe = cls.safe;
+                //             // 数据表字段信息
+                //             this.fields = {
+                //                 [relation[n]['fkey']]: {
+                //                     type: 'integer',
+                //                     index: true
+                //                 },
+                //                 [relation[n]['rkey']]: {
+                //                     type: 'integer',
+                //                     index: true
+                //                 }
+                //             };
+                //             // 数据验证
+                //             this.validations = {};
+                //             // 关联关系
+                //             this.relation = {};
+                //
+                //             this.modelName = mapName;
+                //             this.tableName = `${this.config.db_prefix}${lib.parseName(mapName)}`;
+                //         }
+                //     };
+                //     //初始化map模型
+                //     this.setCollection(_class, cls.config);
+                // }
+                // ORM.collections[name]['relation'][n]['mapModel'] = ORM.collections[mapName];
             }
         }
     }
@@ -133,9 +141,10 @@ function getRelation(name, config) {
  */
 function migrate(config){
     let instance, ps = [];
+    echo(ORM.collections)
     for(let n in ORM.collections){
         instance = new ORM.collections[n](config);
-        if (instance.safe === false && config.db_ext_config['safe'] === false) {
+        if (instance.safe === false && config.db_ext_config && config.db_ext_config['safe'] === false) {
             ps.push(instance.initDB().then(model => {
                 return model.migrate(ORM.collections[n].schema, config);
             }));

@@ -253,7 +253,11 @@ export default class extends base {
             return;
         }
         for (let n in options.order) {
-            cls.orderBy(n, options.order[n]);
+            if (n.indexOf('.') > -1) {
+                cls.orderBy(n, options.order[n]);
+            } else {
+                cls.orderBy(`${options.alias}.${n}`, options.order[n]);
+            }
         }
     }
 
@@ -267,21 +271,22 @@ export default class extends base {
         if (lib.isEmpty(options.field)) {
             return;
         }
-        let fds = [], temp = [];
-        options.field.forEach(item => {
-            //不支持直接写*
-            if (item !== '*') {
-                if (item.indexOf('.') > -1) {
-                    temp = item.trim().split('.');
-                    if (temp[0] !== options.name && temp[1] !== '*') {
-                        fds.push(`${item} AS ${item.replace('.', '_')}`);
-                    }
-                } else {
-                    fds.push(`${options.name}.${item}`);
-                }
-            }
-        });
-        cls.column(fds);
+        // let fds = [], temp = [];
+        // options.field.forEach(item => {
+        //     //跳过*
+        //     if (item !== '*') {
+        //         if (item.indexOf('.') > -1) {
+        //             temp = item.trim().split('.');
+        //             if (temp[0] !== options.alias && temp[1] !== '*') {
+        //                 fds.push(`${item} AS ${item.replace('.', '_')}`);
+        //             }
+        //         } else {
+        //             fds.push(`${options.alias}.${item}`);
+        //         }
+        //     }
+        // });
+        // cls.column(fds);
+        cls.column(options.field);
     }
 
     /**
@@ -313,9 +318,9 @@ export default class extends base {
     }
 
     /**
-     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'inner'}])
-     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name'], type: 'left'}])
-     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'right'}])
+     * join([{from: 'Test', alias: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'inner'}])
+     * join([{from: 'Test', alias: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name'], type: 'left'}])
+     * join([{from: 'Test', alias: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'right'}])
      * @param cls
      * @param data
      * @param options
@@ -326,20 +331,22 @@ export default class extends base {
         //    this.on('accounts.id', '=', 'users.account_id').on('accounts.owner_id', '=', 'users.id').orOn('accounts.owner_id', '=', 'users.id')
         //})
         if (lib.isArray(options.join)) {
-            let type, config = this.config, name = options.name, joinAlias = '', joinTable = '', onCondition, func = '';
+            let type, config = this.config, name = options.alias, joinAlias = '', joinTable = '', onCondition, func = '', _field;
             options.join.map(item => {
                 if (item && item.from && item.on) {
                     onCondition = item.on;
-                    joinAlias = item.from;
+                    joinAlias = item.alias || item.from;
                     joinTable = `${config.db_prefix}${lib.parseName(item.from)}`;
                     //关联表字段
-                    if (!lib.isEmpty(item.field) && lib.isArray(item.field)) {
-                        !options.field && (options.field = [`${name}.*`]);
+                    if (lib.isArray(item.field)) {
+                        !options.field && (options.field = ['*']);
+                        _field = [];
+                        options.field.forEach(it => {
+                            _field.push(it.indexOf('.') > -1 ? it : `${name}.${it}`);
+                        });
+                        options.field = _field;
                         item.field.forEach(it => {
-                            //关联表字段不能写*
-                            if (it && it.trim() !== '*') {
-                                options.field.push(`${item.from}.${it}`);
-                            }
+                            options.field.push(it.indexOf('.') > -1 ? it : `${joinAlias}.${it}`);
                         });
                     }
                     //构造函数
