@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/richenlin/thinkorm#readme",
   "engines": {
-    "node": "^4.0.0"
+    "node": "4.x.x"
   },
   "devDependencies": {
     "async": "^2.1.2",
