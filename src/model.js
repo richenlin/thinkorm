@@ -402,6 +402,10 @@ export default class extends base {
      */
     rel(relation = false, field) {
         try {
+            if(lib.isObject(relation)){
+                this.__options.rel = relation;
+                return this;
+            }
             if (lib.isArray(relation) && field === undefined) {
                 field = relation[0];
                 relation = relation[1];
