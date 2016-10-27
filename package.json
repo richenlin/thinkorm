@@ -1,6 +1,6 @@
 {
   "name": "thinkorm",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "index.js",
   "scripts": {
@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/richenlin/thinkorm#readme",
   "engines": {
-    "node": "4.x.x"
+    "node": ">4.0.0"
   },
   "devDependencies": {
     "async": "^2.1.2",
