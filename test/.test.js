@@ -67,10 +67,10 @@ return model
 
 // .where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).alias('test').select()
 // .countSelect()
-.join([{from: 'Profile', alias: 'pfile', on: {or: [{profile: 'id'}], profile: 'id'}, field: ['id as aid', 'test'], type: 'left'}]).find({field: ['id']})
+// .join([{from: 'Profile', alias: 'pfile', on: {or: [{profile: 'id'}], profile: 'id'}, field: ['id as aid', 'test'], type: 'left'}]).find({field: ['id']})
 // .field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).countSelect({field: ['name', 'num']})
 //     .select({field: ['id','name'], join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['Profile.id as pid', 'test'], type: 'left'}]})
-// .where({id: {'>=': 0}}).group(['id']).find()
+.where({id: {'>=': 0}}).group(['id']).find()
 // .rel(true).where({id: 4}).find()
 // .add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
 // .where({id: 3}).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})
