@@ -205,7 +205,7 @@ export default class extends base {
             return fn(ouputs.sql, ouputs.bindings);
         }).catch(err => {
             this.close();
-            this.logSql && lib.log(sql, 'MySQL', startTime);
+            this.logSql && lib.log(ouputs.sql, 'MySQL', startTime);
             return Promise.reject(err);
         }).then((rows = []) => {
             connection.release && connection.release();

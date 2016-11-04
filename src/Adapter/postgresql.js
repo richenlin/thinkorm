@@ -198,7 +198,7 @@ export default class extends base {
             return fn(ouputs.sql, ouputs.bindings);
         }).catch(err => {
             this.close();
-            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
             return Promise.reject(err);
         }).then((res = {}) => {
             connection.release && connection.release();
