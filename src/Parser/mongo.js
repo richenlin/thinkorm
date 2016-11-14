@@ -8,72 +8,144 @@
 import base from '../base';
 import lib from '../Util/lib';
 import {ObjectID} from 'mongodb';
+
 const identifiers = {
+    OR: '$or',
+    AND: '$and',
+    NOT: '$ne',
+    IN: '$in',
+    NOTIN: '$nin',
     '>': '$gt',
-    '>=': '$gte',
     '<': '$lt',
-    '<=': '$lte',
     '<>': '$ne',
-    'OR': '$or',
-    'NOT': '$ne',
-    'IN': '$in',
-    'NOTIN': '$nin',
+    '<=': '$lte',
+    '>=': '$gte',
     'LIKE': '$regex'
 };
-/**
- *
- * @param key
- * @param value
- * @param item
- * @returns {{}}
- */
-let whereParse = function (key, value, item) {
+
+let whereParse = function (key, value, item, extkey) {
     let idt = key.toUpperCase(), temp;
     switch (identifiers[idt]) {
-        case '$gt':
-        case '$gte':
-        case '$lt':
-        case '$lte':
-        case '$ne':
-        case '$in':
-        case '$nin':
-            return {[item]: {[identifiers[idt]]: value}};
-            break;
         case '$or':
-            if(lib.isArray(value)){
-                temp = [];
-                value.map(data=> {
-                    for (let k in data) {
-                        temp.push(whereParse(k, data[k], k));
-                    }
-                });
-                return {$or: temp};
+            if (lib.isArray(value)) {
+                return parseOr(item, value, temp);
             }
             break;
-        case '$regex':
-            if(lib.isString(value)){
-                if(value.indexOf('%') === 0 && value.substring(value.length -1) === '%'){
-                    return {[item]: new RegExp(`${value}`)};
-                } else if(value.indexOf('%') === 0){
-                    return {[item]: new RegExp(`${value}^`)};
-                }else if(value.substring(value.length -1) === '%'){
-                    return {[item]: new RegExp(`^${value}`)};
+        case '$in':
+            if (lib.isArray(value)) {
+                return parseIn(item, value);
+            } else if (lib.isObject(value)) {
+                temp = {};
+                for (let k in value) {
+                    temp = lib.extend(temp, parseIn(k, value[k]));
                 }
+                return temp;
             }
             break;
-        default:
+        case '$nin':
             if (lib.isObject(value)) {
                 temp = {};
                 for (let k in value) {
-                    temp = lib.extend(temp, whereParse(k, value[k], key));
+                    temp = lib.extend(temp, parseNotIn(k, value[k]));
+                }
+                return temp;
+            } else if (lib.isArray(value) && extkey !== undefined) {
+                return parseNotIn(extkey, value);
+            }
+            break;
+        case '$ne':
+            if (lib.isObject(value)) {
+                temp = {};
+                for (let k in value) {
+                    temp = lib.extend(temp, parseNot(k, value[k]));
+                }
+                return temp;
+            } else if(extkey !== undefined){
+                return parseNot(extkey, value);
+            }
+            break;
+        case '$regex':
+            if (extkey !== undefined) {
+                return parseLike(extkey, value);
+            } else if (lib.isObject(value)) {
+                temp = {};
+                for (let n in value) {
+                    temp = lib.extend(temp, whereParse(n, value[n], n, key));
+                }
+                return temp;
+            }
+            break;
+        case '$gt':
+        case '$lt':
+        case '$lte':
+        case '$gte':
+            if (extkey !== undefined) {
+                return parseOperator(extkey, identifiers[idt], value);
+            } else if (lib.isObject(value)) {
+                temp = {};
+                for (let n in value) {
+                    temp = lib.extend(temp, whereParse(n, value[n], n, key));
+                }
+                return temp;
+            }
+            break;
+        case '$and':
+        default:
+            if (lib.isArray(value)) {
+                return parseIn(item, value);
+            } else if (lib.isObject(value)) {
+                temp = {};
+                for (let n in value) {
+                    temp = lib.extend(temp, whereParse(n, value[n], n, key));
                 }
                 return temp;
             } else {
                 return {[key]: value};
             }
-            break;
     }
 };
+//解析or条件
+function parseOr(key, value, temp) {
+    temp = [];
+    value.map(item => {
+        if(lib.isObject(item)){
+            for(let k in item){
+                temp.push(whereParse(k, item[k], k));
+            }
+        }
+    });
+    return {'$or': temp};
+}
+//解析in条件
+function parseIn(key, value) {
+    return {[key]: {'$in': value}};
+}
+//解析notin条件
+function parseNotIn(key, value) {
+    return {[key]: {'$nin': value}};
+}
+//解析not条件
+function parseNot(key, value) {
+    return {[key]: {'$ne': value}};
+}
+//解析operator条件
+function parseOperator(key, operator, value){
+    return {[key]: {[operator]: value}};
+}
+//解析like条件
+function parseLike(key, value) {
+    if(lib.isString(value)){
+        if(value.indexOf('%') === 0 && value.substring(value.length -1) === '%'){
+            return {[key]: new RegExp(`${value.substring(1, -1)}`)};
+        } else if(value.indexOf('%') === 0){
+            return {[key]: new RegExp(`${value.substring(1, value.length)}^`)};
+        }else if(value.substring(value.length -1) === '%'){
+            return {[key]: new RegExp(`^${value.substring(0, -1)}`)};
+        }
+    }
+    return {};
+}
+
 
 
 export default class extends base {
@@ -135,8 +207,7 @@ export default class extends base {
             }
             options.where = where || {};
         }
-        //将主键转为ObjectID
-        //options.pk && options.where[options.pk] && (options.where[options.pk] = new ObjectID(options.where[options.pk]))
+
     }
 
     /**
@@ -180,9 +251,7 @@ export default class extends base {
     }
 
     /**
-     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'inner'}])
-     * join([{from: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name'], type: 'left'}])
-     * join([{from: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'right'}])
+     *
      * @param data
      * @param options
      * @returns {Promise}

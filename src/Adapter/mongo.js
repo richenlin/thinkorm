@@ -48,6 +48,7 @@ export default class extends base {
      * mongodb is schema less.
      */
     migrate() {
+        lib.log(`mongodb is schema less, migrate is not execute.`, 'WARNING');
         return Promise.resolve();
     }
 
