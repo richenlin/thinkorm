@@ -9,7 +9,7 @@ var assert = require('assert');
 var async = require('async');
 var path = require('path');
 var thinkorm = require('../../index.js');
-var User = thinkorm.require(path.dirname(path.dirname(__dirname)) + '/exmple/model/lib/mongo/User.js');
+var User = thinkorm.require(path.dirname(path.dirname(__dirname)) + '/exmple/model/lib/User.js');
 function requireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
 }
