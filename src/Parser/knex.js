@@ -197,10 +197,8 @@ let preParseSchema = function (field, value) {
                 str += `t.string('${field}', ${value.size || 50})`;
                 break;
             case 'json':
-                str += `t.json('${field}')`;
-                break;
             case 'array':
-                str += `t.enum('${field}')`;
+                str += `t.json('${field}')`;
                 break;
             case 'text':
                 str += `t.text('${field}')`;
