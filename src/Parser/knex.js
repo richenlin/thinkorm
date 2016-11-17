@@ -182,40 +182,42 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
         };
  */
 let preParseSchema = function (field, value) {
-    let str = '';
+    let str = '', primary = false;
     if (value.hasOwnProperty('primaryKey') && value.primaryKey === true) {
-        str += `t.increments('${field}').primary()`;
-    } else {
-        switch (value.type) {
-            case 'integer':
-                str += `t.integer('${field}')`;
-                break;
-            case 'float':
-                str += `t.float('${field}', 8, ${value.size || 2})`;
-                break;
-            case 'string':
-                str += `t.string('${field}', ${value.size || 50})`;
-                break;
-            case 'json':
-            case 'array':
-                str += `t.json('${field}')`;
-                break;
-            case 'text':
-                str += `t.text('${field}')`;
-                break;
-            default:
-                str += `t.string('${field}')`;
-                break;
-        }
-        if (value.hasOwnProperty('index') && value.index === true) {
-            str += `.index('${field}')`;
-        }
-        if (value.hasOwnProperty('unique') && value.unique === true) {
-            str += `.unique()`;
-        }
-        if (value.hasOwnProperty('defaultsTo')) {
-            str += `.defaultTo(${value.defaultsTo})`;
-        }
+        primary = true;
+    }
+    switch (value.type) {
+        case 'integer':
+            str += `t.integer('${field}')`;
+            if (primary === true) {
+                str += `.increments('${field}').primary()`;
+            }
+            break;
+        case 'float':
+            str += `t.float('${field}', 8, ${value.size || 2})${primary === true ? '.primary()' : ''}`;
+            break;
+        case 'string':
+            str += `t.string('${field}', ${value.size || 50})${primary === true ? '.primary()' : ''}`;
+            break;
+        case 'json':
+        case 'array':
+            str += `t.json('${field}')${primary === true ? '.primary()' : ''}`;
+            break;
+        case 'text':
+            str += `t.text('${field}')${primary === true ? '.primary()' : ''}`;
+            break;
+        default:
+            str += `t.string('${field}')${primary === true ? '.primary()' : ''}`;
+            break;
+    }
+    if (value.hasOwnProperty('index') && value.index === true) {
+        str += `.index('${field}')`;
+    }
+    if (value.hasOwnProperty('unique') && value.unique === true) {
+        str += `.unique()`;
+    }
+    if (value.hasOwnProperty('defaultsTo')) {
+        str += `.defaultTo(${value.defaultsTo})`;
     }
     return str + ';';
 };
