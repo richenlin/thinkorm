@@ -188,9 +188,10 @@ let preParseSchema = function (field, value) {
     }
     switch (value.type) {
         case 'integer':
-            str += `t.integer('${field}')`;
             if (primary === true) {
-                str += `.increments('${field}').primary()`;
+                str += `t.increments('${field}').primary()`;
+            } else {
+                str += `t.integer('${field}')`;
             }
             break;
         case 'float':
@@ -201,10 +202,10 @@ let preParseSchema = function (field, value) {
             break;
         case 'json':
         case 'array':
-            str += `t.json('${field}')${primary === true ? '.primary()' : ''}`;
+            str += `t.json('${field}')`;
             break;
         case 'text':
-            str += `t.text('${field}')${primary === true ? '.primary()' : ''}`;
+            str += `t.text('${field}')`;
             break;
         default:
             str += `t.string('${field}')${primary === true ? '.primary()' : ''}`;
