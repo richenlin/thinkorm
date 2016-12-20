@@ -46,7 +46,8 @@ let setCollection = function (func, config) {
             ORM.collections[name].schema = {
                 name: name,
                 pk: collection.getPk(),
-                fields: collection.fields
+                fields: collection.fields,
+                dbType: config.db_type ? config.db_type.toLowerCase() : ''
             };
         }
         return ORM.collections[name];

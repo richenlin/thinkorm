@@ -170,19 +170,23 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
 
 /**
  *
- * @param str
  * @param field
  * @param value
+ * @param dbType
+ * @return {string}
  * let types = {
             integer: {},
             string: {size: 50},
             float: {precision: 8, size: 2},
             json: {},
+            array: [],
             text: {}
         };
  */
-let preParseSchema = function (field, value) {
-    let str = '', primary = false;
+let preParseSchema = function (field, value, dbType) {
+    let str = '', primary = false,
+        //需要特殊处理的数据源类型,例如Mysql
+        isSpecial = {"mysql": true, "postgresql": false};
     if (value.hasOwnProperty('primaryKey') && value.primaryKey === true) {
         primary = true;
     }
@@ -193,22 +197,40 @@ let preParseSchema = function (field, value) {
             } else {
                 str += `t.integer('${field}')`;
             }
+            if (value.hasOwnProperty('defaultsTo')) {
+                str += `.defaultTo(${value.defaultsTo})`;
+            }
             break;
         case 'float':
             str += `t.float('${field}', 8, ${value.size || 2})${primary === true ? '.primary()' : ''}`;
+            if (value.hasOwnProperty('defaultsTo')) {
+                str += `.defaultTo(${value.defaultsTo})`;
+            }
             break;
         case 'string':
             str += `t.string('${field}', ${value.size || 50})${primary === true ? '.primary()' : ''}`;
+            if (value.hasOwnProperty('defaultsTo')) {
+                str += `.defaultTo(${value.defaultsTo})`;
+            }
             break;
         case 'json':
         case 'array':
             str += `t.json('${field}')`;
+            if (value.hasOwnProperty('defaultsTo')) {
+                str += `.defaultTo(${dbType && isSpecial[dbType] ? JSON.stringify(value.defaultsTo) : value.defaultsTo})`;
+            }
             break;
         case 'text':
             str += `t.text('${field}')`;
+            if (value.hasOwnProperty('defaultsTo')) {
+                str += `.defaultTo(${value.defaultsTo})`;
+            }
             break;
         default:
             str += `t.string('${field}')${primary === true ? '.primary()' : ''}`;
+            if (value.hasOwnProperty('defaultsTo')) {
+                str += `.defaultTo(${value.defaultsTo})`;
+            }
             break;
     }
     if (value.hasOwnProperty('index') && value.index === true) {
@@ -217,9 +239,7 @@ let preParseSchema = function (field, value) {
     if (value.hasOwnProperty('unique') && value.unique === true) {
         str += `.unique()`;
     }
-    if (value.hasOwnProperty('defaultsTo')) {
-        str += `.defaultTo(${value.defaultsTo})`;
-    }
+
     return str + ';';
 };
 
@@ -370,9 +390,9 @@ export default class extends base {
             return;
         }
         let tableName = `${data.db_prefix}${lib.parseName(options.schema.name)}`;
-        let str = [], fields = options.schema.fields;
+        let str = [], fields = options.schema.fields, dbType = options.schema.dbType;
         for (let v in fields) {
-            str.push(preParseSchema(v, fields[v]));
+            str.push(preParseSchema(v, fields[v], dbType));
         }
         let func = new Function('t', str.join('\n'));
         cls.createTableIfNotExists(tableName, func);
