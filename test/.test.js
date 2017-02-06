@@ -47,6 +47,7 @@ var model = new User(config);
 //查询语言测试
 return model
 // .where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
+.where({or: [{name: {'like': '%aa%'}}, {memo: {'like': '%aa%'}}]}).find()
 // .where({id: {'>=': 0}}).count()
 // .where({id: {'>=': 0}}).sum('id')
 // .where({id: {'>=': 0}}).select()
@@ -68,7 +69,7 @@ return model
 // .join([{from: 'Profile', alias: 'pfile', on: {or: [{profile: 'id'}], profile: 'id'}, field: ['id as aid', 'test'], type: 'left'}]).find({field: ['id']})
 // .field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).countSelect({field: ['name', 'num']})
 //     .select({field: ['id','name'], join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['Profile.id as pid', 'test'], type: 'left'}]})
-.field(['id', 'name']).where({id: {'>=': 0}}).group('name').countSelect()
+// .field(['id', 'name']).where({id: {'>=': 0}}).group('name').countSelect()
 // .rel(true).where({id: 4}).find()
 // .add({name: 'rrrrrrrrrrrrr',Prof、ile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
 // .where({id: 3}).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})

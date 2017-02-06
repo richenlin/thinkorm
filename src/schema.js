@@ -144,7 +144,7 @@ function migrate(config){
     let instance, ps = [];
     for(let n in ORM.collections){
         instance = new ORM.collections[n](config);
-        if (instance.safe === false && config.db_ext_config && config.db_ext_config['safe'] === false) {
+        if (instance.safe === false) {
             ps.push(instance.initDB().then(model => {
                 return model.migrate(ORM.collections[n].schema, config);
             }));
