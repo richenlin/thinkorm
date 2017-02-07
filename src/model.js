@@ -105,9 +105,9 @@ export default class extends base {
                 return Promise.resolve(this.instances);
             }
             let adapterList = {
-                mysql: __dirname + '/Adapter/mysql.js',
-                postgresql: __dirname + '/Adapter/postgresql.js',
-                mongo: __dirname + '/Adapter/mongo.js'
+                mysql: __dirname + lib.sep + 'Adapter'+ lib.sep +'mysql.js',
+                postgresql: __dirname + lib.sep + 'Adapter'+ lib.sep +'postgresql.js',
+                mongo: __dirname + lib.sep + 'Adapter'+ lib.sep +'mongo.js'
             }, config = this.config, dbType = config.db_type ? config.db_type.toLowerCase() : '';
             if (!dbType in adapterList) {
                 return this.error(`adapter ${dbType} is not support.`);

@@ -9,6 +9,7 @@
 
 var fs = require('fs');
 var util = require('util');
+var path = require('path');
 function _interopSafeRequire(obj) {
     return (obj && obj.__esModule && obj.default) ? obj.default : obj;
 }
@@ -425,6 +426,7 @@ var extend = function () {
 };
 
 module.exports = {
+    sep: path.sep,
     isBuffer: isBuffer,
     isArray: isArray,
     isBoolean: isBoolean,
