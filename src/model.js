@@ -105,9 +105,9 @@ export default class extends base {
                 return Promise.resolve(this.instances);
             }
             let adapterList = {
-                mysql: __dirname + lib.sep + 'Adapter'+ lib.sep +'mysql.js',
-                postgresql: __dirname + lib.sep + 'Adapter'+ lib.sep +'postgresql.js',
-                mongo: __dirname + lib.sep + 'Adapter'+ lib.sep +'mongo.js'
+                mysql: __dirname + lib.sep + 'Adapter' + lib.sep + 'mysql.js',
+                postgresql: __dirname + lib.sep + 'Adapter' + lib.sep + 'postgresql.js',
+                mongo: __dirname + lib.sep + 'Adapter' + lib.sep + 'mongo.js'
             }, config = this.config, dbType = config.db_type ? config.db_type.toLowerCase() : '';
             if (!dbType in adapterList) {
                 return this.error(`adapter ${dbType} is not support.`);
@@ -386,9 +386,9 @@ export default class extends base {
                 page = page[0];
             }
             this.__options.page = this.__options.page ? lib.extend(false, this.__options.page, {
-                page: page || 1,
-                num: listRows || 10
-            }) : {page: page || 1, num: listRows || 10};
+                    page: page || 1,
+                    num: listRows || 10
+                }) : {page: page || 1, num: listRows || 10};
             return this;
         } catch (e) {
             return this.error(e);
@@ -402,7 +402,7 @@ export default class extends base {
      */
     rel(relation = false, field) {
         try {
-            if(lib.isObject(relation)){
+            if (lib.isObject(relation)) {
                 this.__options.rel = relation;
                 return this;
             }
@@ -889,14 +889,21 @@ export default class extends base {
         try {
             let dataCheckFlag = false, ruleCheckFlag = false,
                 result = {status: 1, msg: ''}, fields = this.fields, vaildRules = this.validations;
-            //根据模型定义字段类型进行数据检查
-            for (let field in data) {
-                if (!fields[field]) {
-                    //分离关联模型数据
-                    if (this.relation[field]) {
-                        !this.__relationData[field] && (this.__relationData[field] = {});
-                        this.__relationData[field] = data[field];
+            let _data = lib.isArray(data) ? lib.extend([], data) : lib.extend({}, data);
+            for (let field in _data) {
+                //分离关联模型数据
+                if (this.relation[field]) {
+                    !this.__relationData[field] && (this.__relationData[field] = {});
+                    this.__relationData[field] = _data[field];
+                    if (lib.isArray(this.__relationData[field])) {
+                        for (let [k, v] in this.__relationData[field]) {
+                            this.__relationData[field][k][this.relation[field]['rkey']] = data[this.relation[field]['rkey']]
+                        }
+                    } else {
+                        this.__relationData[field][this.relation[field]['rkey']] = data[this.relation[field]['rkey']]
                     }
+                }
+                if (!fields[field]) {
                     //移除未定义的字段
                     delete data[field];
                 }
@@ -985,7 +992,7 @@ export default class extends base {
                     rtype = relation[n]['type'];
                     if (rtype && rtype in caseList) {
                         if (lib.isArray(data)) {
-                            for (let [k,v] of data.entries()) {
+                            for (let [k, v] of data.entries()) {
                                 ps.push(caseList[rtype](config, relation[n], data[k]).then(res => {
                                     data[k][relation[n]['name']] = res;
                                 }));
