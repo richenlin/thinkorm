@@ -702,7 +702,7 @@ export default class extends base {
             case 'ADD':
                 for (let [k, v] of relationData.entries()) {
                     //子表插入数据
-                    v[rel.rkey] = v[rel.rkey] || result;
+                    v[rel.rkey] = result;
                     await model.add(v);
                 }
                 break;

@@ -474,8 +474,10 @@ export default class extends base {
             let pk = this.getPk();
 
             __data[pk] = __data[pk] ? __data[pk] : result;
-            if (!lib.isEmpty(this.__relationData)) {
-                await this.__postRelationData(db, result, parsedOptions, this.__relationData, 'ADD');
+            // if (!lib.isEmpty(this.__relationData)) {
+            if (!lib.isEmpty(parsedOptions.rel)) {
+                // await this.__postRelationData(db, result, parsedOptions, this.__relationData, 'ADD');
+                await this.__postRelationData(db, result, parsedOptions, data, 'ADD');
             }
             await this._afterAdd(__data, parsedOptions);
             return __data[pk] || 0;
@@ -594,8 +596,10 @@ export default class extends base {
                 }
             }
             let result = await db.update(__data, parsedOptions);
-            if (!lib.isEmpty(this.__relationData)) {
-                await this.__postRelationData(db, result, parsedOptions, this.__relationData, 'UPDATE');
+            // if (!lib.isEmpty(this.__relationData)) {
+            if (!lib.isEmpty(parsedOptions.rel)) {
+                // await this.__postRelationData(db, result, parsedOptions, this.__relationData, 'UPDATE');
+                await this.__postRelationData(db, result, parsedOptions, data, 'UPDATE');
             }
             await this._afterUpdate(__data, parsedOptions);
             return result || [];
@@ -889,26 +893,26 @@ export default class extends base {
         try {
             let dataCheckFlag = false, ruleCheckFlag = false,
                 result = {status: 1, msg: ''}, fields = this.fields, vaildRules = this.validations;
-            let _data = lib.isArray(data) ? lib.extend([], data) : lib.extend({}, data);
-            for (let field in _data) {
-                //分离关联模型数据
-                if (this.relation[field]) {
-                    !this.__relationData[field] && (this.__relationData[field] = {});
-                    this.__relationData[field] = _data[field];
-                    if (lib.isArray(this.__relationData[field])) {
-                        for (let [k, v] in this.__relationData[field]) {
-                            this.__relationData[field][k][this.relation[field]['rkey']] = data[this.relation[field]['rkey']]
-                        }
-                    } else {
-                        this.__relationData[field][this.relation[field]['rkey']] = data[this.relation[field]['rkey']]
-                    }
-                }
-                if (!fields[field]) {
-                    //移除未定义的字段
-                    delete data[field];
-                }
-            }
+            // for (let field in data) {
+            //     //分离关联模型数据
+            //     if (this.relation[field]) {
+            //         !this.__relationData[field] && (this.__relationData[field] = {});
+            //         this.__relationData[field] = data[field];
+            //         if (lib.isArray(this.__relationData[field])) {
+            //             for (let [k, v] in this.__relationData[field]) {
+            //                 this.__relationData[field][k][this.relation[field]['rkey']] = data[this.relation[field]['rkey']]
+            //             }
+            //         } else {
+            //             this.__relationData[field][this.relation[field]['rkey']] = data[this.relation[field]['rkey']]
+            //         }
+            //     }
+            //     if (!fields[field]) {
+            //         //移除未定义的字段
+            //         delete data[field];
+            //     }
+            // }
             //字段默认值处理以及合法性检查
+            let _data = {};
             for (let field in fields) {
                 if (method === 'ADD') {//新增数据add
                     lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null) && (data[field] = fields[field].defaultsTo);
@@ -941,8 +945,10 @@ export default class extends base {
                 if (adapter.__checkData && data[field]) {
                     data[field] = adapter.__checkData(data[field], (fields[field].type || 'string'));
                 }
+                //新赋值
+                data[field] && (_data[field] = data[field]);
             }
-            return data;
+            return _data;
         } catch (e) {
             return this.error(e);
         }
@@ -1016,12 +1022,12 @@ export default class extends base {
      * @param adapter
      * @param result
      * @param options
-     * @param relationData
+     * @param data
      * @param postType
      * @returns {*}
      * @private
      */
-    async __postRelationData(adapter, result, options, relationData, postType) {
+    async __postRelationData(adapter, result, options, data, postType) {
         try {
             let caseList = {
                 HASONE: adapter.__postHasOneRelation,
@@ -1029,14 +1035,22 @@ export default class extends base {
                 MANYTOMANY: adapter.__postManyToManyRelation
             }, ps = [];
             if (!lib.isEmpty(result)) {
-                let relation = schema.getRelation(this.modelName, this.config), rtype, config = this.config;
+                // let relation = schema.getRelation(this.modelName, this.config), rtype, config = this.config;
+                let relation = options.rel, rtype, config = this.config, relationData = null;
                 let pk = this.getPk();
-                for (let n in relationData) {
-                    rtype = relation[n] ? relation[n]['type'] : null;
-                    if (rtype && rtype in caseList) {
-                        ps.push(caseList[rtype](config, result, options, relation[n], relationData[n], postType));
+                for (let n in relation){
+                    rtype = relation[n] && relation[n]['type'] ? relation[n]['type'] : null;
+                    relationData = relation[n] && data[n] ? data[n] : null;
+                    if(rtype && relationData && rtype in caseList){
+                        ps.push(caseList[rtype](config, result, options, relation[n], relationData, postType));
                     }
                 }
+                // for (let n in relationData) {
+                //     rtype = relation[n] ? relation[n]['type'] : null;
+                //     if (rtype && rtype in caseList) {
+                //         ps.push(caseList[rtype](config, result, options, relation[n], relationData[n], postType));
+                //     }
+                // }
             }
             return Promise.all(ps);
         } catch (e) {
