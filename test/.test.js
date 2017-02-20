@@ -45,9 +45,9 @@ thinkorm.setCollection(UserGroup, config);
 var model = new User(config);
 
 //查询语言测试
-return model
+// return model
 // .where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
-.where({or: [{name: {'like': '%aa%'}}, {memo: {'like': '%aa%'}}]}).find()
+// .where({or: [{name: {'like': '%aa%'}}, {memo: {'like': '%aa%'}}]}).find()
 // .where({id: {'>=': 0}}).count()
 // .where({id: {'>=': 0}}).sum('id')
 // .where({id: {'>=': 0}}).select()
@@ -86,32 +86,33 @@ return model
 
 //.add({name: 'qqqesddfsdqqq'})
 
-.then(res => {
-    echo(res);
-});
+// .then(res => {
+//     echo(res);
+// });
 
 
 //事务测试
-/*return model.transaction(function *(t) {
+return model.transaction(function *(t) {
     // for (var i = 1; i < 5; i++) {
     //     yield model.add({name: 'rrrrrrrrrrrrr'});
     //     yield model.add({name: 'rrrrrrr'});
     //     yield model.add({name: 'rrrrrrrrrrrrr'});
     // }
     //Promise.all并行
-    var ps = [];
-    for (var i = 1; i < 5; i++) {
-        ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
-        ps.push(model.add({name: 'rrrr'}));
-        ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
-    }
-    return Promise.all(ps);
+    // var ps = [];
+    // for (var i = 1; i < 5; i++) {
+    //     ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
+    //     ps.push(model.add({name: 'rrrr'}));
+    //     ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
+    // }
+    // return Promise.all(ps);
 
     //跨模型执行
-    // yield model.add({name: 'rrrrrrrrrrrrr'});
-    // let profileModel = new Profile(config);
-    // yield profileModel.initDB(t).add({test: ['rrrtest']});
-});*/
+    yield model.add({name: '11111111111111111'});
+    let profileModel = yield (new Profile(config)).initDB(t);
+    yield profileModel.add({test: ['rrrtest111111']});
+    yield test();
+});
 
 
 //function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }

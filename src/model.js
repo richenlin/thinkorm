@@ -946,7 +946,7 @@ export default class extends base {
                     data[field] = adapter.__checkData(data[field], (fields[field].type || 'string'));
                 }
                 //新赋值
-                data[field] && (_data[field] = data[field]);
+                data.hasOwnProperty(field) && (_data[field] = data[field]);
             }
             return _data;
         } catch (e) {
