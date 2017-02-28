@@ -171,7 +171,7 @@ export default class extends base {
         try {
             if (!this.modelName) {
                 let filename = this.__filename;
-                let last = filename.lastIndexOf('/');
+                let last = filename.lastIndexOf(lib.sep);
                 this.modelName = filename.substr(last + 1, filename.length - last - 4);
             }
             return this.modelName;
