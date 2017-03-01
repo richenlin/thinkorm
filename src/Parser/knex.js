@@ -65,7 +65,7 @@ let parseKnexWhere = function (knex, options, alias, extkey) {
             case 'NOT':
                 if (lib.isObject(options[op])) {
                     parseNot(knex, options[op], alias);
-                } else if(extkey !== undefined){
+                } else if (extkey !== undefined) {
                     parseNot(knex, {[extkey]: options[op]}, alias);
                 }
                 break;
@@ -184,11 +184,15 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
         };
  */
 let preParseSchema = function (field, value, dbType) {
-    let str = '', primary = false,
+    let str = '', primary = false, defaults = false,
         //需要特殊处理的数据源类型,例如Mysql
         isSpecial = {"mysql": true, "postgresql": false};
     if (value.hasOwnProperty('primaryKey') && value.primaryKey === true) {
         primary = true;
+    }
+    //默认值
+    if (value.hasOwnProperty('defaultsTo') && lib.isScalar(value['defaultsTo'])) {
+        defaults = true;
     }
     switch (value.type) {
         case 'integer':
@@ -197,38 +201,38 @@ let preParseSchema = function (field, value, dbType) {
             } else {
                 str += `t.integer('${field}')`;
             }
-            if (value.hasOwnProperty('defaultsTo')) {
+            if (defaults) {
                 str += `.defaultTo(${value.defaultsTo})`;
             }
             break;
         case 'float':
             str += `t.float('${field}', 8, ${value.size || 2})${primary === true ? '.primary()' : ''}`;
-            if (value.hasOwnProperty('defaultsTo')) {
+            if (defaults) {
                 str += `.defaultTo(${value.defaultsTo})`;
             }
             break;
         case 'string':
             str += `t.string('${field}', ${value.size || 50})${primary === true ? '.primary()' : ''}`;
-            if (value.hasOwnProperty('defaultsTo')) {
+            if (defaults) {
                 str += `.defaultTo(${value.defaultsTo})`;
             }
             break;
         case 'json':
         case 'array':
             str += `t.json('${field}')`;
-            if (value.hasOwnProperty('defaultsTo')) {
+            if (defaults) {
                 str += `.defaultTo(${dbType && isSpecial[dbType] ? JSON.stringify(value.defaultsTo) : value.defaultsTo})`;
             }
             break;
         case 'text':
             str += `t.text('${field}')`;
-            if (value.hasOwnProperty('defaultsTo')) {
+            if (defaults) {
                 str += `.defaultTo(${value.defaultsTo})`;
             }
             break;
         default:
             str += `t.string('${field}')${primary === true ? '.primary()' : ''}`;
-            if (value.hasOwnProperty('defaultsTo')) {
+            if (defaults) {
                 str += `.defaultTo(${value.defaultsTo})`;
             }
             break;

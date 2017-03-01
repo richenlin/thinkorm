@@ -915,15 +915,19 @@ export default class extends base {
             let _data = {};
             for (let field in fields) {
                 if (method === 'ADD') {//新增数据add
-                    lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null) && (data[field] = fields[field].defaultsTo);
+                    if(lib.isEmpty(data[field]) && (fields[field]['defaultsTo'] !== undefined && fields[field]['defaultsTo'] !== null)){
+                        data[field] = fields[field]['defaultsTo'];
+                    }
                     //非主键字段就检查
                     dataCheckFlag = !fields[field].primaryKey ? true : false;
                     //定义了规则就检查
                     ruleCheckFlag = vaildRules[field] ? true : false;
                 } else if (method === 'UPDATE') {//编辑数据update
-                    data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null) && (data[field] = fields[field].defaultsTo);
+                    if (data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (fields[field]['defaultsTo'] !== undefined && fields[field]['defaultsTo'] !== null)) {
+                        data[field] = fields[field]['defaultsTo'];
+                    }
                     //更新包含字段就检查,主键除外(因为主键不会被更新)
-                    dataCheckFlag = (data.hasOwnProperty(field) && !fields[field].primaryKey) ? true : false;
+                    dataCheckFlag = (data.hasOwnProperty(field) && !fields[field]['primaryKey']) ? true : false;
                     //更新包含字段且定义了规则就检查
                     ruleCheckFlag = (data.hasOwnProperty(field) && vaildRules[field]) ? true : false;
                 }
@@ -1038,10 +1042,10 @@ export default class extends base {
                 // let relation = schema.getRelation(this.modelName, this.config), rtype, config = this.config;
                 let relation = options.rel, rtype, config = this.config, relationData = null;
                 let pk = this.getPk();
-                for (let n in relation){
+                for (let n in relation) {
                     rtype = relation[n] && relation[n]['type'] ? relation[n]['type'] : null;
                     relationData = relation[n] && data[n] ? data[n] : null;
-                    if(rtype && relationData && rtype in caseList){
+                    if (rtype && relationData && rtype in caseList) {
                         ps.push(caseList[rtype](config, result, options, relation[n], relationData, postType));
                     }
                 }
