@@ -386,9 +386,9 @@ export default class extends base {
                 page = page[0];
             }
             this.__options.page = this.__options.page ? lib.extend(false, this.__options.page, {
-                    page: page || 1,
-                    num: listRows || 10
-                }) : {page: page || 1, num: listRows || 10};
+                page: page || 1,
+                num: listRows || 10
+            }) : { page: page || 1, num: listRows || 10 };
             return this;
         } catch (e) {
             return this.error(e);
@@ -631,7 +631,7 @@ export default class extends base {
             // init db
             let db = await this.initDB();
             //copy data
-            let __data = lib.extend({}, {[field]: step});
+            let __data = lib.extend({}, { [field]: step });
             __data = await this._beforeUpdate(__data, parsedOptions);
             __data = await this.__checkData(db, __data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(__data)) {
@@ -659,7 +659,7 @@ export default class extends base {
             // init db
             let db = await this.initDB();
             //copy data
-            let __data = lib.extend({}, {[field]: step});
+            let __data = lib.extend({}, { [field]: step });
             __data = await this._beforeUpdate(__data, parsedOptions);
             __data = await this.__checkData(db, __data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(__data)) {
@@ -786,7 +786,7 @@ export default class extends base {
             }
             let parsedOptions = await this.__parseOptions(options);
             let countNum = await this.count(null, parsedOptions);
-            let pageOptions = parsedOptions.page || {page: 1, num: 10};
+            let pageOptions = parsedOptions.page || { page: 1, num: 10 };
             let totalPage = Math.ceil(countNum / pageOptions.num);
             if (lib.isBoolean(pageFlag)) {
                 if (pageOptions.page > totalPage) {
@@ -797,7 +797,7 @@ export default class extends base {
             //传入分页参数
             let offset = (pageOptions.page - 1) < 0 ? 0 : (pageOptions.page - 1) * pageOptions.num;
             parsedOptions.limit = [offset, pageOptions.num];
-            let result = lib.extend(false, {count: countNum, total: totalPage}, pageOptions);
+            let result = lib.extend(false, { count: countNum, total: totalPage }, pageOptions);
             result.data = await this.select(parsedOptions);
             return result;
         } catch (e) {
@@ -852,7 +852,7 @@ export default class extends base {
         try {
             //解析扩展写法参数
             if (lib.isObject(oriOpts)) {
-                let parseCase = {alias: 1, field: 1, where: 1, limit: 1, order: 1, group: 1, join: 1, page: 1, rel: 1};
+                let parseCase = { alias: 1, field: 1, where: 1, limit: 1, order: 1, group: 1, join: 1, page: 1, rel: 1 };
                 for (let n in oriOpts) {
                     (t => {
                         if (parseCase[t]) {
@@ -892,7 +892,7 @@ export default class extends base {
     __checkData(adapter, data, options, method = '') {
         try {
             let dataCheckFlag = false, ruleCheckFlag = false,
-                result = {status: 1, msg: ''}, fields = this.fields, vaildRules = this.validations;
+                result = { status: 1, msg: '' }, fields = this.fields, vaildRules = this.validations;
             // for (let field in data) {
             //     //分离关联模型数据
             //     if (this.relation[field]) {
@@ -915,7 +915,7 @@ export default class extends base {
             let _data = {};
             for (let field in fields) {
                 if (method === 'ADD') {//新增数据add
-                    if(lib.isEmpty(data[field]) && (fields[field]['defaultsTo'] !== undefined && fields[field]['defaultsTo'] !== null)){
+                    if (lib.isEmpty(data[field]) && (fields[field]['defaultsTo'] !== undefined && fields[field]['defaultsTo'] !== null)) {
                         data[field] = fields[field]['defaultsTo'];
                     }
                     //非主键字段就检查

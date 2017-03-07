@@ -10,9 +10,7 @@
 var fs = require('fs');
 var util = require('util');
 var path = require('path');
-function _interopSafeRequire(obj) {
-    return (obj && obj.__esModule && obj.default) ? obj.default : obj;
-}
+
 //Object上toString方法
 global.toString = Object.prototype.toString;
 
@@ -69,153 +67,195 @@ Date.prototype.Timestamp = function (str, format) {
  */
 global.echo = function (str) {
     let date = new Date().Format('yyyy-mm-dd hh:mi:ss');
-    console.log(`----------${ date }----------`);
+    console.log(`----------${date}----------`);
     console.log(str);
-    console.log(`----------${ date }----------`);
+    console.log(`----------${date}----------`);
 };
+
+function _interopSafeRequire(obj) {
+    return (obj && obj.__esModule && obj.default) ? obj.default : obj;
+}
+
+var lib = {};
+/**
+ * path seperator
+ * @type {String}
+ */
+lib.sep = path.sep;
+
+/**
+ * 是否是个数组
+ * @type {Boolean}
+ */
+lib.isArray = Array.isArray;
 
 /**
  * 是否是buffer
  * @type {Boolean}
  */
-var isBuffer = Buffer.isBuffer;
-/**
- * 是否是个数组
- * @type {Boolean}
- */
-var isArray = Array.isArray;
+lib.isBuffer = Buffer.isBuffer;
+
 /**
  * 是否是boolean
  * @param  {[type]}  obj
  * @return {Boolean}
  */
-var isBoolean = function (obj) {
+lib.isBoolean = function (obj) {
     return toString.call(obj) === '[object Boolean]';
 };
+
 /**
  * 是否是数字
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-var isNumber = function (obj) {
+lib.isNumber = function (obj) {
     return toString.call(obj) === '[object Number]';
 };
-/**
- * 是否是字符串
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
- */
-var isString = function (obj) {
-    return toString.call(obj) === '[object String]';
-};
-/**
- * 是否是个对象
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
- */
-var isObject = function (obj) {
-    if (Buffer.isBuffer(obj)) {
-        return false;
-    }
-    return toString.call(obj) === '[object Object]';
-};
+
 /**
  * 是否是个数字的字符串
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-var isNumberString = function (obj) {
+lib.isNumberString = function (obj) {
     let numberReg = /^((\-?\d*\.?\d*(?:e[+-]?\d*(?:\d?\.?|\.?\d?)\d*)?)|(0[0-7]+)|(0x[0-9a-f]+))$/i;
     return numberReg.test(obj);
 };
+
+/**
+ * 是否是字符串
+ * @param  {[type]}  obj [description]
+ * @return {Boolean}     [description]
+ */
+lib.isString = function (obj) {
+    return toString.call(obj) === '[object String]';
+};
+
+/**
+ * 是否是个对象
+ * @param  {[type]}  obj [description]
+ * @return {Boolean}     [description]
+ */
+lib.isObject = function (obj) {
+    if (Buffer.isBuffer(obj)) {
+        return false;
+    }
+    return toString.call(obj) === '[object Object]';
+};
+
 /**
  * 是否是标准JSON对象(必须是对象或数组)
  * @param obj
  * @returns {boolean}
  */
-var isJSONObj = function (obj) {
+lib.isJSONObj = function (obj) {
     return typeof obj === 'object' && (Object.prototype.toString.call(obj).toLowerCase() === '[object object]' || Object.prototype.toString.call(obj).toLowerCase() === '[object array]');
 };
+
 /**
  * 是否是标准的JSON字符串(必须是字符串，且可以被反解为对象或数组)
  * @param str
  * @returns {boolean}
  */
-var isJSONStr = function (str) {
-    if (!isString(str)) {
+lib.isJSONStr = function (str) {
+    if (!lib.isString(str)) {
         return false;
     }
     try {
-        return isJSONObj(JSON.parse(str));
+        return lib.isJSONObj(JSON.parse(str));
     } catch (e) {
         return false;
     }
 };
+
 /**
  * 是否是个function
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-var isFunction = function (obj) {
+lib.isFunction = function (obj) {
     return typeof obj === 'function';
 };
+
 /**
  * 是否是日期
  * @return {Boolean} [description]
  */
-var isDate = function (obj) {
+lib.isDate = function (obj) {
     return util.isDate(obj);
 };
+
 /**
  * 是否是正则
- * @param  {[type]}  reg [description]
- * @return {Boolean}     [description]
+ * @param obj
+ * @return {*}
  */
-var isRegexp = function (obj) {
+lib.isRegexp = function (obj) {
     return util.isRegExp(obj);
 };
+
 /**
  * 是否是个标量
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-var isScalar = function (obj) {
-    return isBoolean(obj) || isNumber(obj) || isString(obj);
+lib.isScalar = function (obj) {
+    let _obj = toString.call(obj);
+    return _obj === '[object Boolean]' || _obj === '[object Number]' || _obj === '[object String]';
 };
+
 /**
  * 是否是个文件
  * @param  {[type]}  p [description]
  * @return {Boolean}   [description]
  */
-var isFile = function (p) {
+lib.isFile = function (p) {
     if (!fs.existsSync(p)) {
         return false;
     }
     let stats = fs.statSync(p);
     return stats.isFile();
 };
+
 /**
  * 是否是个错误
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-var isError = function (obj) {
+lib.isError = function (obj) {
     return util.isError(obj);
 };
+
+/**
+ * 判断对象是否为空(不考虑特殊情况)
+ * @param  {[type]}  obj
+ * @return {Boolean}
+ */
+lib.isTrueEmpty = function (obj) {
+    if (obj === undefined || obj === null || obj === '') {
+        return true;
+    }
+    if (lib.isNumber(obj) && lib.isNaN(obj)) {
+        return true;
+    }
+    return false;
+};
+
 /**
  * 判断对象是否为空
  * @param  {[type]}  obj
  * @return {Boolean}
  */
-var isEmpty = function (obj) {
+lib.isEmpty = function (obj) {
     if (obj === null || obj === undefined || obj === '') {
         return true;
-    } else if (isString(obj)) {
+    } else if (lib.isString(obj)) {
         //\s 匹配任何空白字符，包括空格、制表符、换页符等等。等价于 [ \f\n\r\t\v]。
         return obj.replace(/(^\s*)|(\s*$)/g, '').length === 0;
-    } else if (isArray(obj)) {
+    } else if (lib.isArray(obj)) {
         return obj.length === 0;
-    } else if (isObject(obj)) {
+    } else if (lib.isObject(obj)) {
         for (let key in obj) {
             return false;
         }
@@ -224,33 +264,86 @@ var isEmpty = function (obj) {
         return false;
     }
 };
+
+/**
+ * 强制转换为字符串,跟.toString不同的是可以转换undefined和null
+ * @param obj
+ * @returns {*}
+ */
+lib.toString = function (obj) {
+    if (obj === undefined) {
+        return '';
+    }
+    if (obj === null) {
+        return '';
+    }
+    return String(obj);
+};
+
+/**
+ * 强制转换为整数
+ * @param obj
+ * @returns {*}
+ */
+lib.toInt = function (obj) {
+    return parseInt(obj) === NaN ? 0 : parseInt(obj);
+};
+
+/**
+ * 强制转换为浮点数
+ * @param obj
+ * @returns {*}
+ */
+lib.toFloat = function (obj) {
+    return parseFloat(obj) === NaN ? 0 : parseFloat(obj);
+};
+
+/**
+ * 强制转换为数字
+ * @param obj
+ * @returns {number}
+ */
+lib.toNumber = function (obj) {
+    return Number(obj) === NaN ? 0 : Number(obj);
+};
+
+/**
+ * 强制转换为布尔值
+ * @param obj
+ * @returns {number}
+ */
+lib.toBoolean = function (obj) {
+    return Boolean(obj);
+};
+
 /**
  * 判断值是否是数组的元素
  * @param needle
  * @param haystack 数组
  * @returns {boolean}
  */
-var inArray = function (needle, haystack) {
+lib.inArray = function (needle, haystack) {
     let length = haystack.length;
     for (let i = 0; i < length; i++) {
         if (haystack[i] == needle) return true;
     }
     return false;
 };
+
 /**
  * 判断是否是个promise
  * @param  {[type]}  obj [description]
  * @return {Boolean}     [description]
  */
-var isPromise = function (obj) {
+lib.isPromise = function (obj) {
     return !!(obj && typeof obj.then === 'function');
 };
 
 /**
- *
- * @returns {{}}
+ * 生成一个defer对象
+ * @return {[type]} [description]
  */
-var getDefer = function () {
+lib.getDefer = function () {
     let deferred = {};
     deferred.promise = new Promise(function (resolve, reject) {
         deferred.resolve = resolve;
@@ -258,13 +351,14 @@ var getDefer = function () {
     });
     return deferred;
 };
+
 /**
  * make callback function to promise
  * @param  {Function} fn       []
  * @param  {Object}   receiver []
  * @return {Promise}            []
  */
-var promisify = function (fn, receiver) {
+lib.promisify = function (fn, receiver) {
     return function (...args) {
         return new Promise(function (resolve, reject) {
             fn.apply(receiver, [...args, function (err, res) {
@@ -273,22 +367,24 @@ var promisify = function (fn, receiver) {
         });
     };
 };
+
 /**
  * 大写首字符
  * @param  {[type]} name [description]
  * @return {[type]}      [description]
  */
-var ucFirst = function (name) {
+lib.ucFirst = function (name) {
     name = (name || '') + '';
-    return name.substr(0, 1).toUpperCase() + name.substr(1).toLowerCase();
+    return name.slice(0, 1).toUpperCase() + name.slice(1).toLowerCase();
 };
+
 /**
  * 字符串命名风格转换
  * @param  {[type]} name [description]
  * @param  {[type]} type [description]
  * @return {[type]}      [description]
  */
-var parseName = function (name) {
+lib.parseName = function (name) {
     name = name.trim();
     if (!name) {
         return name;
@@ -299,12 +395,13 @@ var parseName = function (name) {
         return '_' + a.toLowerCase();
     });
 };
+
 /**
  * 字符串或文件hash,比md5效率高,但是有很低的概率重复
  * @param input
  * @returns {string}
  */
-var hash = function (input) {
+lib.hash = function (input) {
     let _hash = 5381;
     let I64BIT_TABLE =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
@@ -328,6 +425,7 @@ var hash = function (input) {
 
     return retValue;
 };
+
 /**
  * 控制台打印
  * @param msg
@@ -335,28 +433,34 @@ var hash = function (input) {
  * @param showTime
  * @constructor
  */
-var log = function (msg, type, showTime) {
+lib.log = function (msg, type, showTime) {
     let d = new Date();
     let date = d.Format('yyyy-mm-dd');
     let time = d.Format('hh:mi:ss');
     let dateTime = `[${date} ${time}] `;
 
     let message = msg;
-    if (util.isError(msg)) {
+    if (lib.isError(msg)) {
         type = 'ERROR';
         message = msg.stack;
-        //console.error(msg.stack);
+        // console.error(msg.stack);
     } else if (type === 'ERROR') {
         type = 'ERROR';
-        //console.error(msg);
-    } else if (type === 'WARNING') {
-        type = 'WARNING';
-        //console.warn(msg);
-    } else {
-        if (!Object.prototype.toString.call(msg) === '[object String]') {
+        if (!lib.isString(msg)) {
             message = JSON.stringify(msg);
         }
-        if (Object.prototype.toString.call(showTime) === '[object Number]') {
+        // console.error(message);
+    } else if (type === 'WARNING') {
+        type = 'WARNING';
+        if (!lib.isString(msg)) {
+            message = JSON.stringify(msg);
+        }
+        // console.warn(message);
+    } else {
+        if (!lib.isString(msg)) {
+            message = JSON.stringify(msg);
+        }
+        if (lib.isNumber(showTime)) {
             let _time = Date.now() - showTime;
             message += '  ' + `${_time}ms`;
         }
@@ -365,6 +469,7 @@ var log = function (msg, type, showTime) {
     console.log(`${dateTime}[${type}] ${message}`);
     return;
 };
+
 /**
  * 执行等待，避免一个耗时的操作多次被执行。 callback 需要返回一个 Promise 。
  * @param  {String}   key      []
@@ -372,31 +477,33 @@ var log = function (msg, type, showTime) {
  * @return {Promise}            []
  */
 var _ormAwaitInstance = new (_interopSafeRequire(require('./await.js')))();
-var _await = function (key, callback) {
+lib.await = function (key, callback) {
     return _ormAwaitInstance.run(key, callback);
 };
+
 /**
  * alias co module
  * @type {Object}
  */
 var co = require('co');
-var thinkCo = function (obj) {
+lib.thinkCo = function (obj) {
     //optimize invoke co package
-    if(obj && typeof obj.next === 'function'){
+    if (obj && typeof obj.next === 'function') {
         return co(obj);
     }
     return Promise.resolve(obj);
 };
+
 /**
  * 加载文件
  * @param  {[type]} file [description]
  * @return {[type]}      [description]
  */
-var thinkRequire = function (file) {
+lib.thinkRequire = function (file) {
     try {
         var obj = require(file);
         obj = _interopSafeRequire(obj);
-        if (isFunction(obj)) {
+        if (lib.isFunction(obj)) {
             obj.prototype.__filename = file;
         }
         return obj;
@@ -404,24 +511,25 @@ var thinkRequire = function (file) {
         return null;
     }
 };
+
 /**
  * extend, from jquery，具有深度复制功能
  * @return {[type]} [description]
  */
-var extend = function () {
+lib.extend = function () {
     let args = [].slice.call(arguments);
     let deep = true;
     let target;
-    if (isBoolean(args[0])) {
+    if (lib.isBoolean(args[0])) {
         deep = args.shift();
     }
     if (deep) {
-        target = isArray(args[0]) ? [] : {};
+        target = lib.isArray(args[0]) ? [] : {};
     } else {
         target = args.shift();
     }
     target = target || {};
-    var i = 0,
+    let i = 0,
         length = args.length,
         options = undefined,
         name = undefined,
@@ -439,10 +547,10 @@ var extend = function () {
                 continue;
             }
             if (deep) {
-                if (isObject(copy)) {
-                    target[name] = extend(src && isObject(src) ? src : {}, copy);
-                } else if (isArray(copy)) {
-                    target[name] = extend([], copy);
+                if (lib.isObject(copy)) {
+                    target[name] = lib.extend(src && lib.isObject(src) ? src : {}, copy);
+                } else if (lib.isArray(copy)) {
+                    target[name] = lib.extend([], copy);
                 } else {
                     target[name] = copy;
                 }
@@ -454,34 +562,4 @@ var extend = function () {
     return target;
 };
 
-module.exports = {
-    sep: path.sep,
-    isBuffer: isBuffer,
-    isArray: isArray,
-    isBoolean: isBoolean,
-    isNumber: isNumber,
-    isString: isString,
-    isObject: isObject,
-    isNumberString: isNumberString,
-    isJSONObj: isJSONObj,
-    isJSONStr: isJSONStr,
-    isFunction: isFunction,
-    isDate: isDate,
-    isRegexp: isRegexp,
-    isScalar: isScalar,
-    isFile: isFile,
-    isError: isError,
-    isEmpty: isEmpty,
-    inArray: inArray,
-    isPromise: isPromise,
-    getDefer: getDefer,
-    promisify: promisify,
-    ucFirst: ucFirst,
-    parseName: parseName,
-    hash: hash,
-    log: log,
-    await: _await,
-    extend: extend,
-    thinkRequire: thinkRequire,
-    thinkCo: thinkCo
-};
+module.exports = lib;
