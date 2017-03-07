@@ -208,11 +208,7 @@ export default class extends base {
      */
     increment(data, field, options = {}) {
         options.method = 'UPDATE';
-        let startTime = Date.now(), collection, handler, dataObj;
-        if(data[field]){
-            dataObj = {[field]: data[field]};
-            delete data[field];
-        }
+        let startTime = Date.now(), collection, handler;
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(data, options);
@@ -237,11 +233,8 @@ export default class extends base {
      */
     decrement(data, field, options = {}) {
         options.method = 'UPDATE';
-        let startTime = Date.now(), collection, handler, dataObj;
-        if(data[field]){
-            dataObj = {[field]: (0 - data[field])};
-            delete data[field];
-        }
+        let startTime = Date.now(), collection, handler;
+
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(data, options);
@@ -286,7 +279,7 @@ export default class extends base {
                 handler = fn(pipe);
             } else {
                 res.options.group.initial = {
-                    "countid": 0
+                    'countid': 0
                 };
                 res.options.group.reduce = new Function('obj', 'prev', `if (obj.${res.options.count} != null) if (obj.${res.options.count} instanceof Array){prev.countid += obj.${res.options.count}.length; }else{ prev.countid++;}`);
                 res.options.group.cond = res.options.where;
@@ -335,7 +328,7 @@ export default class extends base {
                 handler = fn(pipe);
             } else {
                 res.options.group.initial = {
-                    "sumid": 0
+                    'sumid': 0
                 };
                 res.options.group.reduce = new Function('obj', 'prev', `prev.sumid = prev.sumid + obj.${res.options.sum} - 0;`);
                 res.options.group.cond = res.options.where;

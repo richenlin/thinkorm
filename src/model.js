@@ -997,7 +997,6 @@ export default class extends base {
             let relationData = data;
             if (!lib.isEmpty(data)) {
                 let relation = options.rel, rtype, config = this.config, ps = [];
-                let pk = this.getPk();
                 for (let n in relation) {
                     rtype = relation[n]['type'];
                     if (rtype && rtype in caseList) {
@@ -1041,7 +1040,6 @@ export default class extends base {
             if (!lib.isEmpty(result)) {
                 // let relation = schema.getRelation(this.modelName, this.config), rtype, config = this.config;
                 let relation = options.rel, rtype, config = this.config, relationData = null;
-                let pk = this.getPk();
                 for (let n in relation) {
                     rtype = relation[n] && relation[n]['type'] ? relation[n]['type'] : null;
                     relationData = relation[n] && data[n] ? data[n] : null;

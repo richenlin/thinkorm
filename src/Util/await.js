@@ -5,7 +5,6 @@
  * @license    MIT
  * @version    16/7/14
  */
-import lib from './lib';
 
 export default class {
     constructor(){
