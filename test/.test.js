@@ -46,7 +46,7 @@ var model = new User(config);
 
 //查询语言测试
 return model
-.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
+// .where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
 // .where({or: [{name: {'like': '%aa%'}}, {memo: {'like': '%aa%'}}]}).find()
 // .where({id: {'>=': 0}}).count()
 // .where({id: {'>=': 0}}).sum('id')
@@ -70,16 +70,16 @@ return model
 // .field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).countSelect({field: ['name', 'num']})
 //     .select({field: ['id','name'], join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['Profile.id as pid', 'test'], type: 'left'}]})
 // .field(['id', 'name']).where({id: {'>=': 0}}).group('name').countSelect()
-// .rel(true).where({id: 4}).find()
-// .add({name: 'rrrrrrrrrrrrr',Prof、ile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
-// .where({id: 3}).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})
+.rel(true).where({id: {">": 1}}).find()
+// .rel(true).add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
+// .where({id: 3}).rel(true).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})
 // .add({name: 'rrrrrrrrrrrrr',Pet: [{types: 'ssfsssss'}]})
-// .where({id: 1}).update({name: 'ttrrrrrtttt',Pet: [{id: 1,types: 'ttttttt'}]})
-//     .where({id: 1}).update({name: 'ttrrrrrtttt',Pet: [{types: 'ttttttt'}]})
-// .add({name: 'rrrrrrrrrrr',Group: [{name: 'ssfsssss', type: ''}]})
-// .where({id: 1}).update({name: 'ttttrrrrrtt',Group: [{id: 1,name: 'ttttttt'}]})
-//     .where({id: 1}).update({name: 'ttttrrrrrtt',Group: [{name: 'ttttttt'}]})
-// .where({id: 1}).update({name: 'ttttrrrrrtt',Group: [{userid: 115, groupid: 15}]})
+// .where({id: 1}).rel(true).update({name: 'ttrrrrrtttt',Pet: [{id: 1,types: 'ttttttt'}]})
+// .where({id: 1}).rel(true).update({name: 'ttrrrrrtttt',Pet: [{types: 'ttttttt'}]})
+// .rel(true).add({name: 'rrrrrrrrrrr',Group: [{name: 'ssfsssss', type: ''}]})
+// .where({id: 1}).rel(true).update({name: 'ttttrrrrrtt',Group: [{id: 1,name: 'ttttttt'}]})
+// .where({id: 1}).rel(true).update({name: 'ttttrrrrrtt',Group: [{name: 'ttttttt'}]})
+// .where({id: 1}).rel(true).update({name: 'ttttrrrrrtt',Group: [{userid: 115, groupid: 15}]})
 // .query('select * from think_user where id = 1')
 // .where({id:1}).increment('num', 1)
 //     .where({id:1}).decrement('num', 1)
@@ -106,12 +106,11 @@ return model
 //     //     ps.push(model.add({name: 'rrrrrrrrrrrrr'}));
 //     // }
 //     // return Promise.all(ps);
-//
+
 //     //跨模型执行
 //     yield model.add({name: '11111111111111111'});
 //     let profileModel = yield (new Profile(config)).initDB(t);
-//     yield profileModel.add({test: ['rrrtest111111']});
-//     yield test();
+//     yield profileModel.add({test: 'rrrtest'});
 // });
 
 

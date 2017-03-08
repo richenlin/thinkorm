@@ -10,7 +10,13 @@ import schema from './schema';
 import lib from './Util/lib';
 import vaild from './Util/valid';
 
-let forceNewNum = 1;
+var forceNewNum = 1;
+//adapter list
+const adapterList = {
+    mysql: __dirname + lib.sep + 'Adapter' + lib.sep + 'mysql.js',
+    postgresql: __dirname + lib.sep + 'Adapter' + lib.sep + 'postgresql.js',
+    mongo: __dirname + lib.sep + 'Adapter' + lib.sep + 'mongo.js'
+};
 
 export default class extends base {
     /**
@@ -104,11 +110,7 @@ export default class extends base {
             if (this.instances && !forceNew) {
                 return Promise.resolve(this.instances);
             }
-            let adapterList = {
-                mysql: __dirname + lib.sep + 'Adapter' + lib.sep + 'mysql.js',
-                postgresql: __dirname + lib.sep + 'Adapter' + lib.sep + 'postgresql.js',
-                mongo: __dirname + lib.sep + 'Adapter' + lib.sep + 'mongo.js'
-            }, config = this.config, dbType = config.db_type ? config.db_type.toLowerCase() : '';
+            let config = this.config, dbType = config.db_type ? config.db_type.toLowerCase() : '';
             if (!dbType in adapterList) {
                 return this.error(`adapter ${dbType} is not support.`);
             }
@@ -116,7 +118,7 @@ export default class extends base {
             if (forceNew) {
                 config.db_ext_config['forceNewNum'] = forceNewNum++;
             }
-            this.instances = new (lib.thinkRequire(adapterList[dbType]))(config);
+            this.instances = lib.thinkRequire(adapterList[dbType]).getInstance(config);
             return Promise.resolve(this.instances);
         } catch (e) {
             return this.error(e);

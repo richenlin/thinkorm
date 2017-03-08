@@ -5,7 +5,7 @@
  * @license    MIT
  * @version    16/7/25
  */
-import base from '../base';
+import base from './base';
 import lib from '../Util/lib';
 import parser from '../Parser/mongo';
 import socket from '../Socket/mongo';
@@ -24,7 +24,7 @@ export default class extends base {
         if (this.handel) {
             return Promise.resolve(this.handel);
         }
-        this.handel = socket.getInstance(this.config).connect();
+        this.handel = new socket(this.config).connect();
         return this.handel;
     }
 
