@@ -5,7 +5,9 @@
  * @license    MIT
  * @version    16/8/17
  */
-"use strict";
+/*global ORM*/
+'use strict';
+
 var lib = require('./Util/lib.js');
 
 /**
@@ -24,7 +26,7 @@ let parseType = function (type) {
     } else {
         type = (type + '').toUpperCase();
     }
-    return type
+    return type;
 };
 
 /**
@@ -34,14 +36,14 @@ let parseType = function (type) {
  * @returns {*}
  */
 let setCollection = function (func, config) {
-    if(lib.isFile(func)){
+    if (lib.isFile(func)) {
         func = lib.thinkRequire(func);
     }
-    if(lib.isFunction(func)){
+    if (lib.isFunction(func)) {
         let collection = new func(config);
         let name = collection.modelName;
 
-        if(!ORM.collections[name]){
+        if (!ORM.collections[name]) {
             ORM.collections[name] = func;
             ORM.collections[name].schema = {
                 name: name,
@@ -52,7 +54,7 @@ let setCollection = function (func, config) {
         }
         return ORM.collections[name];
     }
-    return;
+    return null;
 };
 /**
  * get model relationship
@@ -60,43 +62,43 @@ let setCollection = function (func, config) {
  * @param config
  * @returns {*}
  */
-function getRelation(name, config) {
-    if(!ORM.collections[name]){
+let getRelation = function (name, config) {
+    if (!ORM.collections[name]) {
         throw new Error(`collection ${name} is undefined.`);
-        return;
+        return null;
     }
 
-    if(!ORM.collections[name]['relation']){
-        ORM.collections[name]['relation'] = {};
+    if (!ORM.collections[name].relation) {
+        ORM.collections[name].relation = {};
     }
     let cls = new (ORM.collections[name])(config),
         type, relation = cls.relation;
     for (let n in relation) {
-        if(!ORM.collections[n]){
+        if (!ORM.collections[n]) {
             throw new Error(`collection ${n} is undefined.`);
-            return;
+            return null;
         } else {
-            type = parseType(relation[n]['type']);
-            ORM.collections[name]['relation'][n] = {
+            type = parseType(relation[n].type);
+            ORM.collections[name].relation[n] = {
                 type: type, //关联方式
                 name: n, //关联模型名称
                 model: ORM.collections[n], //关联模型
-                field: relation[n]['field'] || [],
-                fkey: relation[n]['fkey'], //hasone主表外键,hasmany查询结果字段名,manytomany map表主外键
-                rkey: relation[n]['rkey'], //hasone子表主键,hasmany子表外键,manytomany map表子外键
+                field: relation[n].field || [],
+                fkey: relation[n].fkey, //hasone主表外键,hasmany查询结果字段名,manytomany map表主外键
+                rkey: relation[n].rkey, //hasone子表主键,hasmany子表外键,manytomany map表子外键
 
-                primaryPk: cls.getPk(),//主表主键
+                primaryPk: cls.getPk(), //主表主键
                 primaryName: cls.modelName//主模型名称
             };
             //MANYTOMANY map
-            if(type === 'MANYTOMANY'){
-                let mapName = relation[n]['map'];
-                if(!mapName || !ORM.collections[mapName]){
+            if (type === 'MANYTOMANY') {
+                let mapName = relation[n].map;
+                if (!mapName || !ORM.collections[mapName]) {
                     throw new Error(`collection ${mapName} is undefined.`);
-                    return;
+                    return null;
                 }
-                ORM.collections[name]['relation'][n]['mapModel'] = mapName;
-                ORM.collections[name]['relation'][n]['mapModel'] = ORM.collections[mapName];
+                ORM.collections[name].relation[n].mapModel = mapName;
+                ORM.collections[name].relation[n].mapModel = ORM.collections[mapName];
 
                 // let mapName = `${cls.modelName}${n}Map`;
                 // if(!ORM.collections[mapName]){
@@ -133,25 +135,26 @@ function getRelation(name, config) {
             }
         }
     }
-    return ORM.collections[name]['relation'];
-}
+    return ORM.collections[name].relation;
+};
 
 /**
  * auto migrate all model structure to database
  * @param config
  */
-function migrate(config){
+let migrate = function (config) {
     let instance, ps = [];
-    for(let n in ORM.collections){
+    for (let n in ORM.collections) {
         instance = new ORM.collections[n](config);
         if (instance.safe === false) {
+            /*eslint-disable no-loop-func*/
             ps.push(instance.initDB().then(model => {
                 return model.migrate(ORM.collections[n].schema, config);
             }));
         }
     }
     return Promise.all(ps);
-}
+};
 
 module.exports = {
     setCollection: setCollection,

@@ -5,6 +5,7 @@
  * @license    MIT
  * @version    16/7/25
  */
+/*global ORM */
 import knex from 'knex';
 import base from './base';
 import lib from '../Util/lib';
@@ -12,7 +13,6 @@ import parser from '../Parser/knex';
 import socket from '../Socket/postgresql';
 
 export default class extends base {
-
     init(config = {}) {
         this.config = config;
         this.logSql = config.db_ext_config.db_log_sql || false;
@@ -53,7 +53,7 @@ export default class extends base {
                 db_ext_config: this.config.db_ext_config
             };
             return Promise.all([new socket(configMaster).connect(), new socket(configSlave).connect()]).then(cons => {
-                this.handel = {RW: true};
+                this.handel = { RW: true };
                 this.handel.master = cons[0];
                 this.handel.slave = cons[1];
                 return this.handel;
@@ -92,7 +92,7 @@ export default class extends base {
      */
     migrate(schema, config) {
         if (lib.isEmpty(schema) || lib.isEmpty(config)) {
-            return;
+            return Promise.resolve();
         }
         let tableName = `${config.db_prefix}${lib.parseName(schema.name)}`;
         return this.execute(this.knexClient.schema.dropTableIfExists(tableName).toString()).then(() => {
@@ -220,6 +220,7 @@ export default class extends base {
             this.transTimes++;
             return this.execute('BEGIN');
         }
+        return Promise.resolve();
     }
 
     /**
@@ -264,9 +265,9 @@ export default class extends base {
         let knexCls = this.knexClient.insert(data).from(options.table);
         return this.parsers().buildSql(knexCls, data, options).then(sql => {
             return this.execute(sql);
-        }).then(data => {
+        }).then(result => {
             //
-            return data;
+            return result;
         });
     }
 
@@ -280,9 +281,9 @@ export default class extends base {
         let knexCls = this.knexClient.del().from(options.table);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.execute(sql);
-        }).then(data => {
+        }).then(result => {
             //
-            return data;
+            return result;
         });
     }
 
@@ -296,9 +297,9 @@ export default class extends base {
         let knexCls = this.knexClient.update(data).from(options.table);
         return this.parsers().buildSql(knexCls, data, options).then(sql => {
             return this.execute(sql);
-        }).then(data => {
+        }).then(result => {
             //
-            return data;
+            return result;
         });
     }
 
@@ -319,12 +320,12 @@ export default class extends base {
         knexCls = knexCls.from(options.table);
         return this.parsers().buildSql(knexCls, data, options).then(sql => {
             return this.execute(sql);
-        }).then(res => {
+        }).then(result => {
             //更新前置操作内会改变data的值
             if (!lib.isEmpty(data)) {
                 this.update(data, options);
             }
-            return res;
+            return result;
         });
     }
 
@@ -345,12 +346,12 @@ export default class extends base {
         knexCls = knexCls.from(options.table);
         return this.parsers().buildSql(knexCls, data, options).then(sql => {
             return this.execute(sql);
-        }).then(res => {
+        }).then(result => {
             //更新前置操作内会改变data的值
             if (!lib.isEmpty(data)) {
                 this.update(data, options);
             }
-            return res;
+            return result;
         });
     }
 
@@ -367,15 +368,15 @@ export default class extends base {
         let knexCls = this.knexClient.count(`${field} AS count`).from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
-        }).then(data => {
-            if (lib.isArray(data)) {
-                if (data[0]) {
-                    return data[0]['count'] ? (data[0]['count'] || 0) : 0;
+        }).then(result => {
+            if (lib.isArray(result)) {
+                if (result[0]) {
+                    return result[0].count ? (result[0].count || 0) : 0;
                 } else {
                     return 0;
                 }
             } else {
-                return data['count'] || 0;
+                return result.count || 0;
             }
         });
     }
@@ -393,15 +394,15 @@ export default class extends base {
         let knexCls = this.knexClient.sum(`${field} AS sum`).from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
-        }).then(data => {
-            if (lib.isArray(data)) {
-                if (data[0]) {
-                    return data[0]['sum'] ? (data[0]['sum'] || 0) : 0;
+        }).then(result => {
+            if (lib.isArray(result)) {
+                if (result[0]) {
+                    return result[0].sum ? (result[0].sum || 0) : 0;
                 } else {
                     return 0;
                 }
             } else {
-                return data['sum'] || 0;
+                return result.sum || 0;
             }
         });
     }
@@ -416,9 +417,9 @@ export default class extends base {
         let knexCls = this.knexClient.select().from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
-        }).then(data => {
+        }).then(result => {
             //
-            return data;
+            return result;
         });
     }
 
@@ -431,9 +432,9 @@ export default class extends base {
         let knexCls = this.knexClient.select().from(`${options.table} AS ${options.alias}`);
         return this.parsers().buildSql(knexCls, options).then(sql => {
             return this.query(sql);
-        }).then(data => {
+        }).then(result => {
             //
-            return data;
+            return result;
         });
     }
 
@@ -447,7 +448,7 @@ export default class extends base {
         //    for (let i = 0, length = data.length; i < length; i++) {
         //        for (let key in data[i]) {
         //            if (lib.isBuffer(data[i][key])) {
-        //                data[i][key] = data[i][key].toString();
+        //                data[i][key] = lib.toString(data[i][key]);
         //            }
         //        }
         //    }
@@ -471,7 +472,7 @@ export default class extends base {
             return {};
         }
         let model = new (rel.model)(config);
-        return model.find({field: rel.field, where: {[rel.rkey]: data[rel.fkey]}});
+        return model.find({ field: rel.field, where: { [rel.rkey]: data[rel.fkey] } });
     }
 
     /**
@@ -487,7 +488,7 @@ export default class extends base {
             return [];
         }
         let model = new (rel.model)(config);
-        let options = {field: rel.field, where: {[rel.rkey]: data[rel.primaryPk]}};
+        let options = { field: rel.field, where: { [rel.rkey]: data[rel.primaryPk] } };
         return model.select(options);
     }
 
@@ -508,12 +509,12 @@ export default class extends base {
         let mapModel = new rel.mapModel(config);
         //let mapName = `${rel.primaryName}${rel.name}Map`;
         //if(model.config.db_type === 'mongo'){
-        return mapModel.field(rel.rkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
+        return mapModel.field(rel.rkey).select({ where: { [rel.fkey]: data[rel.primaryPk] } }).then(result => {
             let keys = [];
-            data.map(item => {
+            result.map(item => {
                 item[rel.rkey] && keys.push(item[rel.rkey]);
             });
-            return model.select({where: {[rpk]: keys}});
+            return model.select({ where: { [rpk]: keys } });
         });
         //} else {
         //    let options = {
@@ -557,7 +558,7 @@ export default class extends base {
                 //子表插入数据
                 let fkey = await model.add(relationData);
                 //更新主表关联字段
-                fkey && (await primaryModel.update({[rel.fkey]: fkey}, {where: {[rel.primaryPk]: result}}));
+                fkey && (await primaryModel.update({ [rel.fkey]: fkey }, { where: { [rel.primaryPk]: result } }));
                 break;
             case 'UPDATE':
                 let condition = {}, keys = [];
@@ -571,12 +572,14 @@ export default class extends base {
                     item[rel.primaryPk] && keys.push(item[rel.primaryPk]);
                 });
                 if (keys.length > 0) {
-                    condition['in'] = {[rel.rkey]: keys};
-                    await model.update(relationData, {where: condition});
+                    condition.in = { [rel.rkey]: keys };
+                    await model.update(relationData, { where: condition });
                 }
                 break;
+            default:
+                break;
         }
-        return;
+        return Promise.resolve();
     }
 
     /**
@@ -612,18 +615,20 @@ export default class extends base {
                     item[rel.primaryPk] && keys.push(item[rel.primaryPk]);
                 });
                 if (keys.length > 0) {
-                    condition['in'] = {[rel.rkey]: keys};
+                    condition.in = { [rel.rkey]: keys };
                     for (let [k, v] of relationData.entries()) {
                         //子表主键数据存在
                         if (v[rpk]) {
                             condition[rpk] = v[rpk];
                         }
-                        await model.update(v, {where: condition});
+                        await model.update(v, { where: condition });
                     }
                 }
                 break;
+            default:
+                break;
         }
-        return;
+        return Promise.resolve();
     }
 
     /**
@@ -643,14 +648,14 @@ export default class extends base {
         }
         //子表主键
         let model = new (rel.model)(config), rpk = model.getPk();
-        let mapModel = new (rel['mapModel'])(config);
+        let mapModel = new (rel.mapModel)(config);
         switch (postType) {
             case 'ADD':
                 for (let [k, v] of relationData.entries()) {
                     //子表增加数据
                     let fkey = await model.add(v);
                     //关系表增加数据,使用thenAdd
-                    fkey && (await mapModel.thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, {
+                    fkey && (await mapModel.thenAdd({ [rel.fkey]: result, [rel.rkey]: fkey }, {
                         where: {
                             [rel.fkey]: result,
                             [rel.rkey]: fkey
@@ -664,7 +669,7 @@ export default class extends base {
                 //限制只能更新关联数据
                 let info = await primaryModel.join([{
                     from: mapModel.modelName,
-                    on: {[rel.primaryPk]: rel.fkey},
+                    on: { [rel.primaryPk]: rel.fkey },
                     field: [rel.fkey, rel.rkey],
                     type: 'inner'
                 }]).select(options);
@@ -672,7 +677,7 @@ export default class extends base {
                     item[rel.rkey] && keys.push(item[rel.rkey]);
                 });
                 if (keys.length > 0) {
-                    condition['in'] = {[rpk]: keys};
+                    condition.in = { [rpk]: keys };
                     for (let [k, v] of relationData.entries()) {
                         //关系表两个外键都存在,更新关系表
                         if (v[rel.fkey] && v[rel.rkey]) {
@@ -680,19 +685,21 @@ export default class extends base {
                             await mapModel.thenAdd({
                                 [rel.fkey]: v[rel.fkey],
                                 [rel.rkey]: v[rel.rkey]
-                            }, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
+                            }, { where: { [rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey] } });
                         } else {
                             //仅存在子表主键
                             if (v[rpk]) {
                                 condition[rpk] = v[rpk];
                             }
                             //更新
-                            await model.update(v, {where: condition});
+                            await model.update(v, { where: condition });
                         }
                     }
                 }
                 break;
+            default:
+                break;
         }
-        return;
+        return Promise.resolve();
     }
 }

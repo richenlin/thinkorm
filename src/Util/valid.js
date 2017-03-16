@@ -228,40 +228,40 @@ let rules = {
 let dataCheck = function (name, value, type) {
     'use strict';
     //数据类型存在则检查
-    if(type){
+    if (type) {
         //字段类型严格验证
         switch (type) {
             case 'integer':
             case 'float':
-                if(!lib.isNumber(value)){
-                    return {status: 0, msg: `${name}值类型错误!`};
+                if (!lib.isNumber(value)) {
+                    return { status: 0, msg: `${name}值类型错误!` };
                 }
                 break;
             case 'json':
-                if(!lib.isJSONObj(value)){
-                    return {status: 0, msg: `${name}值类型错误!`};
+                if (!lib.isJSONObj(value)) {
+                    return { status: 0, msg: `${name}值类型错误!` };
                 }
                 break;
             case 'array':
-                if(!lib.isArray(value)){
-                    return {status: 0, msg: `${name}值类型错误!`};
+                if (!lib.isArray(value)) {
+                    return { status: 0, msg: `${name}值类型错误!` };
                 }
                 break;
             case 'string':
             case 'text':
-                if(!lib.isString(value)){
-                    return {status: 0, msg: `${name}值类型错误!`};
+                if (!lib.isString(value)) {
+                    return { status: 0, msg: `${name}值类型错误!` };
                 }
                 break;
             default:
-                if(!lib.isString(value)){
-                    return {status: 0, msg: `${name}值类型错误!`};
+                if (!lib.isString(value)) {
+                    return { status: 0, msg: `${name}值类型错误!` };
                 }
                 break;
         }
     }
 
-    return {status: 1, msg: ''};
+    return { status: 1, msg: '' };
 };
 
 /**
@@ -284,22 +284,22 @@ let dataCheck = function (name, value, type) {
  */
 let ruleCheck = function (name, value, extra, method) {
     'use strict';
-    let result = {status: 1, msg: ''};
-    if(!name){
+    let result = { status: 1, msg: '' };
+    if (!name) {
         return result;
     }
     //自定义规则存在则检查
-    if(extra && extra.valid){
+    if (extra && extra.valid) {
         let met;
-        if(extra.method){
+        if (extra.method) {
             met = (extra.method).toUpperCase();
-            if(met === 'ALL' || met === method){
+            if (met === 'ALL' || met === method) {
                 met = true;
             } else {
                 met = false;
             }
         }
-        if(met){
+        if (met) {
             let valid = extra.valid;
             if (!Array.isArray(valid)) {
                 valid = [valid];
@@ -314,8 +314,8 @@ let ruleCheck = function (name, value, extra, method) {
                         args = [args];
                     }
                     args = [value].concat(args);
-                    if(rules[validItem].apply(rules, args) === false){
-                        result = {status: 0, msg: extra.msg[validItem] || `${name}值未通过检测!`};
+                    if (rules[validItem].apply(rules, args) === false) {
+                        result = { status: 0, msg: extra.msg[validItem] || `${name}值未通过检测!` };
                     }
                 }
             });
@@ -327,4 +327,4 @@ let ruleCheck = function (name, value, extra, method) {
 export default {
     dataCheck: dataCheck,
     ruleCheck: ruleCheck
-}
+};

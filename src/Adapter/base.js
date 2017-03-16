@@ -46,9 +46,9 @@ export default class {
      * @param  {Object} config []
      * @return {Object}        []
      */
-    static getInstance(config){
+    static getInstance(config) {
         let key = `${config.db_type}_${config.db_host}_${config.db_port}_${config.db_name}`;
-        if(!instances[key]){
+        if (!instances[key]) {
             instances[key] = new this(config);
             return instances[key];
         }

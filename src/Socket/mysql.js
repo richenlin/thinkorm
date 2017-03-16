@@ -9,9 +9,8 @@ import base from '../base';
 import lib from '../Util/lib';
 import mysql from 'mysql';
 
-export default class extends base{
-
-    init(config = {}){
+export default class extends base {
+    init(config = {}) {
         this.config = {
             database: config.db_name,
             host: config.db_host || '127.0.0.1',
@@ -19,7 +18,7 @@ export default class extends base{
             password: config.db_pwd || '',
             port: config.db_port || 3306,
             encoding: config.db_charset || 'utf8',
-            connectTimeout: config.db_timeout * 1000 || 10000,//try connection timeout
+            connectTimeout: config.db_timeout * 1000 || 10000, //try connection timeout
             connectionLimit: config.db_ext_config.db_pool_size || 10,
             db_ext_config: config.db_ext_config || {}
         };
@@ -32,12 +31,12 @@ export default class extends base{
         this.connection = null;
     }
 
-    connect(){
-        if(this.connection){
+    connect() {
+        if (this.connection) {
             return Promise.resolve(this.connection);
         }
         //use pool
-        if(this.pool){
+        if (this.pool) {
             let fn = lib.promisify(this.pool.getConnection, this.pool);
             return fn().then(conn => {
                 this.connection = conn;
@@ -48,13 +47,13 @@ export default class extends base{
             });
         }
         let config = this.config;
-        if(this.connectionLimit){
+        if (this.connectionLimit) {
             this.pool = mysql.createPool(config);
             return this.connect();
         }
 
         let connectKey = `mysql://${config.user}:${config.password}@${config.host}:${config.port}/${config.database}`;
-        if(config.db_ext_config.forceNewNum){
+        if (config.db_ext_config.forceNewNum) {
             connectKey = `${connectKey}_${config.db_ext_config.forceNewNum}`;
         }
 
@@ -62,7 +61,7 @@ export default class extends base{
             let deferred = lib.getDefer();
             let connection = mysql.createConnection(config);
             connection.connect(err => {
-                if(err){
+                if (err) {
                     this.close();
                     deferred.reject(err);
                 } else {
@@ -86,8 +85,8 @@ export default class extends base{
         });
     }
 
-    close(){
-        if(this.pool){
+    close() {
+        if (this.pool) {
             this.pool.end();
             this.pool = null;
         } else {

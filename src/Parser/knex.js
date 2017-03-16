@@ -36,6 +36,7 @@ const identifiers = {
  * @param alias
  * @param extkey
  */
+/*eslint-disable func-style */
 let parseKnexWhere = function (knex, options, alias, extkey) {
     let idt = '';
     for (let op in options) {
@@ -59,14 +60,14 @@ let parseKnexWhere = function (knex, options, alias, extkey) {
                 if (lib.isObject(options[op])) {
                     parseNotIn(knex, options[op], alias);
                 } else if (lib.isArray(options[op]) && extkey !== undefined) {
-                    parseNotIn(knex, {[extkey]: options[op]}, alias);
+                    parseNotIn(knex, { [extkey]: options[op] }, alias);
                 }
                 break;
             case 'NOT':
                 if (lib.isObject(options[op])) {
                     parseNot(knex, options[op], alias);
                 } else if (extkey !== undefined) {
-                    parseNot(knex, {[extkey]: options[op]}, alias);
+                    parseNot(knex, { [extkey]: options[op] }, alias);
                 }
                 break;
             case 'OPERATOR':
@@ -74,7 +75,7 @@ let parseKnexWhere = function (knex, options, alias, extkey) {
                     parseOperator(knex, extkey, op, options[op], alias);
                 } else if (lib.isObject(options[op])) {
                     for (let n in options[op]) {
-                        parseKnexWhere(knex, {[n]: options[op][n]}, alias, op);
+                        parseKnexWhere(knex, { [n]: options[op][n] }, alias, op);
                     }
                 }
                 break;
@@ -84,7 +85,7 @@ let parseKnexWhere = function (knex, options, alias, extkey) {
                     parseIn(knex, op, options[op], alias);
                 } else if (lib.isObject(options[op])) {
                     for (let n in options[op]) {
-                        parseKnexWhere(knex, {[n]: options[op][n]}, alias, op);
+                        parseKnexWhere(knex, { [n]: options[op][n] }, alias, op);
                     }
                 } else {
                     let _key = (alias && op.indexOf('.') === -1) ? `${alias}.${op}` : op;
@@ -146,6 +147,7 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
             if (!lib.isArray(onCondition[n])) {
                 continue;
             }
+            /*eslint-disable no-loop-func */
             onCondition[n].forEach(it => {
                 for (let i in it) {
                     //a join b, b join c的情况下,on条件内已经申明alias
@@ -155,7 +157,7 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
                         funcTemp += `.orOn('${i}', '=', '${_joinAlias}${it[i]}')`;
                     }
                 }
-            })
+            });
         } else {
             //a join b, b join c的情况下,on条件内已经申明alias
             if (n.indexOf('.') === -1) {
@@ -186,12 +188,12 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
 let preParseSchema = function (field, value, dbType) {
     let str = '', primary = false, defaults = false,
         //需要特殊处理的数据源类型,例如Mysql
-        isSpecial = {"mysql": true, "postgresql": false};
+        isSpecial = { 'mysql': true, 'postgresql': false };
     if (value.hasOwnProperty('primaryKey') && value.primaryKey === true) {
         primary = true;
     }
     //默认值
-    if (value.hasOwnProperty('defaultsTo') && lib.isScalar(value['defaultsTo'])) {
+    if (value.hasOwnProperty('defaultsTo') && lib.isScalar(value.defaultsTo)) {
         defaults = true;
     }
     switch (value.type) {
@@ -370,6 +372,7 @@ export default class extends base {
                         });
                     }
                     //构造函数
+                    /*eslint-disable no-new-func */
                     func = new Function('', preParseKnexJoin(onCondition, name, joinAlias));
                     //拼装knex
                     type = item.type ? item.type.toLowerCase() : 'inner';
@@ -398,6 +401,7 @@ export default class extends base {
         for (let v in fields) {
             str.push(preParseSchema(v, fields[v], dbType));
         }
+        /*eslint-disable no-newfunc */
         let func = new Function('t', str.join('\n'));
         cls.createTableIfNotExists(tableName, func);
     }
@@ -412,20 +416,20 @@ export default class extends base {
     async parseSql(cls, data, options) {
         try {
             let caseList = {
-                SELECT: {join: 1, where: 1, field: 1, limit: 1, order: 1, group: 1},
-                ADD: {data: 1},
-                UPDATE: {where: 1, data: 1},
-                DELETE: {where: 1},
-                COUNT: {join: 1, where: 1, limit: 1, group: 1},
-                SUM: {join: 1, where: 1, limit: 1, group: 1},
-                MIGRATE: {schema: 1}
+                SELECT: { join: 1, where: 1, field: 1, limit: 1, order: 1, group: 1 },
+                ADD: { data: 1 },
+                UPDATE: { where: 1, data: 1 },
+                DELETE: { where: 1 },
+                COUNT: { join: 1, where: 1, limit: 1, group: 1 },
+                SUM: { join: 1, where: 1, limit: 1, group: 1 },
+                MIGRATE: { schema: 1 }
             };
             if (cls) {
                 let optType = options.method;
                 //处理join
-                if (options['join'] && caseList[optType]['join']) {
+                if (options.join && caseList[optType].join) {
                     await this.parseJoin(cls, data, options);
-                    caseList[optType]['join'] && (caseList[optType]['join'] = 0);
+                    caseList[optType].join && (caseList[optType].join = 0);
                 }
                 //处理其他options
                 for (let n in options) {
@@ -436,6 +440,7 @@ export default class extends base {
                 }
                 return cls.toString();
             }
+            return '';
         } catch (e) {
             throw new Error(e);
         }

@@ -5,11 +5,13 @@
  * @license    MIT
  * @version    16/7/25
  */
+/*global ORM */
 import base from './base';
 import lib from '../Util/lib';
 import parser from '../Parser/mongo';
 import socket from '../Socket/mongo';
-import {DBRef} from 'mongodb';
+import { DBRef } from 'mongodb';
+
 export default class extends base {
     init(config = {}) {
         this.config = config;
@@ -131,6 +133,7 @@ export default class extends base {
         return this.connect().then(conn => {
             collection = conn.collection(tableName);
             this.sql = `db.getCollection('${tableName}')${sqlArr.join('.')}`;
+            /*eslint-disable no-new-func */
             let func = new Function('process', 'return process.' + sqlArr.join('.') + ';');
             handler = func(collection);
             return this.query(handler, startTime);
@@ -157,8 +160,8 @@ export default class extends base {
             this.sql = `db.getCollection('${res.options.table}').insertOne(${JSON.stringify(res.data)})`;
             handler = collection.insertOne(res.data);
             return this.execute(handler, startTime);
-        }).then(data => {
-            return data.insertedId.toHexString() || 0;
+        }).then(result => {
+            return result.insertedId.toHexString() || 0;
         });
     }
 
@@ -176,8 +179,8 @@ export default class extends base {
             this.sql = `db.getCollection('${res.options.table}')${res.options.where ? '.remove(' + JSON.stringify(res.options.where) + ')' : '.remove()'}`;
             handler = collection.deleteMany(res.options.where || {});
             return this.execute(handler, startTime);
-        }).then(data => {
-            return data.deletedCount || 0;
+        }).then(result => {
+            return result.deletedCount || 0;
         });
     }
 
@@ -193,10 +196,10 @@ export default class extends base {
             return this.parsers().buildSql(data, options);
         }).then(res => {
             this.sql = `db.getCollection('${res.options.table}')${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$set:' + JSON.stringify(res.data) + '}, false, true)' : '.update({}, {$set:' + JSON.stringify(res.data) + '}, false, true)'}`;
-            handler = collection.updateMany(res.options.where || {}, {$set: res.data}, false, true);
+            handler = collection.updateMany(res.options.where || {}, { $set: res.data }, false, true);
             return this.execute(handler, startTime);
-        }).then(data => {
-            return data.modifiedCount || 0;
+        }).then(result => {
+            return result.modifiedCount || 0;
         });
     }
 
@@ -214,14 +217,14 @@ export default class extends base {
             return this.parsers().buildSql(data, options);
         }).then(res => {
             this.sql = `db.getCollection('${res.options.table}')${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:' + JSON.stringify(res.data) + ', false, true)' : '.update({}, {$inc:{' + field + ':' + data[field] + '}, false, true)'}`;
-            handler = collection.updateMany(res.options.where || {}, {$inc: {[field]: data[field]}}, false, true);
+            handler = collection.updateMany(res.options.where || {}, { $inc: { [field]: data[field] } }, false, true);
             return this.execute(handler, startTime);
-        }).then(res => {
+        }).then(result => {
             //更新前置操作内会改变data的值
-            if(!lib.isEmpty(data)){
+            if (!lib.isEmpty(data)) {
                 this.update(data, options);
             }
-            return res.modifiedCount || 0;
+            return result.modifiedCount || 0;
         });
     }
 
@@ -240,14 +243,14 @@ export default class extends base {
             return this.parsers().buildSql(data, options);
         }).then(res => {
             this.sql = `db.getCollection('${res.options.table}')${res.options.where ? '.update(' + JSON.stringify(res.options.where) + ', {$inc:' + JSON.stringify(res.data) + ', false, true)' : '.update({}, {$inc:{' + field + ':' + (0 - data[field]) + '}, false, true)'}`;
-            handler = collection.updateMany(res.options.where || {}, {$inc: {[field]: (0 - data[field])}}, false, true);
+            handler = collection.updateMany(res.options.where || {}, { $inc: { [field]: (0 - data[field]) } }, false, true);
             return this.execute(handler, startTime);
-        }).then(res => {
+        }).then(result => {
             //更新前置操作内会改变data的值
-            if(!lib.isEmpty(data)){
+            if (!lib.isEmpty(data)) {
                 this.update(data, options);
             }
-            return res.modifiedCount || 0;
+            return result.modifiedCount || 0;
         });
     }
 
@@ -268,11 +271,11 @@ export default class extends base {
         }).then(res => {
             if (lib.isEmpty(res.options.group)) {
                 let fn = lib.promisify(collection.aggregate, collection), pipe = [];
-                !lib.isEmpty(res.options.where) && pipe.push({$match: res.options.where});
+                !lib.isEmpty(res.options.where) && pipe.push({ $match: res.options.where });
                 pipe.push({
                     $group: {
                         _id: null,
-                        count: {$sum: 1}
+                        count: { $sum: 1 }
                     }
                 });
                 this.sql = `db.getCollection('${res.options.table}').aggregate(${JSON.stringify(pipe)})`;
@@ -281,21 +284,22 @@ export default class extends base {
                 res.options.group.initial = {
                     'countid': 0
                 };
+                /*eslint-disable no-new-func */
                 res.options.group.reduce = new Function('obj', 'prev', `if (obj.${res.options.count} != null) if (obj.${res.options.count} instanceof Array){prev.countid += obj.${res.options.count}.length; }else{ prev.countid++;}`);
                 res.options.group.cond = res.options.where;
                 this.sql = `db.getCollection('${res.options.table}').group(${JSON.stringify(res.options.group)})`;
                 handler = collection.group(res.options.group);
             }
             return this.query(handler, startTime);
-        }).then(data => {
-            if (lib.isArray(data)) {
-                if (data[0]) {
-                    return data[0]['count'] ? (data[0]['count'] || 0) : 0;
+        }).then(result => {
+            if (lib.isArray(result)) {
+                if (result[0]) {
+                    return result[0].count ? (result[0].count || 0) : 0;
                 } else {
                     return 0;
                 }
             } else {
-                return data['count'] || 0;
+                return result.count || 0;
             }
         });
     }
@@ -317,11 +321,11 @@ export default class extends base {
         }).then(res => {
             if (lib.isEmpty(res.options.group)) {
                 let fn = lib.promisify(collection.aggregate, collection), pipe = [];
-                !lib.isEmpty(res.options.where) && pipe.push({$match: res.options.where});
+                !lib.isEmpty(res.options.where) && pipe.push({ $match: res.options.where });
                 pipe.push({
                     $group: {
                         _id: 1,
-                        sum: {$sum: `$${res.options.sum}`}
+                        sum: { $sum: `$${res.options.sum}` }
                     }
                 });
                 this.sql = `db.getCollection('${res.options.table}').aggregate(${JSON.stringify(pipe)})`;
@@ -330,21 +334,22 @@ export default class extends base {
                 res.options.group.initial = {
                     'sumid': 0
                 };
+                /*eslint-disable no-new-func */
                 res.options.group.reduce = new Function('obj', 'prev', `prev.sumid = prev.sumid + obj.${res.options.sum} - 0;`);
                 res.options.group.cond = res.options.where;
                 this.sql = `db.getCollection('${res.options.table}').group(${JSON.stringify(res.options.group)})`;
                 handler = collection.group(res.options.group);
             }
             return this.query(handler, startTime);
-        }).then(data => {
-            if (lib.isArray(data)) {
-                if (data[0]) {
-                    return data[0]['sum'] ? (data[0]['sum'] || 0) : 0;
+        }).then(result => {
+            if (lib.isArray(result)) {
+                if (result[0]) {
+                    return result[0].sum ? (result[0].sum || 0) : 0;
                 } else {
                     return 0;
                 }
             } else {
-                return data['sum'] || 0;
+                return result.sum || 0;
             }
         });
     }
@@ -408,7 +413,7 @@ export default class extends base {
         //    for (let i = 0, length = data.length; i < length; i++) {
         //        for (let key in data[i]) {
         //            if (lib.isBuffer(data[i][key])) {
-        //                data[i][key] = data[i][key].toString();
+        //                data[i][key] = lib.toString(data[i][key]);
         //            }
         //        }
         //    }
@@ -432,7 +437,7 @@ export default class extends base {
             return {};
         }
         let model = new (rel.model)(config);
-        return model.find({field: rel.field, where: {[rel.rkey]: data[rel.fkey]['oid']}});
+        return model.find({ field: rel.field, where: { [rel.rkey]: data[rel.fkey].oid } });
     }
 
     /**
@@ -449,8 +454,8 @@ export default class extends base {
         }
         let model = new (rel.model)(config);
         //modify by lihao 此处主表查询出的结果中_id为ObjectId类型,会被parse/parseWhere解析出错,因此转为string
-        let primaryPk = lib.isObject(data[rel.primaryPk]) ? data[rel.primaryPk].toString() : data[rel.primaryPk];
-        let options = {field: rel.field, where: {[rel.rkey]: primaryPk}};
+        let primaryPk = lib.isObject(data[rel.primaryPk]) ? lib.toString(data[rel.primaryPk]) : data[rel.primaryPk];
+        let options = { field: rel.field, where: { [rel.rkey]: primaryPk } };
         return model.select(options);
     }
 
@@ -471,12 +476,12 @@ export default class extends base {
         let mapModel = new rel.mapModel(config);
         //let mapName = `${rel.primaryName}${rel.name}Map`;
         //if(model.config.db_type === 'mongo'){
-        return mapModel.field(rel.fkey).select({where: {[rel.fkey]: data[rel.primaryPk]}}).then(data => {
+        return mapModel.field(rel.fkey).select({ where: { [rel.fkey]: data[rel.primaryPk] } }).then(result => {
             let keys = [];
-            data.map(item => {
+            result.map(item => {
                 item[rel.fkey] && keys.push(item[rel.fkey]);
             });
-            return model.select({where: {[rpk]: keys}});
+            return model.select({ where: { [rpk]: keys } });
         });
         //} else {
         //    let options = {
@@ -519,12 +524,12 @@ export default class extends base {
             case 'ADD':
                 //子表插入数据
                 let fkey = await model.add(relationData);
-                options.where = {[rel.primaryPk]: result};
+                options.where = { [rel.primaryPk]: result };
                 //modify by lihao,此处修改为mongo的ref引用关联字段
                 let refKey = new DBRef(model.getTableName(), fkey);
                 //更新主表关联字段
                 //fkey && (await primaryModel.update({[rel.fkey]: fkey}, options));
-                fkey && (await primaryModel.update({[rel.fkey]: refKey}, options));
+                fkey && (await primaryModel.update({ [rel.fkey]: refKey }, options));
                 break;
             case 'UPDATE':
                 if (!relationData[rel.fkey]) {
@@ -535,11 +540,13 @@ export default class extends base {
                 }
                 //子表主键数据存在才更新
                 if (relationData[rel.fkey]) {
-                    await model.update(relationData, {where: {[rel.rkey]: relationData[rel.fkey]}});
+                    await model.update(relationData, { where: { [rel.rkey]: relationData[rel.fkey] } });
                 }
                 break;
+            default:
+                break;
         }
-        return;
+        return Promise.resolve();
     }
 
     /**
@@ -582,25 +589,27 @@ export default class extends base {
                     //子表插入数据
                     v[rel.rkey] = result;
                     fkey = await model.add(v);
-                    relIdArr.push(new DBRef(model.getTableName(), fkey))
+                    relIdArr.push(new DBRef(model.getTableName(), fkey));
                 }
                 //更新到主表的关联字段
                 if (!lib.isEmpty(relIdArr)) {
-                    options.where = {[rel.primaryPk]: result};
+                    options.where = { [rel.primaryPk]: result };
                     let primaryModel = new (ORM.collections[rel.primaryName])(config);
-                    await primaryModel.update({[rel.fkey]: relIdArr}, options)
+                    await primaryModel.update({ [rel.fkey]: relIdArr }, options);
                 }
                 break;
             case 'UPDATE':
                 for (let [k, v] of relationData.entries()) {
                     //子表主键数据存在才更新
                     if (v[rpk]) {
-                        await model.update(v, {where: {[rpk]: v[rpk]}});
+                        await model.update(v, { where: { [rpk]: v[rpk] } });
                     }
                 }
                 break;
+            default:
+                break;
         }
-        return;
+        return Promise.resolve();
     }
 
     /**
@@ -620,7 +629,7 @@ export default class extends base {
         }
         //子表主键
         let model = new (rel.model)(config), rpk = model.getPk();
-        let mapModel = new (rel['mapModel'])(config);
+        let mapModel = new (rel.mapModel)(config);
         //关系表
         for (let [k, v] of relationData.entries()) {
             switch (postType) {
@@ -628,7 +637,7 @@ export default class extends base {
                     //子表增加数据
                     let fkey = await model.add(v);
                     //关系表增加数据,使用thenAdd
-                    fkey && (await mapModel.thenAdd({[rel.fkey]: result, [rel.rkey]: fkey}, {
+                    fkey && (await mapModel.thenAdd({ [rel.fkey]: result, [rel.rkey]: fkey }, {
                         where: {
                             [rel.fkey]: result,
                             [rel.rkey]: fkey
@@ -642,13 +651,15 @@ export default class extends base {
                         await mapModel.thenAdd({
                             [rel.fkey]: v[rel.fkey],
                             [rel.rkey]: v[rel.rkey]
-                        }, {where: {[rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey]}});
-                    } else if (v[rpk]) {//仅存在子表主键情况下,更新子表
-                        await model.update(v, {where: {[rpk]: v[rpk]}});
+                        }, { where: { [rel.fkey]: v[rel.fkey], [rel.rkey]: v[rel.rkey] } });
+                    } else if (v[rpk]) { //仅存在子表主键情况下,更新子表
+                        await model.update(v, { where: { [rpk]: v[rpk] } });
                     }
+                    break;
+                default:
                     break;
             }
         }
-        return;
+        return Promise.resolve();
     }
 }

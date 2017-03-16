@@ -5,6 +5,7 @@
  * @license    MIT
  * @version    16/7/25
  */
+/*global ORM*/
 import base from './base';
 import schema from './schema';
 import lib from './Util/lib';
@@ -116,7 +117,7 @@ export default class extends base {
             }
 
             if (forceNew) {
-                config.db_ext_config['forceNewNum'] = forceNewNum++;
+                config.db_ext_config.forceNewNum = forceNewNum++;
             }
             this.instances = lib.thinkRequire(adapterList[dbType]).getInstance(config);
             return Promise.resolve(this.instances);
@@ -195,7 +196,7 @@ export default class extends base {
                         if (this.fields[t].hasOwnProperty('primaryKey') && this.fields[t].primaryKey === true) {
                             this.pk = t;
                         }
-                    })(v)
+                    })(v);
                 }
             } else {
                 if (this.config.db_type === 'mongo') {
@@ -316,11 +317,7 @@ export default class extends base {
             }
             if (lib.isString(order)) {
                 let strToObj = function (_str) {
-                    return _str.replace(/^ +/, '').replace(/ +$/, '')
-                        .replace(/( +, +)+|( +,)+|(, +)/, ',')
-                        .replace(/ +/g, '-').replace(/,-/g, ',').replace(/-/g, ':')
-                        .replace(/^/, '{"').replace(/$/, '"}')
-                        .replace(/:/g, '":"').replace(/,/g, '","');
+                    return _str.replace(/^ +/, '').replace(/ +$/, '').replace(/( +, +)+|( +,)+|(, +)/, ',').replace(/ +/g, '-').replace(/,-/g, ',').replace(/-/g, ':').replace(/^/, '{"').replace(/$/, '"}').replace(/:/g, '":"').replace(/,/g, '","');
                 };
                 order = JSON.parse(strToObj(order));
             }
@@ -428,7 +425,7 @@ export default class extends base {
                                 this.__options.rel[item] = rels[item];
                                 //关联表自动筛选
                                 if (field && field[item]) {
-                                    this.__options.rel[item]['field'] = field[item];
+                                    this.__options.rel[item].field = field[item];
                                 }
                             }
                         });
@@ -861,7 +858,7 @@ export default class extends base {
                             //需要保证上述非中断方法为同步方法
                             this[t](oriOpts[t]);
                         }
-                    })(n)
+                    })(n);
                 }
             }
             let options;
@@ -916,20 +913,20 @@ export default class extends base {
             //字段默认值处理以及合法性检查
             let _data = {};
             for (let field in fields) {
-                if (method === 'ADD') {//新增数据add
-                    if (lib.isEmpty(data[field]) && (fields[field]['defaultsTo'] !== undefined && fields[field]['defaultsTo'] !== null)) {
-                        data[field] = fields[field]['defaultsTo'];
+                if (method === 'ADD') { //新增数据add
+                    if (lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null)) {
+                        data[field] = fields[field].defaultsTo;
                     }
                     //非主键字段就检查
                     dataCheckFlag = !fields[field].primaryKey ? true : false;
                     //定义了规则就检查
                     ruleCheckFlag = vaildRules[field] ? true : false;
-                } else if (method === 'UPDATE') {//编辑数据update
-                    if (data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (fields[field]['defaultsTo'] !== undefined && fields[field]['defaultsTo'] !== null)) {
-                        data[field] = fields[field]['defaultsTo'];
+                } else if (method === 'UPDATE') { //编辑数据update
+                    if (data.hasOwnProperty(field) && lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null)) {
+                        data[field] = fields[field].defaultsTo;
                     }
                     //更新包含字段就检查,主键除外(因为主键不会被更新)
-                    dataCheckFlag = (data.hasOwnProperty(field) && !fields[field]['primaryKey']) ? true : false;
+                    dataCheckFlag = (data.hasOwnProperty(field) && !fields[field].primaryKey) ? true : false;
                     //更新包含字段且定义了规则就检查
                     ruleCheckFlag = (data.hasOwnProperty(field) && vaildRules[field]) ? true : false;
                 }
@@ -1000,18 +997,18 @@ export default class extends base {
             if (!lib.isEmpty(data)) {
                 let relation = options.rel, rtype, config = this.config, ps = [];
                 for (let n in relation) {
-                    rtype = relation[n]['type'];
+                    rtype = relation[n].type;
                     if (rtype && rtype in caseList) {
                         if (lib.isArray(data)) {
                             for (let [k, v] of data.entries()) {
                                 ps.push(caseList[rtype](config, relation[n], data[k]).then(res => {
-                                    data[k][relation[n]['name']] = res;
+                                    data[k][relation[n].name] = res;
                                 }));
                                 //data[k][relation[n]['name']] = await caseList[rtype](config, relation[n], data[k]);
                             }
                             await Promise.all(ps);
                         } else {
-                            data[relation[n]['name']] = await caseList[rtype](config, relation[n], data);
+                            data[relation[n].name] = await caseList[rtype](config, relation[n], data);
                         }
                     }
                 }
@@ -1034,16 +1031,13 @@ export default class extends base {
      */
     async __postRelationData(adapter, result, options, data, postType) {
         try {
-            let caseList = {
-                HASONE: adapter.__postHasOneRelation,
-                HASMANY: adapter.__postHasManyRelation,
-                MANYTOMANY: adapter.__postManyToManyRelation
-            }, ps = [];
+            let caseList = { HASONE: adapter.__postHasOneRelation, HASMANY: adapter.__postHasManyRelation, MANYTOMANY: adapter.__postManyToManyRelation },
+                ps = [];
             if (!lib.isEmpty(result)) {
                 // let relation = schema.getRelation(this.modelName, this.config), rtype, config = this.config;
                 let relation = options.rel, rtype, config = this.config, relationData = null;
                 for (let n in relation) {
-                    rtype = relation[n] && relation[n]['type'] ? relation[n]['type'] : null;
+                    rtype = relation[n] && relation[n].type ? relation[n].type : null;
                     relationData = relation[n] && data[n] ? data[n] : null;
                     if (rtype && relationData && rtype in caseList) {
                         ps.push(caseList[rtype](config, result, options, relation[n], relationData, postType));

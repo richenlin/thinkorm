@@ -43,8 +43,8 @@ var _class = function (_thinkorm) {
                 defaultsTo: ''
             },
             user: {
-                type: 'integer',
-                defaultsTo: 0
+                type: 'string',
+                defaultsTo: ''
             }
         };
         // 数据验证

@@ -10,7 +10,6 @@ import lib from '../Util/lib';
 import pg from 'pg';
 
 export default class extends base {
-
     init(config = {}) {
         this.config = {
             database: config.db_name,
@@ -19,7 +18,7 @@ export default class extends base {
             password: config.db_pwd || '',
             port: config.db_port || 5432,
             encoding: config.db_charset || 'utf8',
-            connectTimeout: config.db_timeout * 1000 || 10000,//try connection timeout
+            connectTimeout: config.db_timeout * 1000 || 10000, //try connection timeout
             poolSize: config.db_ext_config.db_pool_size || 10,
             db_ext_config: config.db_ext_config || {}
         };
@@ -39,7 +38,7 @@ export default class extends base {
         pg.defaults.poolIdleTimeout = 8 * 60 * 60 * 1000;
 
         let connectKey = `postgres://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}`;
-        if(this.config.db_ext_config.forceNewNum){
+        if (this.config.db_ext_config.forceNewNum) {
             connectKey = `${connectKey}_${this.config.db_ext_config.forceNewNum}`;
         }
         return lib.await(connectKey, () => {

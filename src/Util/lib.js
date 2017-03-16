@@ -5,118 +5,116 @@
  * @license    MIT
  * @version    16/7/26
  */
-"use strict";
+'use strict';
 
 var fs = require('fs');
 var util = require('util');
 var path = require('path');
 
-//Object上toString方法
-global.toString = Object.prototype.toString;
-
-/**
- * 日期格式化
- * @param format
- * @returns {*}
- * @constructor
- */
-Date.prototype.Format = function (format) {
-    let Week = ['日', '一', '二', '三', '四', '五', '六'];
-    format = format.replace(/yyyy|YYYY/, this.getFullYear());
-    format = format.replace(/yy|YY/, this.getYear() % 100 > 9 ? (this.getYear() % 100).toString() : '0' + this.getYear() % 100);
-    format = format.replace(/mi|MI/, this.getMinutes() > 9 ? this.getMinutes().toString() : '0' + this.getMinutes());
-    format = format.replace(/mm|MM/, this.getMonth() + 1 > 9 ? (this.getMonth() + 1).toString() : '0' + (this.getMonth() + 1));
-    format = format.replace(/m|M/g, this.getMonth() + 1);
-    format = format.replace(/w|W/g, Week[this.getDay()]);
-    format = format.replace(/dd|DD/, this.getDate() > 9 ? this.getDate().toString() : '0' + this.getDate());
-    format = format.replace(/d|D/g, this.getDate());
-    format = format.replace(/hh|HH/, this.getHours() > 9 ? this.getHours().toString() : '0' + this.getHours());
-    format = format.replace(/h|H/g, this.getHours());
-    format = format.replace(/ss|SS/, this.getSeconds() > 9 ? this.getSeconds().toString() : '0' + this.getSeconds());
-    return format;
+var _interopSafeRequire = function (obj) {
+    return (obj && obj.__esModule && obj.default) ? obj.default : obj;
 };
 
-/**
- * 生成时间戳及时间字符串转时间戳
- * @param str
- * @param format
- * @return {*}
- * @constructor
- */
-Date.prototype.Timestamp = function (str, format) {
-    format = format || 'yyyy-mm-dd hh:mi:ss';
-    if (toString.call(str) === '[object Number]') {
-        let newDate = new Date();
-        newDate.setTime(str * 1000);
-        return newDate.Format(format);
-    } else {
-        let ts;
-        if (str) {
-            ts = Date.parse(new Date(str));
-        } else {
-            ts = Date.parse(new Date());
-        }
-        ts = ts / 1000;
-        return ts;
-    }
-};
-
+var lib = {};
 /**
  * console.log 封装
  * @param str
  */
 global.echo = function (str) {
-    let date = new Date().Format('yyyy-mm-dd hh:mi:ss');
+    let date = lib.datetime('', '');
     console.log(`----------${date}----------`);
-    console.log(str);
+    console.log(lib.isScalar(str) ? str : JSON.stringify(str));
     console.log(`----------${date}----------`);
 };
 
-function _interopSafeRequire(obj) {
-    return (obj && obj.__esModule && obj.default) ? obj.default : obj;
-}
-
-var lib = {};
-/**
- * path seperator
- * @type {String}
- */
 lib.sep = path.sep;
-
-/**
- * 是否是个数组
- * @type {Boolean}
- */
 lib.isArray = Array.isArray;
-
-/**
- * 是否是buffer
- * @type {Boolean}
- */
 lib.isBuffer = Buffer.isBuffer;
+lib.isDate = util.isDate;
+lib.isFunction = util.isFunction;
+lib.isRegexp = util.isRegExp;
+lib.isSymbol = util.isSymbol;
+lib.isError = util.isError;
 
 /**
- * 是否是boolean
- * @param  {[type]}  obj
- * @return {Boolean}
+ * 是否是字符串
+ * 
+ * @param {any} obj 
+ * @returns 
  */
-lib.isBoolean = function (obj) {
-    return toString.call(obj) === '[object Boolean]';
+lib.isString = function (obj) {
+    return Object.prototype.toString.call(obj) === '[object String]';
 };
 
 /**
- * 是否是数字
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
+ * 是否是数值
+ * 
+ * @param {any} obj 
+ * @returns 
  */
 lib.isNumber = function (obj) {
-    return toString.call(obj) === '[object Number]';
+    return Object.prototype.toString.call(obj) === '[object Number]';
 };
 
 /**
- * 是否是个数字的字符串
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
+ * 
+ * 
+ * @param {any} obj 
+ * @returns 
+ */
+lib.isBoolean = function (obj) {
+    return Object.prototype.toString.call(obj) === '[object Boolean]';
+};
+
+/**
+ * 是否是对象
+ * 
+ * @param  {[type]} 
+ * @return {Boolean} 
+ */
+lib.isObject = function (obj) {
+    if (Buffer.isBuffer(obj)) {
+        return false;
+    }
+    return Object.prototype.toString.call(obj) === '[object Object]';
+};
+
+/**
+ * 是否是函数
+ * 
+ * @param {any} obj 
+ * @returns 
+ */
+lib.isFunction = function (obj) {
+    return typeof obj === 'function';
+};
+
+/**
+ * 是否是个标量
+ * 
+ * @param {*} obj 
+ * @returns {boolean} 
+ */
+lib.isScalar = function (obj) {
+    let _obj = Object.prototype.toString.call(obj);
+    return _obj === '[object Boolean]' || _obj === '[object Number]' || _obj === '[object String]';
+};
+
+/**
+ * 是否是个Promise
+ * 
+ * @param {*} obj 
+ * @returns {boolean} 
+ */
+lib.isPromise = function (obj) {
+    return !!(obj && obj.catch && typeof obj.then === 'function');
+};
+
+/**
+ * 是否是仅包含数字的字符串
+ * 
+ * @param {*} obj 
+ * @returns {boolean} 
  */
 lib.isNumberString = function (obj) {
     let numberReg = /^((\-?\d*\.?\d*(?:e[+-]?\d*(?:\d?\.?|\.?\d?)\d*)?)|(0[0-7]+)|(0x[0-9a-f]+))$/i;
@@ -124,98 +122,48 @@ lib.isNumberString = function (obj) {
 };
 
 /**
- * 是否是字符串
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
- */
-lib.isString = function (obj) {
-    return toString.call(obj) === '[object String]';
-};
-
-/**
- * 是否是个对象
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
- */
-lib.isObject = function (obj) {
-    if (Buffer.isBuffer(obj)) {
-        return false;
-    }
-    return toString.call(obj) === '[object Object]';
-};
-
-/**
- * 是否是标准JSON对象(必须是对象或数组)
- * @param obj
- * @returns {boolean}
+ * 是否是标准JSON对象
+ * 必须是对象或数组
+ * @param {*} obj 
+ * @returns {boolean} 
  */
 lib.isJSONObj = function (obj) {
-    return typeof obj === 'object' && (Object.prototype.toString.call(obj).toLowerCase() === '[object object]' || Object.prototype.toString.call(obj).toLowerCase() === '[object array]');
+    return lib.isObject(obj) || lib.isArray(obj);
 };
 
 /**
- * 是否是标准的JSON字符串(必须是字符串，且可以被反解为对象或数组)
- * @param str
- * @returns {boolean}
+ * 是否是标准的JSON字符串
+ * 必须是字符串，且可以被反解为对象或数组
+ * @param {*} obj 
+ * @returns {boolean} 
  */
-lib.isJSONStr = function (str) {
-    if (!lib.isString(str)) {
+lib.isJSONStr = function (obj) {
+    if (!lib.isString(obj)) {
         return false;
     }
     try {
-        return lib.isJSONObj(JSON.parse(str));
+        return lib.isJSONObj(JSON.parse(obj));
     } catch (e) {
         return false;
     }
 };
 
 /**
- * 是否是个function
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
- */
-lib.isFunction = function (obj) {
-    return typeof obj === 'function';
-};
-
-/**
- * 是否是日期
- * @return {Boolean} [description]
- */
-lib.isDate = function (obj) {
-    return util.isDate(obj);
-};
-
-/**
- * 是否是正则
- * @param obj
- * @return {*}
- */
-lib.isRegexp = function (obj) {
-    return util.isRegExp(obj);
-};
-
-/**
- * 是否是个标量
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
- */
-lib.isScalar = function (obj) {
-    let _obj = toString.call(obj);
-    return _obj === '[object Boolean]' || _obj === '[object Number]' || _obj === '[object String]';
-};
-
-/**
  * 是否是个文件
- * @param  {[type]}  p [description]
- * @return {Boolean}   [description]
+ * 
+ * @param {string} p 
+ * @returns {boolean} 
  */
 lib.isFile = function (p) {
     if (!fs.existsSync(p)) {
         return false;
     }
-    let stats = fs.statSync(p);
-    return stats.isFile();
+    try {
+        let stats = fs.statSync(p);
+        return stats.isFile();
+    } catch (e) {
+        return false;
+    }
 };
 
 /**
@@ -224,139 +172,140 @@ lib.isFile = function (p) {
  * @return {Boolean}     [description]
  */
 lib.isError = function (obj) {
-    return util.isError(obj);
+    return lib.isError(obj);
 };
 
 /**
- * 判断对象是否为空(不考虑特殊情况)
- * @param  {[type]}  obj
- * @return {Boolean}
+ * 检查对象是否为空
+ * 不考虑空对象、数组
+ * @param {*} obj 
+ * @returns {boolean} 
  */
 lib.isTrueEmpty = function (obj) {
     if (obj === undefined || obj === null || obj === '') {
         return true;
     }
-    if (lib.isNumber(obj) && lib.isNaN(obj)) {
+    if (lib.isNumber(obj)) {
+        return isNaN(obj);
+    }
+    return false;
+};
+
+/**
+ * 检查对象是否为空
+ * 
+ * @param {*} obj 
+ * @returns {boolean} 
+ */
+lib.isEmpty = function (obj) {
+    if (obj === undefined || obj === null || obj === '') {
+        return true;
+    } else if (lib.isString(obj)) {
+        //\s 匹配任何空白字符，包括空格、制表符、换页符等等。等价于 [ \f\n\r\t\v]。
+        return obj.replace(/(^\s*)|(\s*$)/g, '').length === 0;
+    } else if (lib.isNumber(obj)) {
+        return isNaN(obj);
+    } else if (lib.isArray(obj)) {
+        return obj.length === 0;
+    } else if (lib.isObject(obj)) {
+        for (let key in obj) {
+            return !key && !0;
+        }
         return true;
     }
     return false;
 };
 
 /**
- * 判断对象是否为空
- * @param  {[type]}  obj
- * @return {Boolean}
- */
-lib.isEmpty = function (obj) {
-    if (obj === null || obj === undefined || obj === '') {
-        return true;
-    } else if (lib.isString(obj)) {
-        //\s 匹配任何空白字符，包括空格、制表符、换页符等等。等价于 [ \f\n\r\t\v]。
-        return obj.replace(/(^\s*)|(\s*$)/g, '').length === 0;
-    } else if (lib.isArray(obj)) {
-        return obj.length === 0;
-    } else if (lib.isObject(obj)) {
-        for (let key in obj) {
-            return false;
-        }
-        return true;
-    } else {
-        return false;
-    }
-};
-
-/**
- * 强制转换为字符串,跟.toString不同的是可以转换undefined和null
- * @param obj
- * @returns {*}
+ * 强制转换为字符串
+ * 跟.toString不同的是可以转换undefined和null
+ * @param {*} obj 
+ * @returns {string} 
  */
 lib.toString = function (obj) {
-    if (obj === undefined) {
-        return '';
-    }
-    if (obj === null) {
+    if (obj === undefined || obj === null) {
         return '';
     }
     return String(obj);
 };
 
 /**
- * 强制转换为整数
- * @param obj
- * @returns {*}
+ * 强制转换为整型
+ * 
+ * @param {*} obj 
+ * @returns {number} 
  */
 lib.toInt = function (obj) {
-    return parseInt(obj) === NaN ? 0 : parseInt(obj);
+    return isNaN(obj) ? 0 : parseInt(obj);
 };
 
 /**
- * 强制转换为浮点数
- * @param obj
- * @returns {*}
+ * 强制转换为浮点型
+ * 
+ * @param {*} obj 
+ * @returns {number} 
  */
 lib.toFloat = function (obj) {
-    return parseFloat(obj) === NaN ? 0 : parseFloat(obj);
+    return isNaN(obj) ? 0 : parseFloat(obj);
 };
 
 /**
- * 强制转换为数字
- * @param obj
- * @returns {number}
+ * 强制转换为数值
+ * 
+ * @param {*} obj 
+ * @returns {number} 
  */
 lib.toNumber = function (obj) {
-    return Number(obj) === NaN ? 0 : Number(obj);
+    return isNaN(obj) ? 0 : Number(obj);
 };
 
 /**
  * 强制转换为布尔值
- * @param obj
- * @returns {number}
+ * 
+ * @param {*} obj 
+ * @returns {boolean} 
  */
-lib.toBoolean = function (obj) {
+lib.toBoolen = function (obj) {
     return Boolean(obj);
 };
 
 /**
- * 判断值是否是数组的元素
- * @param needle
- * @param haystack 数组
- * @returns {boolean}
+ * 判断值是否为数组的元素
+ * 非严格匹配
+ * @param {*} value 
+ * @param {any[]} arr 
+ * @returns {boolean} 
  */
-lib.inArray = function (needle, haystack) {
-    let length = haystack.length;
-    for (let i = 0; i < length; i++) {
-        if (haystack[i] == needle) return true;
+lib.inArray = function (value, arr) {
+    let len = arr.length;
+    for (let i = 0; i < len; i++) {
+        if (arr[i] == value) {
+            return true;
+        }
     }
     return false;
 };
 
 /**
- * 判断是否是个promise
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
- */
-lib.isPromise = function (obj) {
-    return !!(obj && typeof obj.then === 'function');
-};
-
-/**
  * 生成一个defer对象
- * @return {[type]} [description]
+ * 
+ * @returns {*} 
  */
 lib.getDefer = function () {
-    let deferred = {};
-    deferred.promise = new Promise(function (resolve, reject) {
-        deferred.resolve = resolve;
-        deferred.reject = reject;
+    let defer = {};
+    defer.promise = new Promise(function (resolve, reject) {
+        defer.resolve = resolve;
+        defer.reject = reject;
     });
-    return deferred;
+    return defer;
 };
 
 /**
- * make callback function to promise
- * @param  {Function} fn       []
- * @param  {Object}   receiver []
- * @return {Promise}            []
+ * 将callback风格的函数转换为Promise
+ * 
+ * @param {Function} fn 
+ * @param {object} receiver 
+ * @returns {*} 
  */
 lib.promisify = function (fn, receiver) {
     return function (...args) {
@@ -370,8 +319,9 @@ lib.promisify = function (fn, receiver) {
 
 /**
  * 大写首字符
- * @param  {[type]} name [description]
- * @return {[type]}      [description]
+ * 
+ * @param {string} name 
+ * @returns {string} 
  */
 lib.ucFirst = function (name) {
     name = (name || '') + '';
@@ -397,65 +347,102 @@ lib.parseName = function (name) {
 };
 
 /**
- * 字符串或文件hash,比md5效率高,但是有很低的概率重复
- * @param input
- * @returns {string}
+ * hash
+ * 
+ * @param {string} str 
+ * @returns {string} 
  */
-lib.hash = function (input) {
+lib.hash = function (str) {
     let _hash = 5381;
     let I64BIT_TABLE =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
-    let i = input.length - 1;
-
-    if (typeof input === 'string') {
-        for (; i > -1; i--)
-            _hash += (_hash << 5) + input.charCodeAt(i);
-    }
-    else {
-        for (; i > -1; i--)
-            _hash += (_hash << 5) + input[i];
+    let i = str.length - 1;
+    if (typeof str === 'string') {
+        for (; i > -1; i--) {
+            _hash += (_hash << 5) + str.charCodeAt(i);
+        }
+    } else {
+        for (; i > -1; i--) {
+            _hash += (_hash << 5) + str[i];
+        }
     }
     let value = _hash & 0x7FFFFFFF;
-
     let retValue = '';
     do {
         retValue += I64BIT_TABLE[value & 0x3F];
-    }
-    while (value >>= 6);
-
+    } while (value >>= 6);
     return retValue;
 };
 
 /**
- * 控制台打印
- * @param msg
- * @param type
- * @param showTime
- * @constructor
+ * 日期时间戳及格式化
+ * 
+ * @param {any} date 
+ * @param {any} format 
+ * @returns 
+ */
+lib.datetime = function (date, format) {
+    if (format === undefined) {
+        //datetime() => now timestamp
+        if (date === undefined) {
+            return Math.floor(Date.now() / 1000);
+        } else if (lib.isString(date)) { //datetime('2017-01-01') => timestamp
+            date = date || new Date();
+            return Math.floor(new Date(date).getTime() / 1000);
+        }
+        return NaN;
+    } else {
+        if (date && lib.isString(date)) {
+            date = new Date(Date.parse(date));
+        }
+        date = date || new Date();
+        format = format || 'yyyy-mm-dd hh:mi:ss';
+        let fn = function (d, f) {
+            let Week = ['日', '一', '二', '三', '四', '五', '六'];
+            f = f.replace(/yyyy|YYYY/, d.getFullYear());
+            f = f.replace(/yy|YY/, d.getYear() % 100 > 9 ? (d.getYear() % 100).toString() : '0' + d.getYear() % 100);
+            f = f.replace(/mi|MI/, d.getMinutes() > 9 ? d.getMinutes().toString() : '0' + d.getMinutes());
+            f = f.replace(/mm|MM/, d.getMonth() + 1 > 9 ? (d.getMonth() + 1).toString() : '0' + (d.getMonth() + 1));
+            f = f.replace(/m|M/g, d.getMonth() + 1);
+            f = f.replace(/w|W/g, Week[d.getDay()]);
+            f = f.replace(/dd|DD/, d.getDate() > 9 ? d.getDate().toString() : '0' + d.getDate());
+            f = f.replace(/d|D/g, d.getDate());
+            f = f.replace(/hh|HH/, d.getHours() > 9 ? d.getHours().toString() : '0' + d.getHours());
+            f = f.replace(/h|H/g, d.getHours());
+            f = f.replace(/ss|SS/, d.getSeconds() > 9 ? d.getSeconds().toString() : '0' + d.getSeconds());
+            return f;
+        };
+        return fn(date, format);
+    }
+};
+
+/**
+ * 日志记录及打印
+ * 
+ * @param {*} msg 
+ * @param {string} [type] 
+ * @param {number} [showTime] 
+ * @returns {void} 
  */
 lib.log = function (msg, type, showTime) {
-    let d = new Date();
-    let date = d.Format('yyyy-mm-dd');
-    let time = d.Format('hh:mi:ss');
-    let dateTime = `[${date} ${time}] `;
-
+    let dateTime = `[${lib.datetime('', '')}] `;
     let message = msg;
     if (lib.isError(msg)) {
         type = 'ERROR';
         message = msg.stack;
-        // console.error(msg.stack);
+        console.error(msg.stack);
     } else if (type === 'ERROR') {
         type = 'ERROR';
         if (!lib.isString(msg)) {
             message = JSON.stringify(msg);
         }
-        // console.error(message);
+        console.error(message);
     } else if (type === 'WARNING') {
         type = 'WARNING';
         if (!lib.isString(msg)) {
             message = JSON.stringify(msg);
         }
-        // console.warn(message);
+        console.warn(message);
     } else {
         if (!lib.isString(msg)) {
             message = JSON.stringify(msg);
@@ -465,9 +452,14 @@ lib.log = function (msg, type, showTime) {
             message += '  ' + `${_time}ms`;
         }
         type = type || 'INFO';
+        if (type === 'THINK') {
+            console.log(`${dateTime}[${type}] ${message}`);
+            return;
+        } else {
+            console.info(message);
+        }
     }
     console.log(`${dateTime}[${type}] ${message}`);
-    return;
 };
 
 /**
@@ -513,13 +505,12 @@ lib.thinkRequire = function (file) {
 };
 
 /**
- * extend, from jquery，具有深度复制功能
- * @return {[type]} [description]
+ * 继承
+ * from jquery.具有深度克隆
+ * @returns {*} 
  */
 lib.extend = function () {
-    let args = [].slice.call(arguments);
-    let deep = true;
-    let target;
+    let args = [].slice.call(arguments), deep = true, target;
     if (lib.isBoolean(args[0])) {
         deep = args.shift();
     }
@@ -529,12 +520,7 @@ lib.extend = function () {
         target = args.shift();
     }
     target = target || {};
-    let i = 0,
-        length = args.length,
-        options = undefined,
-        name = undefined,
-        src = undefined,
-        copy = undefined;
+    let i = 0, length = args.length, options, name, src, copy;
     for (; i < length; i++) {
         options = args[i];
         if (!options) {

@@ -24,9 +24,9 @@ export default class extends thinkorm{
                 defaultsTo: ''
             },
             profile: {
-                type: 'integer',
+                type: 'string',
                 index: true,
-                defaultsTo: 0
+                defaultsTo: ''
             },
             num: {
                 type: 'integer',

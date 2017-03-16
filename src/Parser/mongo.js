@@ -7,7 +7,7 @@
  */
 import base from '../base';
 import lib from '../Util/lib';
-import {ObjectID} from 'mongodb';
+import { ObjectID } from 'mongodb';
 
 const identifiers = {
     OR: '$or',
@@ -22,7 +22,7 @@ const identifiers = {
     '>=': '$gte',
     'LIKE': '$regex'
 };
-
+/*eslint-disable func-style */
 let whereParse = function (key, value, item, extkey) {
     let idt = key.toUpperCase(), temp;
     switch (identifiers[idt]) {
@@ -60,7 +60,7 @@ let whereParse = function (key, value, item, extkey) {
                     temp = lib.extend(temp, parseNot(k, value[k]));
                 }
                 return temp;
-            } else if(extkey !== undefined){
+            } else if (extkey !== undefined) {
                 return parseNot(extkey, value);
             }
             break;
@@ -100,47 +100,48 @@ let whereParse = function (key, value, item, extkey) {
                 }
                 return temp;
             } else {
-                return {[key]: value};
+                return { [key]: value };
             }
     }
+    return null;
 };
 //解析or条件
 function parseOr(key, value, temp) {
     temp = [];
     value.map(item => {
-        if(lib.isObject(item)){
-            for(let k in item){
+        if (lib.isObject(item)) {
+            for (let k in item) {
                 temp.push(whereParse(k, item[k], k));
             }
         }
     });
-    return {'$or': temp};
+    return { '$or': temp };
 }
 //解析in条件
 function parseIn(key, value) {
-    return {[key]: {'$in': value}};
+    return { [key]: { '$in': value } };
 }
 //解析notin条件
 function parseNotIn(key, value) {
-    return {[key]: {'$nin': value}};
+    return { [key]: { '$nin': value } };
 }
 //解析not条件
 function parseNot(key, value) {
-    return {[key]: {'$ne': value}};
+    return { [key]: { '$ne': value } };
 }
 //解析operator条件
-function parseOperator(key, operator, value){
-    return {[key]: {[operator]: value}};
+function parseOperator(key, operator, value) {
+    return { [key]: { [operator]: value } };
 }
 //解析like条件
 function parseLike(key, value) {
-    if(lib.isString(value)){
-        if(value.indexOf('%') === 0 && value.substring(value.length -1) === '%'){
-            return {[key]: new RegExp(`${value.substring(1, -1)}`)};
-        } else if(value.indexOf('%') === 0){
-            return {[key]: new RegExp(`${value.substring(1, value.length)}^`)};
-        }else if(value.substring(value.length -1) === '%'){
-            return {[key]: new RegExp(`^${value.substring(0, -1)}`)};
+    if (lib.isString(value)) {
+        if (value.indexOf('%') === 0 && value.substring(value.length - 1) === '%') {
+            return { [key]: new RegExp(`${value.substring(1, -1)}`) };
+        } else if (value.indexOf('%') === 0) {
+            return { [key]: new RegExp(`${value.substring(1, value.length)}^`) };
+        } else if (value.substring(value.length - 1) === '%') {
+            return { [key]: new RegExp(`^${value.substring(0, -1)}`) };
         }
     }
     return {};
@@ -161,8 +162,8 @@ export default class extends base {
      * @returns {*}
      */
     parseLimit(data, options) {
-        options['skip'] = options.limit[0] || 0;
-        options['limit'] = options.limit[1] || 10;
+        options.skip = options.limit[0] || 0;
+        options.limit = options.limit[1] || 10;
     }
 
     /**
@@ -242,10 +243,10 @@ export default class extends base {
                 group = [options.group];
             }
             options.group = {
-                "key": group,
-                "initial": {"count": 0},
-                "reduce": "function (obj, prev) { prev.count++; }",
-                "cond": {}
+                'key': group,
+                'initial': { 'count': 0 },
+                'reduce': 'function (obj, prev) { prev.count++; }',
+                'cond': {}
             };
         }
     }
@@ -270,31 +271,31 @@ export default class extends base {
     async parseSql(data, options) {
         try {
             let caseList = {
-                FIND: {join: 1, where: 1, field: 1, limit: 1, order: 1, group: 1},
-                SELECT: {join: 1, where: 1, field: 1, limit: 1, order: 1, group: 1},
-                ADD: {data: 1},
+                FIND: { join: 1, where: 1, field: 1, limit: 1, order: 1, group: 1 },
+                SELECT: { join: 1, where: 1, field: 1, limit: 1, order: 1, group: 1 },
+                ADD: { data: 1 },
                 //ADDALL: {data: 1},
-                UPDATE: {where: 1, data: 1},
-                DELETE: {where: 1},
-                COUNT: {join: 1, where: 1, limit: 1, group: 1},
-                SUM: {join: 1, where: 1, limit: 1, group: 1}
+                UPDATE: { where: 1, data: 1 },
+                DELETE: { where: 1 },
+                COUNT: { join: 1, where: 1, limit: 1, group: 1 },
+                SUM: { join: 1, where: 1, limit: 1, group: 1 }
             };
 
             let optType = options.method;
             //处理join
-            if (options['join'] && caseList[optType]['join']) {
+            if (options.join && caseList[optType].join) {
                 await this.parseJoin(data, options);
-                caseList[optType]['join'] && (caseList[optType]['join'] = 0);
+                caseList[optType].join && (caseList[optType].join = 0);
             }
             //解析where
-            if (options['where'] && caseList[optType]['where']) {
+            if (options.where && caseList[optType].where) {
                 await this.parseWhere(data, options);
-                caseList[optType]['where'] && (caseList[optType]['where'] = 0);
+                caseList[optType].where && (caseList[optType].where = 0);
             }
             //解析group
-            if (options['group'] && caseList[optType]['group']) {
+            if (options.group && caseList[optType].group) {
                 await this.parseGroup(data, options);
-                caseList[optType]['group'] && (caseList[optType]['group'] = 0);
+                caseList[optType].group && (caseList[optType].group = 0);
             }
             //处理其他options
             for (let n in options) {
@@ -305,7 +306,7 @@ export default class extends base {
                     }
                 }
             }
-            return {data: data, options: options};
+            return { data: data, options: options };
         } catch (e) {
             throw new Error(e);
         }
