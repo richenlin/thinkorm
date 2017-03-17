@@ -6,7 +6,7 @@
  * @version    16/7/26
  */
 'use strict';
-
+/*global ORM */
 var fs = require('fs');
 var util = require('util');
 var path = require('path');
@@ -31,7 +31,7 @@ lib.sep = path.sep;
 lib.isArray = Array.isArray;
 lib.isBuffer = Buffer.isBuffer;
 lib.isDate = util.isDate;
-lib.isFunction = util.isFunction;
+lib.isDate = util.isDate;
 lib.isRegexp = util.isRegExp;
 lib.isSymbol = util.isSymbol;
 lib.isError = util.isError;
@@ -164,15 +164,6 @@ lib.isFile = function (p) {
     } catch (e) {
         return false;
     }
-};
-
-/**
- * 是否是个错误
- * @param  {[type]}  obj [description]
- * @return {Boolean}     [description]
- */
-lib.isError = function (obj) {
-    return lib.isError(obj);
 };
 
 /**
@@ -452,7 +443,7 @@ lib.log = function (msg, type, showTime) {
             message += '  ' + `${_time}ms`;
         }
         type = type || 'INFO';
-        if (type === 'THINK') {
+        if (type !== 'THINK') {
             console.log(`${dateTime}[${type}] ${message}`);
             return;
         } else {
@@ -468,9 +459,11 @@ lib.log = function (msg, type, showTime) {
  * @param  {Function} callback []
  * @return {Promise}            []
  */
-var _ormAwaitInstance = new (_interopSafeRequire(require('./await.js')))();
 lib.await = function (key, callback) {
-    return _ormAwaitInstance.run(key, callback);
+    if(!ORM.instances.await){
+        ORM.instances.await = new (_interopSafeRequire(require('./await.js')))();
+    }
+    return (ORM.instances.await).run(key, callback);
 };
 
 /**

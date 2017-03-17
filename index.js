@@ -10,7 +10,7 @@
 global.Promise = require('bluebird');
 require('babel-runtime/core-js/promise').default = Promise;
 //define ORM object
-global.ORM = { collections: {} };
+global.ORM = { collections: {}, instances: {} };
 //export
 var requireDefault = function (obj) {
     return obj && obj.__esModule ? obj : { default: obj };
