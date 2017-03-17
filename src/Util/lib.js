@@ -443,12 +443,8 @@ lib.log = function (msg, type, showTime) {
             message += '  ' + `${_time}ms`;
         }
         type = type || 'INFO';
-        if (type !== 'THINK') {
-            console.log(`${dateTime}[${type}] ${message}`);
-            return;
-        } else {
-            console.info(message);
-        }
+        //判断console.info是否被重写
+        ('prototype' in console.info) && console.info(message);
     }
     console.log(`${dateTime}[${type}] ${message}`);
 };

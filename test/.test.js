@@ -9,13 +9,13 @@ var path = require('path');
 var thinkorm = require('../index.js');
 
 var config = {
-    // db_type: 'mysql',
+    db_type: 'mysql',
     //db_type: 'postgresql',
-    db_type: 'mongo',
-    db_host: '127.0.0.1',
-    // db_port: 3306,
+    // db_type: 'mongo',
+    // db_host: '127.0.0.1',
+    db_port: 3306,
     //db_port: 5432,
-    db_port: 27017,
+    // db_port: 27017,
     db_name: 'test',
     db_user: 'root',
     //db_user: '',
@@ -47,8 +47,8 @@ thinkorm.setCollection(UserGroup, config);
 var model = new User(config);
 
 //查询语言测试
-// return model
-// .where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
+return model
+.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
 // .where({or: [{name: {'like': '%aa%'}}, {memo: {'like': '%aa%'}}]}).find()
 // .where({id: {'>=': 0}}).count()
 // .where({id: {'>=': 0}}).sum('id')
@@ -88,9 +88,9 @@ var model = new User(config);
 
 //.add({name: 'qqqesddfsdqqq'})
 
-// .then(res => {
-//     echo(res);
-// });
+.then(res => {
+    echo(res);
+});
 
 
 //事务测试
@@ -116,12 +116,12 @@ var model = new User(config);
 // });
 
 
-function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-var lib = requireDefault(require('../lib/Util/lib.js')).default;
+// function requireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+// var lib = requireDefault(require('../lib/Util/lib.js')).default;
 
-echo(lib.isArray([{name: 'foo'}, {memo: 'bar'}]))
-echo(lib.isArray([{name: 'foo'}, 1]))
-echo(lib.isObject({name: 'foo'}))
+// echo(lib.isArray([{name: 'foo'}, {memo: 'bar'}]))
+// echo(lib.isArray([{name: 'foo'}, 1]))
+// echo(lib.isObject({name: 'foo'}))
 
 
 // echo(lib.isScalar(test))
