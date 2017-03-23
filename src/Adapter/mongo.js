@@ -5,7 +5,6 @@
  * @license    MIT
  * @version    16/7/25
  */
-/*global ORM */
 import base from './base';
 import lib from '../Util/lib';
 import parser from '../Parser/mongo';

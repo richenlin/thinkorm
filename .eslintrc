@@ -202,5 +202,8 @@
 
     //要求或者禁止Yoda条件
     "yoda": 0
+  },
+  "globals": {
+    "ORM": true
   }
 }

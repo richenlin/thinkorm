@@ -5,7 +5,6 @@
  * @license    MIT
  * @version    16/8/17
  */
-/*global ORM*/
 'use strict';
 
 var lib = require('./Util/lib.js');

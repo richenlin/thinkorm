@@ -6,7 +6,7 @@
  * @version    16/7/26
  */
 'use strict';
-/*global ORM */
+
 var fs = require('fs');
 var util = require('util');
 var path = require('path');
