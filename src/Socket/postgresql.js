@@ -5,11 +5,11 @@
  * @license    MIT
  * @version    16/7/25
  */
-import base from '../base';
-import lib from '../Util/lib';
-import pg from 'pg';
+const base = require('../base');
+const lib = require('../Util/lib');
+const pg = require('pg');
 
-export default class extends base {
+module.exports = class extends base {
     init(config = {}) {
         this.config = {
             database: config.db_name,
@@ -79,4 +79,4 @@ export default class extends base {
             this.connection = null;
         }
     }
-}
+};

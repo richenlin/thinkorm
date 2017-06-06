@@ -37,4 +37,4 @@ module.exports = class {
             return deferred.promise;
         }
     }
-}
+};

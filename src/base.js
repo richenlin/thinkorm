@@ -5,14 +5,14 @@
  * @license    MIT
  * @version    16/7/25
  */
-import path from 'path';
+const path = require('path');
 
 /**
  * Base Class
  * @param  {Object} http
  * @return {Class}
  */
-export default class {
+module.exports = class {
     /**
      * constructor
      * @param  {Object} http []
@@ -39,4 +39,4 @@ export default class {
         let fname = this.__filename || __filename;
         return path.basename(fname, '.js');
     }
-}
+};

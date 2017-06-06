@@ -64,7 +64,7 @@ const setCollection = function (func, config) {
 const getRelation = function (name, config) {
     if (!ORM.collections[name]) {
         throw new Error(`collection ${name} is undefined.`);
-        return null;
+        // return null;
     }
 
     if (!ORM.collections[name].relation) {
@@ -75,7 +75,7 @@ const getRelation = function (name, config) {
     for (let n in relation) {
         if (!ORM.collections[n]) {
             throw new Error(`collection ${n} is undefined.`);
-            return null;
+            // return null;
         } else {
             type = parseType(relation[n].type);
             ORM.collections[name].relation[n] = {
@@ -94,7 +94,7 @@ const getRelation = function (name, config) {
                 let mapName = relation[n].map;
                 if (!mapName || !ORM.collections[mapName]) {
                     throw new Error(`collection ${mapName} is undefined.`);
-                    return null;
+                    // return null;
                 }
                 ORM.collections[name].relation[n].mapModel = mapName;
                 ORM.collections[name].relation[n].mapModel = ORM.collections[mapName];

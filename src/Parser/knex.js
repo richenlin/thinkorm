@@ -5,8 +5,8 @@
  * @license    MIT
  * @version    16/8/14
  */
-import base from '../base';
-import lib from '../Util/lib';
+const base = require('../base');
+const lib = require('../Util/lib');
 
 const identifiers = {
     OR: 'OR',
@@ -37,7 +37,7 @@ const identifiers = {
  * @param extkey
  */
 /*eslint-disable func-style */
-let parseKnexWhere = function (knex, options, alias, extkey) {
+const parseKnexWhere = function (knex, options, alias, extkey) {
     let idt = '';
     for (let op in options) {
         idt = op.toUpperCase();
@@ -138,7 +138,7 @@ function parseOperator(knex, key, operator, value, alias) {
  * @param joinAlias
  * @returns {string}
  */
-let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this') {
+const preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this') {
     let _alias = alias ? `${alias}.` : '';
     let _joinAlias = joinAlias ? `${joinAlias}.` : '';
     //解析on
@@ -185,7 +185,7 @@ let preParseKnexJoin = function (onCondition, alias, joinAlias, funcTemp = 'this
             text: {}
         };
  */
-let preParseSchema = function (field, value, dbType) {
+const preParseSchema = function (field, value, dbType) {
     let str = '', primary = false, defaults = false,
         //需要特殊处理的数据源类型,例如Mysql
         isSpecial = { 'mysql': true, 'postgresql': false };
@@ -250,7 +250,7 @@ let preParseSchema = function (field, value, dbType) {
 };
 
 
-export default class extends base {
+module.exports = class extends base {
 
     init(config = {}) {
         this.config = config;
@@ -461,4 +461,4 @@ export default class extends base {
         let parseOptions = lib.extend(options, {}, true);
         return this.parseSql(cls, data, parseOptions);
     }
-}
+};

@@ -5,13 +5,13 @@
  * @license    MIT
  * @version    16/7/25
  */
-import knex from 'knex';
-import base from './base';
-import lib from '../Util/lib';
-import parser from '../Parser/knex';
-import socket from '../Socket/mysql';
+const knex = require('knex');
+const base = require('./base');
+const lib = require('../Util/lib');
+const parser = require('../Parser/knex');
+const socket = require('../Socket/mysql');
 
-export default class extends base {
+module.exports = class extends base {
     init(config = {}) {
         this.config = config;
         this.logSql = config.db_ext_config.db_log_sql || false;
@@ -804,4 +804,4 @@ export default class extends base {
         }
         return Promise.resolve();
     }
-}
+};

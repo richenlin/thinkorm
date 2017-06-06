@@ -5,15 +5,15 @@
  * @license    MIT
  * @version    16/7/25
  */
-import path from 'path';
+const path = require('path');
 
-let instances = {};
+var adapterInstances = {};
 /**
  * Base Class
  * @param  {Object} http
  * @return {Class}
  */
-export default class {
+module.exports = class {
     /**
      * constructor
      * @param  {Object} http []
@@ -48,10 +48,10 @@ export default class {
      */
     static getInstance(config) {
         let key = `${config.db_type}_${config.db_host}_${config.db_port}_${config.db_name}`;
-        if (!instances[key]) {
-            instances[key] = new this(config);
-            return instances[key];
+        if (!adapterInstances[key]) {
+            adapterInstances[key] = new this(config);
+            return adapterInstances[key];
         }
-        return instances[key];
+        return adapterInstances[key];
     }
-}
+};

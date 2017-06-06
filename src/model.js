@@ -5,10 +5,10 @@
  * @license    MIT
  * @version    16/7/25
  */
-import base from './base';
-import schema from './schema';
-import lib from './Util/lib';
-import vaild from './Util/valid';
+const base = require('./base');
+const schema = require('./schema');
+const lib = require('./Util/lib');
+const vaild = require('./Util/valid');
 
 var forceNewNum = 1;
 //adapter list
@@ -18,7 +18,7 @@ const adapterList = {
     mongo: __dirname + lib.sep + 'Adapter' + lib.sep + 'mongo.js'
 };
 
-export default class extends base {
+module.exports = class extends base {
     /**
      * init
      * @param config
@@ -1054,4 +1054,4 @@ export default class extends base {
         }
     }
 
-}
+};

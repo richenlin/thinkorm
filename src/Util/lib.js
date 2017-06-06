@@ -15,31 +15,6 @@ const thinklib = require('think_lib');
 var lib = thinklib;
 
 /**
- * 生成一个defer对象
- * 
- * @returns {*} 
- */
-lib.getDefer = function () {
-    let defer = {};
-    defer.promise = new Promise(function (resolve, reject) {
-        defer.resolve = resolve;
-        defer.reject = reject;
-    });
-    return defer;
-};
-
-/**
- * 大写首字符
- * 
- * @param {string} name 
- * @returns {string} 
- */
-lib.ucFirst = function (name) {
-    name = (name || '') + '';
-    return name.slice(0, 1).toUpperCase() + name.slice(1).toLowerCase();
-};
-
-/**
  * 字符串命名风格转换
  * @param  {[type]} name [description]
  * @param  {[type]} type [description]
@@ -55,34 +30,6 @@ lib.parseName = function (name) {
     return name.replace(/[A-Z]/g, function (a) {
         return '_' + a.toLowerCase();
     });
-};
-
-/**
- * hash
- * 
- * @param {string} str 
- * @returns {string} 
- */
-lib.hash = function (str) {
-    let _hash = 5381;
-    let I64BIT_TABLE =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('');
-    let i = str.length - 1;
-    if (typeof str === 'string') {
-        for (; i > -1; i--) {
-            _hash += (_hash << 5) + str.charCodeAt(i);
-        }
-    } else {
-        for (; i > -1; i--) {
-            _hash += (_hash << 5) + str[i];
-        }
-    }
-    let value = _hash & 0x7FFFFFFF;
-    let retValue = '';
-    do {
-        retValue += I64BIT_TABLE[value & 0x3F];
-    } while (value >>= 6);
-    return retValue;
 };
 
 /**

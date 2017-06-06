@@ -5,9 +5,9 @@
  * @license    MIT
  * @version    16/7/25
  */
-import base from '../base';
-import lib from '../Util/lib';
-import { ObjectID } from 'mongodb';
+const base = require('../base');
+const lib = require('../Util/lib');
+const { ObjectID } = require('mongodb');
 
 const identifiers = {
     OR: '$or',
@@ -23,7 +23,7 @@ const identifiers = {
     'LIKE': '$regex'
 };
 /*eslint-disable func-style */
-let whereParse = function (key, value, item, extkey) {
+const whereParse = function (key, value, item, extkey) {
     let idt = key.toUpperCase(), temp;
     switch (identifiers[idt]) {
         case '$or':
@@ -149,7 +149,7 @@ function parseLike(key, value) {
 
 
 
-export default class extends base {
+module.exports = class extends base {
     init(config = {}) {
         this.config = config;
         this.sql = '';
@@ -326,4 +326,4 @@ export default class extends base {
         let parseOptions = lib.extend(options, {}, true);
         return this.parseSql(data, parseOptions);
     }
-}
+};
