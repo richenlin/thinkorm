@@ -1,6 +1,6 @@
 {
   "name": "thinkorm",
-  "version": "0.6.3",
+  "version": "1.0.0",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "index.js",
   "scripts": {
@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/richenlin/thinkorm#readme",
   "engines": {
-    "node": ">4.0.0"
+    "node": ">6.0.0"
   },
   "devDependencies": {
     "async": "^2.1.5",
@@ -36,9 +36,7 @@
     "babel-core": "^6.22.1",
     "babel-eslint": "^7.1.1",
     "babel-plugin-transform-runtime": "^6.22.0",
-    "babel-preset-es2015": "^6.22.0",
-    "babel-preset-es2015-loose": "^8.0.0",
-    "babel-preset-stage-2": "^6.22.0",
+    "babel-preset-env": "^1.1.8",
     "debug": "^2.2.0",
     "eslint": "^3.15.0",
     "istanbul": "^0.4.5",
@@ -51,8 +49,9 @@
     "babel-runtime": "6.22.0",
     "bluebird": "3.5.0",
     "co": "4.6.0",
-    "knex": "0.12.8",
-    "mysql": "2.13.0"
+    "knex": "0.12.9",
+    "mysql": "2.13.0",
+    "think_lib": "^1.0.0"
   },
   "maintainers": [
     {

@@ -125,15 +125,15 @@ export default class extends base {
             return fn(sql);
         }).catch(err => {
             this.close();
-            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            lib.log(sql, 'PostgreSQL', startTime, this.logSql);
             return Promise.reject(err);
         }).then((rows = []) => {
             connection.release && connection.release();
-            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            lib.log(sql, 'PostgreSQL', startTime, this.logSql);
             return this.formatData(rows);
         }).catch(err => {
             connection.release && connection.release();
-            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            lib.log(sql, 'PostgreSQL', startTime, this.logSql);
             return Promise.reject(err);
         });
     }
@@ -151,11 +151,11 @@ export default class extends base {
             return fn(sql);
         }).catch(err => {
             this.close();
-            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            lib.log(sql, 'PostgreSQL', startTime, this.logSql);
             return Promise.reject(err);
         }).then((rows = []) => {
             connection.release && connection.release();
-            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            lib.log(sql, 'PostgreSQL', startTime, this.logSql);
             return this.formatData(rows);
         }).then(data => {
             if (data.rows && data.rows[0] && data.rows[0].id) {
@@ -164,7 +164,7 @@ export default class extends base {
             return data.rowCount || 0;
         }).catch(err => {
             connection.release && connection.release();
-            this.logSql && lib.log(sql, 'PostgreSQL', startTime);
+            lib.log(sql, 'PostgreSQL', startTime, this.logSql);
             return Promise.reject(err);
         });
     }
@@ -197,15 +197,15 @@ export default class extends base {
             return fn(ouputs.sql, ouputs.bindings);
         }).catch(err => {
             this.close();
-            this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
+            lib.log(ouputs.sql, 'PostgreSQL', startTime, this.logSql);
             return Promise.reject(err);
         }).then((res = {}) => {
             connection.release && connection.release();
-            this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
+            lib.log(ouputs.sql, 'PostgreSQL', startTime, this.logSql);
             return this.formatData(res.rows);
         }).catch(err => {
             connection.release && connection.release();
-            this.logSql && lib.log(ouputs.sql, 'PostgreSQL', startTime);
+            lib.log(ouputs.sql, 'PostgreSQL', startTime, this.logSql);
             return Promise.reject(err);
         });
     }

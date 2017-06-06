@@ -143,7 +143,7 @@ export default class extends base {
             if (~stack.indexOf('connect') || ~stack.indexOf('refused')) {
                 this.instances && this.instances.close && this.instances.close();
             }
-            //lib.log(msg);
+            lib.log(msg, 'ERROR');
         }
         return Promise.reject(msg);
     }
@@ -222,7 +222,7 @@ export default class extends base {
                 field = field.replace(/ +/g, '').split(',');
             }
             if (lib.isArray(field)) {
-                this.__options.field = this.__options.field ? lib.extend(false, this.__options.field, field) : field;
+                this.__options.field = this.__options.field ? lib.extend(this.__options.field, field) : field;
             }
             return this;
         } catch (e) {
@@ -240,7 +240,7 @@ export default class extends base {
                 return this;
             }
             if (lib.isString(alias)) {
-                this.__options.alias = this.__options.alias ? lib.extend(false, this.__options.alias, alias) : alias;
+                this.__options.alias = this.__options.alias ? lib.extend(this.__options.alias, alias) : alias;
             }
             return this;
         } catch (e) {
@@ -267,7 +267,7 @@ export default class extends base {
                 return this;
             }
             if (lib.isObject(where)) {
-                this.__options.where = this.__options.where ? lib.extend(false, this.__options.where, where) : where;
+                this.__options.where = this.__options.where ? lib.extend(this.__options.where, where) : where;
             }
             return this;
         } catch (e) {
@@ -297,7 +297,7 @@ export default class extends base {
             if (length) {
                 length = Math.max(parseInt(length) || 0, 0);
             }
-            this.__options.limit = this.__options.limit ? lib.extend(false, this.__options.limit, [offset, length]) : [offset, length];
+            this.__options.limit = this.__options.limit ? lib.extend(this.__options.limit, [offset, length]) : [offset, length];
             return this;
         } catch (e) {
             return this.error(e);
@@ -321,7 +321,7 @@ export default class extends base {
                 order = JSON.parse(strToObj(order));
             }
             if (lib.isObject(order)) {
-                this.__options.order = this.__options.order ? lib.extend(false, this.__options.order, order) : order;
+                this.__options.order = this.__options.order ? lib.extend(this.__options.order, order) : order;
             }
             return this;
         } catch (e) {
@@ -341,7 +341,7 @@ export default class extends base {
                 return this;
             }
             if (lib.isString(group) || lib.isArray(group)) {
-                this.__options.group = this.__options.group ? lib.extend(false, this.__options.group, group) : group;
+                this.__options.group = this.__options.group ? lib.extend(this.__options.group, group) : group;
             }
             return this;
         } catch (e) {
@@ -362,7 +362,7 @@ export default class extends base {
                 return this;
             }
             if (lib.isArray(join)) {
-                this.__options.join = this.__options.join ? lib.extend(false, this.__options.join, join) : join;
+                this.__options.join = this.__options.join ? lib.extend(this.__options.join, join) : join;
             }
             return this;
         } catch (e) {
@@ -383,7 +383,7 @@ export default class extends base {
                 listRows = page[1];
                 page = page[0];
             }
-            this.__options.page = this.__options.page ? lib.extend(false, this.__options.page, {
+            this.__options.page = this.__options.page ? lib.extend(this.__options.page, {
                 page: page || 1,
                 num: listRows || 10
             }) : { page: page || 1, num: listRows || 10 };
@@ -462,7 +462,7 @@ export default class extends base {
             // init db
             let db = await this.initDB();
             //copy data
-            let __data = lib.extend({}, data);
+            let __data = lib.extend(data, {}, true);
             __data = await this._beforeAdd(__data, parsedOptions);
             __data = await this.__checkData(db, __data, parsedOptions, 'ADD');
             if (lib.isEmpty(__data)) {
@@ -572,7 +572,7 @@ export default class extends base {
             // init db
             let db = await this.initDB();
             //copy data
-            let __data = lib.extend({}, data);
+            let __data = lib.extend(data, {}, true);
             __data = await this._beforeUpdate(__data, parsedOptions);
             __data = await this.__checkData(db, __data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(__data)) {
@@ -629,7 +629,7 @@ export default class extends base {
             // init db
             let db = await this.initDB();
             //copy data
-            let __data = lib.extend({}, { [field]: step });
+            let __data = { [field]: step };
             __data = await this._beforeUpdate(__data, parsedOptions);
             __data = await this.__checkData(db, __data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(__data)) {
@@ -657,7 +657,7 @@ export default class extends base {
             // init db
             let db = await this.initDB();
             //copy data
-            let __data = lib.extend({}, { [field]: step });
+            let __data = { [field]: step };
             __data = await this._beforeUpdate(__data, parsedOptions);
             __data = await this.__checkData(db, __data, parsedOptions, 'UPDATE');
             if (lib.isEmpty(__data)) {
@@ -795,7 +795,7 @@ export default class extends base {
             //传入分页参数
             let offset = (pageOptions.page - 1) < 0 ? 0 : (pageOptions.page - 1) * pageOptions.num;
             parsedOptions.limit = [offset, pageOptions.num];
-            let result = lib.extend(false, { count: countNum, total: totalPage }, pageOptions);
+            let result = lib.extend({ count: countNum, total: totalPage }, pageOptions);
             result.data = await this.select(parsedOptions);
             return result;
         } catch (e) {
@@ -860,8 +860,7 @@ export default class extends base {
                     })(n);
                 }
             }
-            let options;
-            options = lib.extend({}, this.__options, extraOptions);
+            let options = lib.extend(this.__options, extraOptions, true);
             //清空__options,避免影响下次查询
             this.__options = {};
             //获取表名

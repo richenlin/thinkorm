@@ -86,15 +86,15 @@ export default class extends base {
     query(cls, startTime) {
         startTime = startTime || Date.now();
         if (!cls) {
-            this.logSql && lib.log(this.sql, 'MongoDB', startTime);
+            lib.log(this.sql, 'MongoDB', startTime, this.logSql);
             return Promise.reject('SQL analytic result is empty');
         }
         return cls.then(data => {
-            this.logSql && lib.log(this.sql, 'MongoDB', startTime);
+            lib.log(this.sql, 'MongoDB', startTime, this.logSql);
             return this.formatData(data);
         }).catch(err => {
             this.close();
-            this.logSql && lib.log(this.sql, 'MongoDB', startTime);
+            lib.log(this.sql, 'MongoDB', startTime, this.logSql);
             return Promise.reject(err);
         });
     }
@@ -151,7 +151,7 @@ export default class extends base {
         options.method = 'ADD';
         let startTime = Date.now(), collection, handler;
         //mongodb.js的addOne,会改变原有添加对象，将主键加进去。
-        let _data = lib.extend({}, data);
+        let _data = lib.extend(data, {}, true);
         return this.connect().then(conn => {
             collection = conn.collection(options.table);
             return this.parsers().buildSql(_data, options);

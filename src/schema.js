@@ -7,14 +7,14 @@
  */
 'use strict';
 
-var lib = require('./Util/lib.js');
+const lib = require('./Util/lib.js');
 
 /**
  *
  * @param type
  * @returns {*|string}
  */
-let parseType = function (type) {
+const parseType = function (type) {
     type = type || 'HASONE';
     if (type == 1) {
         type = 'HASONE';
@@ -34,7 +34,7 @@ let parseType = function (type) {
  * @param config
  * @returns {*}
  */
-let setCollection = function (func, config) {
+const setCollection = function (func, config) {
     if (lib.isFile(func)) {
         func = lib.thinkRequire(func);
     }
@@ -61,7 +61,7 @@ let setCollection = function (func, config) {
  * @param config
  * @returns {*}
  */
-let getRelation = function (name, config) {
+const getRelation = function (name, config) {
     if (!ORM.collections[name]) {
         throw new Error(`collection ${name} is undefined.`);
         return null;
@@ -141,7 +141,7 @@ let getRelation = function (name, config) {
  * auto migrate all model structure to database
  * @param config
  */
-let migrate = function (config) {
+const migrate = function (config) {
     let instance, ps = [];
     for (let n in ORM.collections) {
         instance = new ORM.collections[n](config);

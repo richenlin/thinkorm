@@ -458,7 +458,7 @@ export default class extends base {
             options = data;
         }
         //防止外部options被更改
-        let parseOptions = lib.extend({}, options);
+        let parseOptions = lib.extend(options, {}, true);
         return this.parseSql(cls, data, parseOptions);
     }
 }

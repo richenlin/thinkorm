@@ -9,10 +9,10 @@
  * Valid
  * @return {[type]} [description]
  */
-import net from 'net';
-import lib from './lib';
+const net = require('net');
+const lib = require('./lib');
 
-let rules = {
+const rules = {
     /**
      * 长度区域
      * @param  {[type]} min [description]
@@ -225,7 +225,7 @@ let rules = {
  * @param type
  * @returns {*}
  */
-let dataCheck = function (name, value, type) {
+const dataCheck = function (name, value, type) {
     'use strict';
     //数据类型存在则检查
     if (type) {
@@ -282,7 +282,7 @@ let dataCheck = function (name, value, type) {
  * @param method
  * @returns {{status: number, msg: string}}
  */
-let ruleCheck = function (name, value, extra, method) {
+const ruleCheck = function (name, value, extra, method) {
     'use strict';
     let result = { status: 1, msg: '' };
     if (!name) {
@@ -324,7 +324,7 @@ let ruleCheck = function (name, value, extra, method) {
     return result;
 };
 
-export default {
+module.exports = {
     dataCheck: dataCheck,
     ruleCheck: ruleCheck
 };

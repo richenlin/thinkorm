@@ -6,7 +6,7 @@
  * @version    16/7/14
  */
 
-export default class {
+module.exports = class {
     constructor(){
         this.queue = {};
     }
