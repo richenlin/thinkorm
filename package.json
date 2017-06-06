@@ -51,7 +51,7 @@
     "co": "4.6.0",
     "knex": "0.12.9",
     "mysql": "2.13.0",
-    "think_lib": "^1.0.1"
+    "think_lib": "^1.0.2"
   },
   "maintainers": [
     {
