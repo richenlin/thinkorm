@@ -2600,9 +2600,9 @@ text-table@~0.2.0:
   version "0.2.0"
   resolved "http://r.cnpmjs.org/text-table/download/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
 
-think_lib@^1.0.0:
-  version "1.0.0"
-  resolved "http://r.cnpmjs.org/think_lib/download/think_lib-1.0.0.tgz#7e21ea67311e598946939b6cce7758a2e942549d"
+think_lib@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/think_lib/-/think_lib-1.0.1.tgz#dbb1b2b08fc0a949e5eb0a53eacad8845fbd24b9"
   dependencies:
     lodash "^4.17.4"
 
