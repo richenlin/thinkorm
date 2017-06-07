@@ -5,8 +5,6 @@
  * @license    MIT
  * @version    16/8/17
  */
-'use strict';
-
 const lib = require('./Util/lib.js');
 
 class schema {
