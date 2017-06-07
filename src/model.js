@@ -74,6 +74,15 @@ module.exports = class extends base {
     }
 
     /**
+     * get collection
+     * @param args
+     * @returns {*}
+     */
+    static getCollection(...args) {
+        return schema.getCollection(...args);
+    }
+    
+    /**
      * load collection
      * @param args
      * @returns {*}
@@ -99,7 +108,7 @@ module.exports = class extends base {
     initDB(forceNew = false) {
         try {
             //check collection
-            if (!ORM.collections[this.modelName]) {
+            if (!schema.collections[this.modelName]) {
                 return this.error(`Collections ${this.modelName} is undefined.`);
             }
             //set db

@@ -8,6 +8,7 @@
 const knex = require('knex');
 const base = require('./base');
 const lib = require('../Util/lib');
+const schema = require('./schema');
 const parser = require('../Parser/knex');
 const socket = require('../Socket/mysql');
 
@@ -86,18 +87,18 @@ module.exports = class extends base {
 
     /**
      *
-     * @param schema
+     * @param schemas
      * @param config
      */
-    migrate(schema, config) {
-        if (lib.isEmpty(schema) || lib.isEmpty(config)) {
+    migrate(schemas, config) {
+        if (lib.isEmpty(schemas) || lib.isEmpty(config)) {
             return Promise.resolve();
         }
-        let tableName = `${config.db_prefix}${lib.parseName(schema.name)}`;
+        let tableName = `${config.db_prefix}${lib.parseName(schemas.name)}`;
         return this.execute(this.knexClient.schema.dropTableIfExists(tableName).toString()).then(() => {
             let options = {
                 method: 'MIGRATE',
-                schema: schema
+                schema: schemas
             };
             return this.parsers().buildSql(this.knexClient.schema, config, options).then(sql => {
                 if (/\n/.test(sql)) {
@@ -654,7 +655,7 @@ module.exports = class extends base {
             return Promise.resolve();
         }
         let model = new (rel.model)(config);
-        let primaryModel = new (ORM.collections[rel.primaryName])(config);
+        let primaryModel = new (schema.collections[rel.primaryName])(config);
         switch (postType) {
             case 'ADD':
                 //子表插入数据
@@ -710,7 +711,7 @@ module.exports = class extends base {
                 break;
             case 'UPDATE':
                 let condition = {}, keys = [];
-                let primaryModel = new (ORM.collections[rel.primaryName])(config);
+                let primaryModel = new (schema.collections[rel.primaryName])(config);
                 //限制只能更新关联数据
                 let info = await primaryModel.field([rel.primaryPk]).select(options).catch(e => []);
                 info.map(item => {
@@ -767,7 +768,7 @@ module.exports = class extends base {
                 break;
             case 'UPDATE':
                 let condition = {}, keys = [];
-                let primaryModel = new (ORM.collections[rel.primaryName])(config);
+                let primaryModel = new (schema.collections[rel.primaryName])(config);
                 //限制只能更新关联数据
                 let info = await primaryModel.join([{
                     from: mapModel.modelName,

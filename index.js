@@ -9,7 +9,5 @@
 //rewite promise, bluebird is much faster
 global.Promise = require('bluebird');
 require('babel-runtime/core-js/promise').default = Promise;
-//define ORM object
-global.ORM = { collections: {}, instances: {} };
 //export
 module.exports = require('./lib/model.js');

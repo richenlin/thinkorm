@@ -11,7 +11,7 @@ const _interopSafeRequire = function (obj) {
 };
 const co = require('co');
 const thinklib = require('think_lib');
-
+const awaitjs = require('./await.js');
 var lib = thinklib;
 
 /**
@@ -80,11 +80,12 @@ lib.log = function (msg, type, showTime, debug = true) {
  * @param  {Function} callback []
  * @return {Promise}            []
  */
+var _ormInstances = {};
 lib.await = function (key, callback) {
-    if(!ORM.instances.await){
-        ORM.instances.await = new (_interopSafeRequire(require('./await.js')))();
+    if(!_ormInstances.await){
+        _ormInstances.await = new awaitjs();
     }
-    return (ORM.instances.await).run(key, callback);
+    return (_ormInstances.await).run(key, callback);
 };
 
 /**

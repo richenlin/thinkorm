@@ -7,6 +7,7 @@
  */
 const base = require('./base');
 const lib = require('../Util/lib');
+const schema = require('./schema');
 const parser = require('../Parser/mongo');
 const socket = require('../Socket/mongo');
 const { DBRef } = require('mongodb');
@@ -518,7 +519,7 @@ module.exports = class extends base {
             return Promise.resolve();
         }
         let model = new (rel.model)(config);
-        let primaryModel = new (ORM.collections[rel.primaryName])(config);
+        let primaryModel = new (schema.collections[rel.primaryName])(config);
         switch (postType) {
             case 'ADD':
                 //子表插入数据
@@ -593,7 +594,7 @@ module.exports = class extends base {
                 //更新到主表的关联字段
                 if (!lib.isEmpty(relIdArr)) {
                     options.where = { [rel.primaryPk]: result };
-                    let primaryModel = new (ORM.collections[rel.primaryName])(config);
+                    let primaryModel = new (schema.collections[rel.primaryName])(config);
                     await primaryModel.update({ [rel.fkey]: relIdArr }, options);
                 }
                 break;
