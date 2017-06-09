@@ -36,7 +36,7 @@ module.exports = class {
      * @return {} []
      */
     filename() {
-        let fname = this.__filename || __filename;
-        return path.basename(fname, '.js');
+        //require加载文件时, 指定 fn.__filename = requirePath
+        return path.basename(this.__filename || '', '.js');
     }
 };

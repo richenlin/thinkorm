@@ -7,7 +7,7 @@
  */
 const base = require('./base');
 const lib = require('../Util/lib');
-const schema = require('./schema');
+const schema = require('../schema');
 const parser = require('../Parser/mongo');
 const socket = require('../Socket/mongo');
 const { DBRef } = require('mongodb');

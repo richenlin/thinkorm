@@ -80,12 +80,12 @@ lib.log = function (msg, type, showTime, debug = true) {
  * @param  {Function} callback []
  * @return {Promise}            []
  */
-var _ormInstances = {};
+var _awaitInstances;
 lib.await = function (key, callback) {
-    if(!_ormInstances.await){
-        _ormInstances.await = new awaitjs();
+    if(!_awaitInstances){
+        _awaitInstances = new awaitjs();
     }
-    return (_ormInstances.await).run(key, callback);
+    return _awaitInstances.run(key, callback);
 };
 
 /**
@@ -98,24 +98,6 @@ lib.thinkCo = function (obj) {
         return co(obj);
     }
     return Promise.resolve(obj);
-};
-
-/**
- * 加载文件
- * @param  {[type]} file [description]
- * @return {[type]}      [description]
- */
-lib.thinkRequire = function (file) {
-    try {
-        var obj = require(file);
-        obj = _interopSafeRequire(obj);
-        if (lib.isFunction(obj)) {
-            obj.prototype.__filename = file;
-        }
-        return obj;
-    } catch (err) {
-        return null;
-    }
 };
 
 module.exports = lib;

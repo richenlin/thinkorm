@@ -6,7 +6,7 @@
  * @version    16/7/25
  */
 const path = require('path');
-const schema = require('./schema');
+const schema = require('../schema');
 
 /**
  * Base Class

@@ -76,7 +76,7 @@ class schema {
 
                     // let mapName = `${cls.modelName}${n}Map`;
                     // if(!schema.collections[mapName]){
-                    //     let model = lib.thinkRequire(__dirname + '/model.js');
+                    //     let model = lib.require(__dirname + '/model.js');
                     //     let _class = class extends model{
                     //         init(config){
                     //             super.init(config);
@@ -133,7 +133,7 @@ class schema {
      */
     static setCollection(func, config) {
         if (lib.isFile(func)) {
-            func = lib.thinkRequire(func);
+            func = lib.require(func);
         }
         if (lib.isFunction(func)) {
             let collection = new func(config);

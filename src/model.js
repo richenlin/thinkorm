@@ -28,10 +28,6 @@ module.exports = class extends base {
         this.pk = 'id';
         // 数据库配置信息
         this.config = null;
-        // 模型名称(不能被重载)
-        this.modelName = '';
-        // 数据表名(不能被重载)
-        this.tableName = '';
         // 是否自动迁移(默认安全模式)
         this.safe = true;
         // 数据表字段信息
@@ -58,10 +54,10 @@ module.exports = class extends base {
             db_timeout: config.db_timeout,
             db_ext_config: config.db_ext_config || {}
         };
-        // 模型名
-        this.modelName = this.getModelName();
-        // 表名
-        this.tableName = this.getTableName();
+        // 模型名称
+        this.modelName = this.modelName || this.getModelName();
+        // 数据表名
+        this.tableName = this.tableName || this.getTableName();
     }
 
     /**
@@ -70,7 +66,7 @@ module.exports = class extends base {
      * @returns {type[]}
      */
     static require(...args) {
-        return lib.thinkRequire(...args);
+        return lib.require(...args);
     }
 
     /**
@@ -127,7 +123,7 @@ module.exports = class extends base {
             if (forceNew) {
                 config.db_ext_config.forceNewNum = forceNewNum++;
             }
-            this.instances = lib.thinkRequire(adapterList[dbType]).getInstance(config);
+            this.instances = lib.require(adapterList[dbType]).getInstance(config);
             return Promise.resolve(this.instances);
         } catch (e) {
             return this.error(e);
@@ -181,9 +177,9 @@ module.exports = class extends base {
     getModelName() {
         try {
             if (!this.modelName) {
-                let filename = this.__filename;
+                let filename = this.filename();
                 let last = filename.lastIndexOf(lib.sep);
-                this.modelName = filename.substr(last + 1, filename.length - last - 4);
+                this.modelName = filename.substr(last + 1, filename.length - last);
             }
             return this.modelName;
         } catch (e) {

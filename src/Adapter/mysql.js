@@ -8,7 +8,7 @@
 const knex = require('knex');
 const base = require('./base');
 const lib = require('../Util/lib');
-const schema = require('./schema');
+const schema = require('../schema');
 const parser = require('../Parser/knex');
 const socket = require('../Socket/mysql');
 
