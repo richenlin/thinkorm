@@ -1,7 +1,10 @@
-.idea
 node_modules/
-npm-debug.log
-coverage/
 src/
 .travis.yml
 .coveralls.yml
+npm-debug.log
+coverage/
+.idea
+.vscode
+yarn-error.log
+yarn.lock
