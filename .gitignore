@@ -5,3 +5,5 @@ App
 Runtime
 www
 .idea
+yarn-error.log
+yarn.lock
