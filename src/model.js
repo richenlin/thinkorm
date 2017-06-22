@@ -835,7 +835,7 @@ module.exports = class extends base {
         let db = await this.initDB(true);
         try {
             await db.startTrans();
-            let result = await lib.thinkCo(fn(db));
+            let result = await lib.thinkco(fn(db));
             await db.commit();
             return result;
         } catch (e) {
