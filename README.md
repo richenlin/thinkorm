@@ -3,8 +3,8 @@
 -----
 
 [![npm version](https://badge.fury.io/js/thinkorm.svg)](https://badge.fury.io/js/thinkorm)
-[![Build Status](https://travis-ci.org/richenlin/thinkorm.svg?branch=master)](https://travis-ci.org/richenlin/thinkorm)
-[![Dependency Status](https://david-dm.org/richenlin/thinkorm.svg)](https://david-dm.org/richenlin/thinkorm)
+[![Build Status](https://travis-ci.org/thinkkoa/thinkorm.svg?branch=master)](https://travis-ci.org/thinkkoa/thinkorm)
+[![Dependency Status](https://david-dm.org/thinkkoa/thinkorm.svg)](https://david-dm.org/thinkkoa/thinkorm)
 
 A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 
@@ -35,7 +35,7 @@ A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 -----
 mongodb where解析重构
 
-mongodb 关联查询和操作完善
+mongodb 完善关联操作(Ref)
 
 mongodb join查询
 
