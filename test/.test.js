@@ -124,7 +124,7 @@ return model
 // echo(lib.isObject({name: 'foo'}))
 
 
-// echo(lib.isScalar(test))
+// echo((lib.isBoolean(test) || lib.isNumber(test) || lib.isString(test)))
 //
 //console.log(parseInt(''))
 //console.log(lib.isJSONStr(111))

@@ -193,7 +193,7 @@ const preParseSchema = function (field, value, dbType) {
         primary = true;
     }
     //默认值
-    if (value.hasOwnProperty('defaultsTo') && lib.isScalar(value.defaultsTo)) {
+    if (value.hasOwnProperty('defaultsTo') && (lib.isBoolean(value.defaultsTo) || lib.isNumber(value.defaultsTo) || lib.isString(value.defaultsTo))) {
         defaults = true;
     }
     switch (value.type) {
