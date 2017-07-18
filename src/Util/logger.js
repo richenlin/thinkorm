@@ -4,7 +4,6 @@ const fs = require('fs');
 const util = require('util');
 const lib = require('think_lib');
 
-let debug = process.env.NODE_ENV === 'development' ? true : false;
 const styles = {
     'bold': ['\x1B[1m', '\x1B[22m'],
     'italic': ['\x1B[3m', '\x1B[23m'],
@@ -84,7 +83,7 @@ const show = function (type, args, css) {
  * @returns 
  */
 const logger = function (type, ...args) {
-    if (debug && lib.isString(type)) {
+    if (lib.isString(type)) {
         return show(type || 'INFO', args, 'grey');
     }
     return null;
@@ -121,10 +120,7 @@ logger.write = function (path, name, msgs) {
  * @returns 
  */
 logger.info = function () {
-    if (debug) {
-        return show('INFO', arguments, 'blue');
-    }
-    return null;
+    return show('INFO', arguments, 'blue');
 };
 
 /**
