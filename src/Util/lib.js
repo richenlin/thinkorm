@@ -7,8 +7,8 @@
  */
 const co = require('co');
 const thinklib = require('think_lib');
-const awaitjs = require('./await.js');
-let lib = thinklib;
+const logger = require('./logger.js');
+let lib = Object.create(thinklib);
 
 /**
  * 
@@ -18,43 +18,41 @@ let lib = thinklib;
  * @param {any} showTime 
  * @param {any} debug 
  */
-lib.log = function (msg, type, showTime, debug = true) {
+lib.logger = function (msg, type, showTime, debug) {
     if (type === true) {
         debug = true;
         type = '';
     }
     debug = debug || false;
-    let dateTime = `[${lib.datetime('', '')}] `;
-    let message = msg;
-    if (lib.isError(msg)) {
-        type = 'ERROR';
-        message = msg.stack;
-        ('prototype' in console.error) && console.error(msg.stack);
-    } else if (type === 'ERROR') {
-        type = 'ERROR';
-        if (!lib.isString(msg)) {
-            message = JSON.stringify(msg);
+    if (debug) {
+        let message = msg;
+        if (lib.isError(msg)) {
+            type = 'ERROR';
+            message = msg.stack;
+        } else if (type === 'ERROR') {
+            type = 'ERROR';
+            if (!lib.isString(msg)) {
+                message = JSON.stringify(msg);
+            }
+        } else if (type === 'WARNING') {
+            type = 'WARNING';
+            if (!lib.isString(msg)) {
+                message = JSON.stringify(msg);
+            }
+        } else {
+            if (!lib.isString(msg)) {
+                message = JSON.stringify(msg);
+            }
+            if (lib.isNumber(showTime)) {
+                let _time = Date.now() - showTime;
+                message += '  ' + `${_time}ms`;
+            }
+            type = type || 'INFO';
         }
-        ('prototype' in console.error) && console.error(message);
-    } else if (type === 'WARNING') {
-        type = 'WARNING';
-        if (!lib.isString(msg)) {
-            message = JSON.stringify(msg);
-        }
-        ('prototype' in console.warn) && console.warn(message);
-    } else {
-        if (!lib.isString(msg)) {
-            message = JSON.stringify(msg);
-        }
-        if (lib.isNumber(showTime)) {
-            let _time = Date.now() - showTime;
-            message += '  ' + `${_time}ms`;
-        }
-        type = type || 'INFO';
-        //判断console.info是否被重写
-        ('prototype' in console.info) && console.info(message);
+        logger(type, message);
     }
-    (debug || type === 'THINK') && console.log(`${dateTime}[${type}] ${message}`);
+
+    return null;
 };
 
 /**
@@ -83,7 +81,8 @@ lib.parseName = function (name) {
  */
 var _awaitInstances;
 lib.await = function (key, callback) {
-    if(!_awaitInstances){
+    if (!_awaitInstances) {
+        const awaitjs = require('./await.js');
         _awaitInstances = new awaitjs();
     }
     return _awaitInstances.run(key, callback);

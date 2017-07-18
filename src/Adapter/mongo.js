@@ -50,7 +50,7 @@ module.exports = class extends base {
      * mongodb is schema less.
      */
     migrate() {
-        lib.log(`mongodb is schema less, migrate is not execute.`, 'WARNING');
+        lib.logger(`mongodb is schema less, migrate is not execute.`, 'WARNING');
         return Promise.resolve();
     }
 
@@ -58,7 +58,7 @@ module.exports = class extends base {
      *
      */
     startTrans() {
-        lib.log(`Adapter is not support startTrans.`, 'WARNING');
+        lib.logger(`Adapter is not support startTrans.`, 'WARNING');
         return Promise.resolve();
     }
 
@@ -66,7 +66,7 @@ module.exports = class extends base {
      *
      */
     commit() {
-        lib.log(`Adapter is not support commit.`, 'WARNING');
+        lib.logger(`Adapter is not support commit.`, 'WARNING');
         return Promise.resolve();
     }
 
@@ -74,7 +74,7 @@ module.exports = class extends base {
      *
      */
     rollback() {
-        lib.log(`Adapter is not support rollback.`, 'WARNING');
+        lib.logger(`Adapter is not support rollback.`, 'WARNING');
         return Promise.resolve();
     }
 
@@ -87,15 +87,15 @@ module.exports = class extends base {
     query(cls, startTime) {
         startTime = startTime || Date.now();
         if (!cls) {
-            lib.log(this.sql, 'MongoDB', startTime, this.logSql);
+            lib.logger('MongoDB', this.sql, startTime, this.logSql);
             return Promise.reject('SQL analytic result is empty');
         }
         return cls.then(data => {
-            lib.log(this.sql, 'MongoDB', startTime, this.logSql);
+            lib.logger(this.sql, 'MongoDB', startTime, this.logSql);
             return this.formatData(data);
         }).catch(err => {
             this.close();
-            lib.log(this.sql, 'MongoDB', startTime, this.logSql);
+            lib.logger(this.sql, 'MongoDB', startTime, this.logSql);
             return Promise.reject(err);
         });
     }
@@ -515,7 +515,7 @@ module.exports = class extends base {
      */
     async __postHasOneRelation(config, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
-            lib.log('The main model\'s result is empty or the associated sub model\'s data is empty.', 'WARNING');
+            lib.logger('The main model\'s result is empty or the associated sub model\'s data is empty.', 'WARNING');
             return Promise.resolve();
         }
         let model = new (rel.model)(config);
@@ -561,7 +561,7 @@ module.exports = class extends base {
      */
     async __postHasManyRelation(config, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || !lib.isArray(relationData)) {
-            lib.log('The main model\'s result is empty or the associated sub model\'s data is not an array.', 'WARNING');
+            lib.logger('The main model\'s result is empty or the associated sub model\'s data is not an array.', 'WARNING');
             return Promise.resolve();
         }
         let model = new (rel.model)(config), rpk = model.getPk();
@@ -624,7 +624,7 @@ module.exports = class extends base {
      */
     async __postManyToManyRelation(config, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || !lib.isArray(relationData)) {
-            lib.log('The main model\'s result is empty or the associated sub model\'s data is not an array.', 'WARNING');
+            lib.logger('The main model\'s result is empty or the associated sub model\'s data is not an array.', 'WARNING');
             return Promise.resolve();
         }
         //子表主键
