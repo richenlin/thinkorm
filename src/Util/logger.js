@@ -36,21 +36,6 @@ const styles = {
 /**
  * 
  * 
- * @returns 
- */
-const stack = function (err) {
-    let orig = Error.prepareStackTrace;
-    Error.prepareStackTrace = function (_, st) {
-        return st;
-    };
-    Error.captureStackTrace(err, arguments.callee);
-    Error.prepareStackTrace = orig;
-    return err.stack;
-};
-
-/**
- * 
- * 
  * @param {any} type 
  * @param {any} args 
  * @param {any} css 
@@ -65,8 +50,7 @@ const show = function (type, args, css) {
     params.push(`[${type.toUpperCase()}]`);
     for (; i < len; i++) {
         if (lib.isError(args[i])) {
-            params.push(stack(args[i]));
-            // params.push(args[i].stack);
+            params.push(args[i].stack);
         } else if (typeof args[i] === 'object') {
             params.push(JSON.stringify(args[i]));
         } else {
