@@ -178,6 +178,6 @@ class schema {
 //static propertyes
 schema.instances = {};
 schema.collections = {};
-schema.connections = {};
+// schema.connections = {};
 
 module.exports = schema;
