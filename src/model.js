@@ -148,7 +148,7 @@ module.exports = class extends base {
             if (~stack.indexOf('connect') || ~stack.indexOf('refused')) {
                 this.instances && this.instances.close && this.instances.close();
             }
-            lib.logger(msg, 'ERROR');
+            lib.logs(msg, 'ERROR');
         }
         return Promise.reject(msg);
     }

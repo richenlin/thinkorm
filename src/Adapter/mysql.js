@@ -129,15 +129,15 @@ module.exports = class extends base {
             return fn(sql);
         }).catch(err => {
             this.close();
-            lib.logger(sql, 'MySQL', startTime, this.logSql);
+            lib.logs(sql, 'MySQL', startTime, this.logSql);
             return Promise.reject(err);
         }).then((rows = []) => {
             connection.release && connection.release();
-            lib.logger(sql, 'MySQL', startTime, this.logSql);
+            lib.logs(sql, 'MySQL', startTime, this.logSql);
             return this.formatData(rows);
         }).catch(err => {
             connection.release && connection.release();
-            lib.logger(sql, 'MySQL', startTime, this.logSql);
+            lib.logs(sql, 'MySQL', startTime, this.logSql);
             return Promise.reject(err);
         });
 
@@ -159,11 +159,11 @@ module.exports = class extends base {
             return fn(sql);
         }).catch(err => {
             this.close();
-            lib.logger(sql, 'MySQL', startTime, this.logSql);
+            lib.logs(sql, 'MySQL', startTime, this.logSql);
             return Promise.reject(err);
         }).then((rows = []) => {
             connection.release && connection.release();
-            lib.logger(sql, 'MySQL', startTime, this.logSql);
+            lib.logs(sql, 'MySQL', startTime, this.logSql);
             return this.formatData(rows);
         }).then(data => {
             if (data.insertId) {
@@ -172,7 +172,7 @@ module.exports = class extends base {
             return data.affectedRows || 0;
         }).catch(err => {
             connection.release && connection.release();
-            lib.logger(sql, 'MySQL', startTime, this.logSql);
+            lib.logs(sql, 'MySQL', startTime, this.logSql);
             return Promise.reject(err);
         });
     }
@@ -205,15 +205,15 @@ module.exports = class extends base {
             return fn(ouputs.sql, ouputs.bindings);
         }).catch(err => {
             this.close();
-            lib.logger(ouputs.sql, 'MySQL', startTime, this.logSql);
+            lib.logs(ouputs.sql, 'MySQL', startTime, this.logSql);
             return Promise.reject(err);
         }).then((rows = []) => {
             connection.release && connection.release();
-            lib.logger(ouputs.sql, 'MySQL', startTime, this.logSql);
+            lib.logs(ouputs.sql, 'MySQL', startTime, this.logSql);
             return this.formatData(rows);
         }).catch(err => {
             connection.release && connection.release();
-            lib.logger(ouputs.sql, 'MySQL', startTime, this.logSql);
+            lib.logs(ouputs.sql, 'MySQL', startTime, this.logSql);
             return Promise.reject(err);
         });
     }
@@ -651,7 +651,7 @@ module.exports = class extends base {
      */
     async __postHasOneRelation(config, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || lib.isEmpty(relationData)) {
-            lib.logger('The main model\'s result is empty or the associated sub model\'s data is empty.', 'WARNING');
+            lib.logs('The main model\'s result is empty or the associated sub model\'s data is empty.', 'WARNING');
             return Promise.resolve();
         }
         let model = new (rel.model)(config);
@@ -697,7 +697,7 @@ module.exports = class extends base {
      */
     async __postHasManyRelation(config, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || !lib.isArray(relationData)) {
-            lib.logger('The main model\'s result is empty or the associated sub model\'s data is not an array.', 'WARNING');
+            lib.logs('The main model\'s result is empty or the associated sub model\'s data is not an array.', 'WARNING');
             return Promise.resolve();
         }
         let model = new (rel.model)(config), rpk = model.getPk();
@@ -746,7 +746,7 @@ module.exports = class extends base {
      */
     async __postManyToManyRelation(config, result, options, rel, relationData, postType) {
         if (lib.isEmpty(result) || !lib.isArray(relationData)) {
-            lib.logger('The main model\'s result is empty or the associated sub model\'s data is not an array.', 'WARNING');
+            lib.logs('The main model\'s result is empty or the associated sub model\'s data is not an array.', 'WARNING');
             return Promise.resolve();
         }
         //子表主键

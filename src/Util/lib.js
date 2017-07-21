@@ -18,7 +18,7 @@ let lib = Object.create(thinklib);
  * @param {any} showTime 
  * @param {any} debug 
  */
-lib.logger = function (msg, type, showTime, debug) {
+lib.logs = function (msg, type, showTime, debug) {
     if (type === true) {
         debug = true;
         type = '';
