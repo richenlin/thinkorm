@@ -48,6 +48,7 @@ module.exports = class {
      */
     static getInstance(config) {
         let key = `${config.db_type}_${config.db_host}_${config.db_port}_${config.db_name}`;
+        !schema.instances && (schema.instances = {});
         if (!schema.instances[key]) {
             schema.instances[key] = new this(config);
             return schema.instances[key];

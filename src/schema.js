@@ -27,7 +27,12 @@ const parseType = function (type) {
     return type;
 };
 
-class schema {
+//static propertyes
+// schema.instances = {};
+// schema.collections = {};
+// schema.connections = {};
+
+module.exports = class schema {
 
     /**
      * get model relationship
@@ -139,7 +144,8 @@ class schema {
         if (lib.isFunction(func)) {
             let collection = new func(config);
             let name = collection.modelName;
-
+            
+            !schema.collections && (schema.collections = {});
             if (!schema.collections[name]) {
                 schema.collections[name] = func;
                 schema.collections[name].schema = {
@@ -174,10 +180,4 @@ class schema {
         }
         return Promise.all(ps);
     }
-}
-//static propertyes
-schema.instances = {};
-schema.collections = {};
-// schema.connections = {};
-
-module.exports = schema;
+};
