@@ -7,6 +7,8 @@
  */
 const base = require('../base');
 const lib = require('../Util/lib');
+const schema = require('../schema');
+const awaitjs = require('../Util/await');
 const mongodb = require('mongodb');
 
 module.exports = class extends base {
@@ -64,7 +66,11 @@ module.exports = class extends base {
         if (this.config.db_ext_config.forceNewNum) {
             connectKey = `${connectKey}_${this.config.db_ext_config.forceNewNum}`;
         }
-        return lib.await(connectKey, () => {
+
+        if (!schema.connections) {
+            schema.connections = new awaitjs();
+        }
+        return schema.connections.run(connectKey, () => {
             let fn = lib.promisify(mongodb.MongoClient.connect, mongodb.MongoClient);
             return fn(this.config.connect_url).then(conn => {
                 this.connection = conn;

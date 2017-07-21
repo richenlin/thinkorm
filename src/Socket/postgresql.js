@@ -7,6 +7,8 @@
  */
 const base = require('../base');
 const lib = require('../Util/lib');
+const schema = require('../schema');
+const awaitjs = require('../Util/await');
 const pg = require('pg');
 
 module.exports = class extends base {
@@ -41,7 +43,11 @@ module.exports = class extends base {
         if (this.config.db_ext_config.forceNewNum) {
             connectKey = `${connectKey}_${this.config.db_ext_config.forceNewNum}`;
         }
-        return lib.await(connectKey, () => {
+        
+        if (!schema.connections) {
+            schema.connections = new awaitjs();
+        }
+        return schema.connections.run(connectKey, () => {
             let deferred = lib.getDefer();
             pg.connect(this.config, (err, client, done) => {
                 if (err) {
