@@ -15,7 +15,7 @@ ThinkORM是一个可扩展轻量级的功能丰富的对象-关系映射的数�
 ## 特性
 
 
-1. 基于Knex.js实现,支持 Mysql, PostgresSql, MariaDB, Mysql. (扩展socket驱动即可支持MSSQL, SQLite3, Oracle)
+1. 基于Knex.js实现,支持 Mysql, PostgresSql, MariaDB. (扩展socket驱动即可支持MSSQL, SQLite3, Oracle)
 
 2. 抽象的面向对象式SQL操作语言,保持各种数据库书写语法一致,方便开发和项目迁移
 
