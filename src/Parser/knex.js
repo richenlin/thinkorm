@@ -358,7 +358,7 @@ module.exports = class extends base {
         //    this.on('accounts.id', '=', 'users.account_id').on('accounts.owner_id', '=', 'users.id').orOn('accounts.owner_id', '=', 'users.id')
         //})
         if (lib.isArray(options.join)) {
-            let type, config = this.config, name = options.alias, joinAlias = '', joinTable = '', onCondition, func = '', _field = [];
+            let type, config = this.config, name = options.alias, joinAlias = '', joinTable = '', onCondition, _field = [];
             options.join.map(item => {
                 if (item && item.from && item.on) {
                     onCondition = item.on;
@@ -371,12 +371,10 @@ module.exports = class extends base {
                             options.field.push(it.indexOf('.') > -1 ? it : `${joinAlias}.${it}`);
                         });
                     }
-                    //构造函数
-                    /*eslint-disable no-new-func */
-                    func = new Function('', preParseKnexJoin(onCondition, name, joinAlias));
                     //拼装knex
                     type = item.type ? item.type.toLowerCase() : 'inner';
-                    cls[`${type}Join`](`${joinTable} AS ${joinAlias}`, func);
+                    /*eslint-disable no-new-func */
+                    cls[`${type}Join`](`${joinTable} AS ${joinAlias}`, new Function('', preParseKnexJoin(onCondition, name, joinAlias)));
                 }
             });
             options.field.forEach(it => {

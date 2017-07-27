@@ -77,7 +77,7 @@ module.exports = class extends base {
     static getCollection(...args) {
         return schema.getCollection(...args);
     }
-    
+
     /**
      * load collection
      * @param args
@@ -851,18 +851,15 @@ module.exports = class extends base {
      * @returns {*}
      * @private
      */
-    __parseOptions(oriOpts, extraOptions = {}) {
+    async __parseOptions(oriOpts, extraOptions = {}) {
         try {
             //解析扩展写法参数
             if (lib.isObject(oriOpts)) {
                 let parseCase = { alias: 1, field: 1, where: 1, limit: 1, order: 1, group: 1, join: 1, page: 1, rel: 1 };
                 for (let n in oriOpts) {
-                    (t => {
-                        if (parseCase[t]) {
-                            //需要保证上述非中断方法为同步方法
-                            this[t](oriOpts[t]);
-                        }
-                    })(n);
+                    if (parseCase[n]) {
+                        await this[n](oriOpts[n]);
+                    }
                 }
             }
             let options = lib.extend(this.__options, extraOptions, true);
