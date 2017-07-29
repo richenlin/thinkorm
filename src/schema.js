@@ -79,39 +79,6 @@ module.exports = class schema {
                     }
                     schema.collections[name].relation[n].mapModel = mapName;
                     schema.collections[name].relation[n].mapModel = schema.collections[mapName];
-
-                    // let mapName = `${cls.modelName}${n}Map`;
-                    // if(!schema.collections[mapName]){
-                    //     let model = lib.require(__dirname + '/model.js');
-                    //     let _class = class extends model{
-                    //         init(config){
-                    //             super.init(config);
-                    //             // 是否开启迁移(migrate方法可用)
-                    //             this.safe = cls.safe;
-                    //             // 数据表字段信息
-                    //             this.fields = {
-                    //                 [relation[n]['fkey']]: {
-                    //                     type: 'integer',
-                    //                     index: true
-                    //                 },
-                    //                 [relation[n]['rkey']]: {
-                    //                     type: 'integer',
-                    //                     index: true
-                    //                 }
-                    //             };
-                    //             // 数据验证
-                    //             this.validations = {};
-                    //             // 关联关系
-                    //             this.relation = {};
-                    //
-                    //             this.modelName = mapName;
-                    //             this.tableName = `${this.config.db_prefix}${lib.parseName(mapName)}`;
-                    //         }
-                    //     };
-                    //     //初始化map模型
-                    //     this.setCollection(_class, cls.config);
-                    // }
-                    // schema.collections[name]['relation'][n]['mapModel'] = schema.collections[mapName];
                 }
             }
         }
