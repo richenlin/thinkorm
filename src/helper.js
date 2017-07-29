@@ -5,11 +5,23 @@
  * @license    MIT
  * @version    17/7/27
  */
-
+const co = require('co');
 const lib = require('think_lib');
 
 module.exports = {
-
+    /**
+     * 
+     * 
+     * @param {any} obj 
+     * @returns 
+     */
+    thinkco: function (obj) {
+        //optimize invoke co package
+        if (obj && typeof obj.next === 'function') {
+            return co(obj);
+        }
+        return Promise.resolve(obj);
+    },
     /**
      * 
      * 

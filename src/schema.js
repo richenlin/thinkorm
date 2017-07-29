@@ -16,7 +16,7 @@ module.exports = class schema {
      * @param {any} model 
      * @param {any} config 
      */
-    setSchema(model, config) {
+    static setSchema(model, config) {
         model.config = {
             db_type: config.db_type ? config.db_type.toLowerCase() : 'mysql',
             db_host: config.db_host,
@@ -56,6 +56,7 @@ module.exports = class schema {
                 !__thinkorm.collections && (__thinkorm.collections = {});
                 __thinkorm.collections[cls.modelName] = model;
                 __thinkorm.collections[cls.modelName].schema = {
+                    table: cls.tableName,
                     name: cls.modelName,
                     pk: cls.pk,
                     fields: cls.fields,

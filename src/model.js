@@ -5,10 +5,12 @@
  * @license    MIT
  * @version    17/7/27
  */
+const path = require('path');
 const lib = require('think_lib');
 const adapter = require('./adapter.js');
 const schema = require('./schema.js');
 const helper = require('./helper.js');
+const logger = require('./logger.js');
 const relation = require('./relation.js');
 const valid = require('./validation.js');
 
@@ -22,8 +24,13 @@ module.exports = class {
      * @param  {Object} http []
      * @return {}      []
      */
-    constructor(...args) {
-        this.init(...args);
+    constructor(config = {}) {
+        this.init(config);
+        schema.setSchema(this, config);
+        // 模型名称
+        this.modelName = this.modelName || this.getModelName();
+        // 数据表名
+        this.tableName = this.tableName || this.getTableName();
     }
 
     /**
@@ -68,13 +75,9 @@ module.exports = class {
      * @return {}      []
      */
     init(config = {}) {
-        schema.setSchema(this, config);
         // 
         this.options = {};
         this.instances = null;
-
-        // 数据表名
-        this.tableName = this.tableName || this.getTableName();
     }
 
     /**
@@ -95,7 +98,7 @@ module.exports = class {
             if (~stack.indexOf('connect') || ~stack.indexOf('refused')) {
                 this.instances && this.instances.close && this.instances.close();
             }
-            lib.logs(msg, 'ERROR');
+            logger(msg, 'ERROR');
         }
         return Promise.reject(msg);
     }
@@ -110,10 +113,36 @@ module.exports = class {
         }
         if (!this.tableName) {
             let tableName = this.config.db_prefix || '';
-            tableName += helper.parseName(this.modelName);
+            tableName += helper.parseName(this.getModelName());
             this.tableName = tableName.toLowerCase();
         }
         return this.tableName;
+    }
+
+    /**
+     * get current class filename
+     * @return {} []
+     */
+    filename() {
+        //require加载文件时, 指定 fn.__filename = requirePath
+        return path.basename(this.__filename || '', '.js');
+    }
+
+    /**
+     * 获取模型名
+     * @returns {*}
+     */
+    getModelName() {
+        try {
+            if (!this.modelName) {
+                let filename = this.filename();
+                let last = filename.lastIndexOf(lib.sep);
+                this.modelName = filename.substr(last + 1, filename.length - last);
+            }
+            return this.modelName;
+        } catch (e) {
+            return this.error(e);
+        }
     }
 
     /**
@@ -380,7 +409,7 @@ module.exports = class {
             if (lib.isEmpty(data)) {
                 throw Error('_DATA_TYPE_INVALID_');
             }
-            let parsedOptions = helper.parseOptions(options);
+            let parsedOptions = helper.parseOptions(this, options);
             // init db
             let db = this.initDB();
             // copy data
@@ -453,7 +482,7 @@ module.exports = class {
      */
     async delete(options) {
         try {
-            let parsedOptions = helper.parseOptions(options);
+            let parsedOptions = helper.parseOptions(this, options);
             if (lib.isEmpty(parsedOptions.where)) {
                 return this.error('_OPERATION_WRONG_');
             }
@@ -497,7 +526,7 @@ module.exports = class {
      */
     async update(data, options) {
         try {
-            let parsedOptions = helper.parseOptions(options);
+            let parsedOptions = helper.parseOptions(this, options);
             // init db
             let db = this.initDB();
             // copy data
@@ -552,7 +581,7 @@ module.exports = class {
      */
     async increment(field, step = 1, options) {
         try {
-            let parsedOptions = helper.parseOptions(options);
+            let parsedOptions = helper.parseOptions(this, options);
             // init db
             let db = this.initDB();
             //copy data
@@ -581,7 +610,7 @@ module.exports = class {
      */
     async decrement(field, step = 1, options) {
         try {
-            let parsedOptions = helper.parseOptions(options);
+            let parsedOptions = helper.parseOptions(this, options);
             // init db
             let db = this.initDB();
             //copy data
@@ -608,7 +637,7 @@ module.exports = class {
      */
     async count(field, options) {
         try {
-            let parsedOptions = helper.parseOptions(options);
+            let parsedOptions = helper.parseOptions(this, options);
             // init db
             let db = this.initDB();
             let result = await db.count(field, parsedOptions);
@@ -627,7 +656,7 @@ module.exports = class {
      */
     async sum(field, options) {
         try {
-            let parsedOptions = helper.parseOptions(options);
+            let parsedOptions = helper.parseOptions(this, options);
             // init db
             let db = this.initDB();
             let result = await db.sum(field, parsedOptions);
@@ -645,7 +674,7 @@ module.exports = class {
      */
     async find(options) {
         try {
-            let parsedOptions = helper.parseOptions(options);
+            let parsedOptions = helper.parseOptions(this, options);
             // init db
             let db = this.initDB();
             let result = await db.find(parsedOptions);
@@ -679,7 +708,7 @@ module.exports = class {
      */
     async select(options) {
         try {
-            let parsedOptions = helper.parseOptions(options);
+            let parsedOptions = helper.parseOptions(this, options);
             // init db
             let db = this.initDB();
             let result = await db.select(parsedOptions);
@@ -712,7 +741,7 @@ module.exports = class {
      */
     async countSelect(options) {
         try {
-            let parsedOptions = helper.parseOptions(options);
+            let parsedOptions = helper.parseOptions(this, options);
             let countNum = await this.count(null, parsedOptions);
             let pageOptions = helper.parsePage(options.page, options.num) || { page: 1, num: 10 };
             let totalPage = Math.ceil(countNum / pageOptions.num);
@@ -758,7 +787,7 @@ module.exports = class {
         let db = this.initDB(true);
         try {
             await db.startTrans();
-            let result = await lib.thinkco(fn(db));
+            let result = await helper.thinkco(fn(db));
             await db.commit();
             return result;
         } catch (e) {
