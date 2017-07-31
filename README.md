@@ -10,12 +10,16 @@ ThinkORM是一个可扩展轻量级的功能丰富的对象-关系映射的数�
 
 如同SQL语言发明一样，ThinkORM试图用一种抽象的统一操作语言，使用户专注于数据操作逻辑而非具体的数据存储类型，达到快速开发和移植的目的。
 
+```js
+let info = await model.where({id: {'<>': 1, '>=': 0}, name: 'bb', or: [{name: 'aa'}, {name: 'cc'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find();
+```
+
 项目地址： [Git Repo](https://github.com/thinkkoa/thinkorm)
 
 ## 特性
 
 
-1. 基于Knex.js实现,支持 Mysql, PostgresSql, MariaDB. (扩展adapter即可支持MSSQL, SQLite3, Oracle)
+1. 基于Knex.js实现,支持 Mysql, PostgresSql, MariaDB. (扩展adapter即可支持MSSQL, SQLite3, Oracle, MongoDB)
 
 2. 抽象的面向对象式SQL操作语言,保持各种数据库书写语法一致,方便开发和项目迁移
 
@@ -35,14 +39,32 @@ ThinkORM是一个可扩展轻量级的功能丰富的对象-关系映射的数�
 
 10. 支持数据库集群,支持读写分离(mysql, postgresql)
 
-11. 扩展支持MongoDB(alpha实验阶段,请勿用于生产环境)
-
 
 ## 扩展
 
-[thinkorm_adapter_mysql](https://github.com/thinkkoa/thinkorm_adapter_mysql)
+* [thinkorm_adapter_mysql](https://github.com/thinkkoa/thinkorm_adapter_mysql) (√已完成)
 
-Mysql adapter for thinkorm 2.x.
+Mysql adapter for thinkorm 2.x. 
+
+* [thinkorm_adapter_postgresql](https://github.com/thinkkoa/thinkorm_adapter_postgresql) (√已完成)
+
+PostgreSQL adapter for thinkorm 2.x.
+
+* [thinkorm_adapter_mongodb](https://github.com/thinkkoa/thinkorm_adapter_mongodb) (×未完成)
+
+MongoDB adapter for thinkorm 2.x.
+
+* [thinkorm_adapter_sqllite3](https://github.com/thinkkoa/thinkorm_adapter_sqllite3) (×未完成)
+
+SQLite3 adapter for thinkorm 2.x.
+
+* [thinkorm_adapter_oracle](https://github.com/thinkkoa/thinkorm_adapter_oracle) (×未完成)
+
+Oracle adapter for thinkorm 2.x.
+
+* [thinkorm_adapter_mssql](https://github.com/thinkkoa/thinkorm_adapter_mssql) (×未完成)
+
+MSSQL adapter for thinkorm 2.x.
 
 
 
@@ -54,10 +76,8 @@ npm install thinkorm --save
 
 ## 计划
 
-* Oracle socket驱动
-* mongodb where解析重构
-* mongodb 完善关联操作(Ref)
-* mongodb join查询
+* Oracle Adapter
+* MongoDB Adapter
 
 ## 文档
 
