@@ -11,7 +11,7 @@ ThinkORM是一个可扩展轻量级的功能丰富的对象-关系映射的数�
 如同SQL语言发明一样，ThinkORM试图用一种抽象的统一操作语言，使用户专注于数据操作逻辑而非具体的数据存储类型，达到快速开发和移植的目的。
 
 ```js
-let info = await model.where({id: {'<>': 1, '>=': 0}, name: 'bb', or: [{name: 'aa'}, {name: 'cc'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find();
+let info = await model.where({id: {'<>': 1, '>=': 0}, name: 'bb', or: [{name: 'aa'}, {name: 'cc'}]}).find();
 ```
 
 项目地址： [Git Repo](https://github.com/thinkkoa/thinkorm)
