@@ -72,10 +72,41 @@ MSSQL adapter for thinkorm 2.x.
 
 ```bash
 npm install thinkorm --save
+npm install thinkorm_adapter_mysql --save
 ```
+
+## 使用
+
+```js
+const thinkorm = require('thinkorm');
+
+const config = {
+    db_type: 'mysql', //support  postgresql,mysql...
+    db_host: '127.0.0.1',
+    db_port: 3306,
+    db_name: 'test',
+    db_user: 'root',
+    db_pwd: '',
+    db_prefix: 'think_',
+    db_charset: 'utf8'
+};
+//加载模型类
+const User = thinkorm.require(require.resolve('../exmple/model/User'));
+
+thinkorm.define(User, config);
+
+//实例化模型
+const model = new User(config);
+
+return model.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).alias('test').select().then(res => {
+    console.log(res);
+});
+```
+
 
 ## 计划
 
+* SQLite3 Adapter
 * Oracle Adapter
 * MongoDB Adapter
 

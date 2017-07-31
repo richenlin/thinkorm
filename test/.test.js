@@ -48,7 +48,7 @@ thinkorm.define(UserGroup, config);
 // thinkorm.migrate(config);
 
 //实例化模型
-var model = new User(config);
+const model = new User(config);
 
 //查询语言测试
 return model
