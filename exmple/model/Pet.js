@@ -23,7 +23,7 @@ module.exports = class extends thinkorm {
                 defaultsTo: ''
             },
             user: {
-                type: 'string',
+                type: 'integer',
                 defaultsTo: ''
             }
         };

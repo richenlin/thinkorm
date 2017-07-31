@@ -15,12 +15,12 @@ module.exports = class extends thinkorm {
         // 数据表字段信息
         this.fields = {
             userid: {
-                type: 'string',
+                type: 'integer',
                 index: true,
                 defaultsTo: ''
             },
             groupid: {
-                type: 'string',
+                type: 'integer',
                 index: true,
                 defaultsTo: ''
             }

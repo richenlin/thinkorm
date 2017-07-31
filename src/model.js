@@ -138,10 +138,10 @@ module.exports = class {
         //set db
         if (lib.isObject(forceNew)) {
             this.instances = forceNew;
-            return Promise.resolve(this);
+            return this;
         }
         if (this.instances && !forceNew) {
-            return Promise.resolve(this.instances);
+            return this.instances;
         }
         if (forceNew) {
             this.config.db_ext_config.forceNewNum = forceNewNum++;
@@ -194,7 +194,7 @@ module.exports = class {
                 this.options.rels = {};
                 let relationShip = relation.getRelations(this.modelName, this.config);
                 if (rels === true) {
-                    rels = relationShip;
+                    rels = Object.keys(relationShip);
                 } else if (!lib.isArray(rels)) {
                     rels = [];
                 }
@@ -392,7 +392,7 @@ module.exports = class {
             }
             let parsedOptions = await helper.parseOptions(this, options);
             // init db
-            let db = this.initDB();
+            let db = await this.initDB();
             // copy data
             let _data = lib.clone(data, true);
             _data = await this._beforeAdd(data, parsedOptions);
@@ -404,7 +404,7 @@ module.exports = class {
             _data[this.pk] = _data[this.pk] ? _data[this.pk] : result;
             //relation ship
             if (!lib.isEmpty(parsedOptions.rels)) {
-                await relation.postRelationData(db, this.config, parsedOptions, _data, data, 'ADD');
+                await relation.postRelationData(db, this.config, parsedOptions, _data[this.pk], data, 'ADD');
             }
             await this._afterAdd(_data, parsedOptions);
             return _data[this.pk] || 0;
@@ -468,7 +468,7 @@ module.exports = class {
                 return this.error('_OPERATION_WRONG_');
             }
             // init db
-            let db = this.initDB();
+            let db = await this.initDB();
             await this._beforeDelete(parsedOptions);
             let result = await db.delete(parsedOptions);
             await this._afterDelete(parsedOptions);
@@ -509,7 +509,7 @@ module.exports = class {
         try {
             let parsedOptions = await helper.parseOptions(this, options);
             // init db
-            let db = this.initDB();
+            let db = await this.initDB();
             // copy data
             let _data = lib.clone(data, true);
             _data = await this._beforeAdd(data, parsedOptions);
@@ -564,7 +564,7 @@ module.exports = class {
         try {
             let parsedOptions = await helper.parseOptions(this, options);
             // init db
-            let db = this.initDB();
+            let db = await this.initDB();
             //copy data
             let _data = { [field]: step };
             _data = await this._beforeUpdate(_data, parsedOptions);
@@ -593,7 +593,7 @@ module.exports = class {
         try {
             let parsedOptions = await helper.parseOptions(this, options);
             // init db
-            let db = this.initDB();
+            let db = await this.initDB();
             //copy data
             let _data = { [field]: step };
             _data = await this._beforeUpdate(_data, parsedOptions);
@@ -620,7 +620,7 @@ module.exports = class {
         try {
             let parsedOptions = await helper.parseOptions(this, options);
             // init db
-            let db = this.initDB();
+            let db = await this.initDB();
             let result = await db.count(field, parsedOptions);
             return result || 0;
         } catch (e) {
@@ -639,7 +639,7 @@ module.exports = class {
         try {
             let parsedOptions = await helper.parseOptions(this, options);
             // init db
-            let db = this.initDB();
+            let db = await this.initDB();
             let result = await db.sum(field, parsedOptions);
             return result || 0;
         } catch (e) {
@@ -657,7 +657,7 @@ module.exports = class {
         try {
             let parsedOptions = await helper.parseOptions(this, options);
             // init db
-            let db = this.initDB();
+            let db = await this.initDB();
             let result = await db.find(parsedOptions);
             result = await valid.parseData(db, (lib.isArray(result) ? result[0] : result) || {}, this.fields, parsedOptions);
             if (!lib.isEmpty(parsedOptions.rels)) {
@@ -691,7 +691,7 @@ module.exports = class {
         try {
             let parsedOptions = await helper.parseOptions(this, options);
             // init db
-            let db = this.initDB();
+            let db = await this.initDB();
             let result = await db.select(parsedOptions);
             result = await valid.parseData(db, result || [], this.fields, parsedOptions);
             if (!lib.isEmpty(parsedOptions.rels)) {
@@ -750,7 +750,7 @@ module.exports = class {
     async query(sqlStr) {
         try {
             // init db
-            let db = this.initDB();
+            let db = await this.initDB();
             let result = await db.native(this.tableName, sqlStr);
             return result;
         } catch (e) {
@@ -765,7 +765,7 @@ module.exports = class {
      */
     async transaction(fn) {
         //init db
-        let db = this.initDB(true);
+        let db = await this.initDB(true);
         try {
             await db.startTrans();
             let result = await helper.thinkco(fn(db));

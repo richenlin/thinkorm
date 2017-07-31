@@ -80,7 +80,7 @@ return model
 // .rel(true).add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
 // .where({id: 3}).rel(true).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})
 // .add({name: 'rrrrrrrrrrrrr',Pet: [{types: 'ssfsssss'}]})
-// .where({id: 1}).rel(true).update({name: 'ttrrrrrtttt',Pet: [{id: 1,types: 'ttttttt'}]})
+// .where({id: 2}).rel(true).update({name: 'ttrrrrrtttt',Pet: [{id: 2,types: 'ttttttt'}]})
 // .where({id: 1}).rel(true).update({name: 'ttrrrrrtttt',Pet: [{types: 'ttttttt'}]})
 // .rel(true).add({name: 'rrrrrrrrrrr',Group: [{name: 'ssfsssss', type: ''}]})
 // .where({id: 1}).rel(true).update({name: 'ttttrrrrrtt',Group: [{id: 1,name: 'ttttttt'}]})
@@ -88,9 +88,9 @@ return model
 // .where({id: 1}).rel(true).update({name: 'ttttrrrrrtt',Group: [{userid: 115, groupid: 15}]})
 // .query('select * from think_user where id = 1')
 // .where({id:1}).increment('num', 1)
-//     .where({id:1}).decrement('num', 1)
+    // .where({id:1}).decrement('num', 1)
 
-//.add({name: 'qqqesddfsdqqq'})
+// .add({name: 'qqqesddfsdqqq'})
 
 .then(res => {
     echo(res);

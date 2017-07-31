@@ -24,9 +24,9 @@ module.exports = class extends thinkorm {
                 defaultsTo: ''
             },
             profile: {
-                type: 'string',
+                type: 'integer',
                 index: true,
-                defaultsTo: ''
+                defaultsTo: 0
             },
             num: {
                 type: 'integer',

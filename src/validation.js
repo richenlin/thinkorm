@@ -330,7 +330,7 @@ const ruleCheck = function (name, value, extra, method) {
  * @returns 
  */
 const validData = function (adapter, fields, data, vaildRules, options, method = '') {
-    let dataCheckFlag = false, ruleCheckFlag = false, result = { status: 1, msg: '' };
+    let dataCheckFlag = false, ruleCheckFlag = false, result = { status: 1, msg: '' }, rdata = {};
     for (let field in fields) {
         if (method === 'ADD') { //新增数据add
             if (lib.isEmpty(data[field]) && (fields[field].defaultsTo !== undefined && fields[field].defaultsTo !== null)) {
@@ -369,8 +369,10 @@ const validData = function (adapter, fields, data, vaildRules, options, method =
         if (adapter.__checkData && data[field]) {
             data[field] = adapter.validData(data[field], (fields[field].type || 'string'));
         }
+        //新赋值剔除多余字段
+        data.hasOwnProperty(field) && (rdata[field] = data[field]);
     }
-    return data;
+    return rdata;
 };
 
 /**
@@ -383,7 +385,7 @@ const validData = function (adapter, fields, data, vaildRules, options, method =
  * @returns 
  */
 const parseData = function (adapter, data, fields, options) {
-    if (adapter.parseData){
+    if (adapter.parseData) {
         return adapter.parseData(data, fields);
     }
     return data;
