@@ -57,7 +57,8 @@ module.exports = class relation {
                     rkey: relations[n].rkey, //hasone子表主键,hasmany子表外键,manytomany map表子外键
 
                     primaryPk: cls.pk, //主表主键
-                    primaryName: cls.modelName//主模型名称
+                    primaryName: cls.modelName, //主模型名称
+                    primaryModel: __thinkorm.collections[name] //主模型
                 };
                 //MANYTOMANY map
                 if (type === 'MANYTOMANY') {
@@ -66,7 +67,7 @@ module.exports = class relation {
                         throw Error(`Collection ${mapName} is undefined.`);
                         // return null;
                     }
-                    __thinkorm.collections[name].relationShip[n].mapModel = mapName;
+                    __thinkorm.collections[name].relationShip[n].mapName = mapName;
                     __thinkorm.collections[name].relationShip[n].mapModel = __thinkorm.collections[mapName];
                 }
             }
@@ -115,14 +116,14 @@ module.exports = class relation {
                 if (rtype && rtype in caseList) {
                     if (lib.isArray(data)) {
                         for (let [k, v] of data.entries()) {
-                            ps.push(caseList[rtype](config, rels[n], data[k]).then(res => {
+                            ps.push(caseList[rtype](config, options, rels[n], data[k]).then(res => {
                                 data[k][rels[n].name] = res;
                             }));
                             //data[k][rels[n]['name']] = await caseList[rtype](config, rels[n], data[k]);
                         }
                         await Promise.all(ps);
                     } else {
-                        data[rels[n].name] = await caseList[rtype](config, rels[n], data);
+                        data[rels[n].name] = await caseList[rtype](config, options, rels[n], data);
                     }
                 }
             }
@@ -135,25 +136,27 @@ module.exports = class relation {
      * 
      * @static
      * @param {any} adapter 
-     * @param {any} result 
      * @param {any} config 
      * @param {any} options 
+     * @param {any} result 
      * @param {any} data 
      * @param {any} postType 
+     * @returns 
      */
-    static async postRelationData(adapter, result, config, options, data, postType) {
+    static async postRelationData(adapter, config, options, result, data, postType) {
         let caseList = {
-                'HASONE': adapter.postHasOneRelation,
-                'HASMANY': adapter.postHasManyRelation,
-                'MANYTOMANY': adapter.postManyToManyRelation
-            }, ps = [];
+            'HASONE': adapter.postHasOneRelation,
+            'HASMANY': adapter.postHasManyRelation,
+            'MANYTOMANY': adapter.postManyToManyRelation
+        };
+        let ps = [];
         if (!lib.isEmpty(result)) {
             let rels = options.rels, rtype, relationData = null;
             for (let n in rels) {
                 rtype = rels[n] && rels[n].type ? rels[n].type : null;
                 relationData = rels[n] && data[n] ? data[n] : null;
                 if (rtype && relationData && rtype in caseList) {
-                    ps.push(caseList[rtype](config, result, options, rels[n], relationData, postType));
+                    ps.push(caseList[rtype](config, options, rels[n], result, relationData, postType));
                 }
             }
         }

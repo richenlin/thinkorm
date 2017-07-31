@@ -194,13 +194,14 @@ module.exports = class {
                 this.options.rels = {};
                 let relationShip = relation.getRelations(this.modelName, this.config);
                 if (rels === true) {
-                    this.options.rels = relationShip;
-                } else if (lib.isArray(rels)) {
-                    for (let i = 0, len = rels.length; i < len; i++) {
-                        this.options.rels[rels[i]] = relationShip[rels[i]];
-                    }
+                    rels = relationShip;
+                } else if (!lib.isArray(rels)) {
+                    rels = [];
                 }
-                this.options.relsOption = options;
+                for (let i = 0, len = rels.length; i < len; i++) {
+                    this.options.rels[rels[i]] = relationShip[rels[i]] || {};
+                    this.options.rels[rels[i]].options = options[rels[i]] || {};
+                }
             }
             return this;
         } catch (e) {
@@ -403,7 +404,7 @@ module.exports = class {
             _data[this.pk] = _data[this.pk] ? _data[this.pk] : result;
             //relation ship
             if (!lib.isEmpty(parsedOptions.rels)) {
-                await relation.postRelationData(db, _data, this.config, parsedOptions, data, 'ADD');
+                await relation.postRelationData(db, this.config, parsedOptions, _data, data, 'ADD');
             }
             await this._afterAdd(_data, parsedOptions);
             return _data[this.pk] || 0;
@@ -532,7 +533,7 @@ module.exports = class {
             }
             let result = await db.update(_data, parsedOptions);
             if (!lib.isEmpty(parsedOptions.rels)) {
-                await relation.postRelationData(db, result, this.config, parsedOptions, data, 'UPDATE');
+                await relation.postRelationData(db, this.config, parsedOptions, result, data, 'UPDATE');
             }
             await this._afterUpdate(_data, parsedOptions);
             return result || [];
@@ -659,7 +660,7 @@ module.exports = class {
             let db = this.initDB();
             let result = await db.find(parsedOptions);
             result = await valid.parseData(db, (lib.isArray(result) ? result[0] : result) || {}, this.fields, parsedOptions);
-            if (!lib.isEmpty(parsedOptions.rel)) {
+            if (!lib.isEmpty(parsedOptions.rels)) {
                 result = await relation.getRelationData(db, this.config, parsedOptions, result);
             }
             await this._afterFind(result, parsedOptions);
@@ -693,7 +694,7 @@ module.exports = class {
             let db = this.initDB();
             let result = await db.select(parsedOptions);
             result = await valid.parseData(db, result || [], this.fields, parsedOptions);
-            if (!lib.isEmpty(parsedOptions.rel)) {
+            if (!lib.isEmpty(parsedOptions.rels)) {
                 result = await relation.getRelationData(db, this.config, parsedOptions, result);
             }
             await this._afterSelect(result, parsedOptions);
