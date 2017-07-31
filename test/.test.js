@@ -38,11 +38,11 @@ const UserGroup = thinkorm.require(require.resolve('../exmple/model/UserGroup'))
 // const UserGroup = require('../exmple/model/lib/UserGroup').default;
 
 //加载模型类
-thinkorm.define(User, config);
-thinkorm.define(Profile, config);
-thinkorm.define(Pet, config);
-thinkorm.define(Group, config);
-thinkorm.define(UserGroup, config);
+thinkorm.setCollection(User, config);
+thinkorm.setCollection(Profile, config);
+thinkorm.setCollection(Pet, config);
+thinkorm.setCollection(Group, config);
+thinkorm.setCollection(UserGroup, config);
 
 //数据结构迁移
 // thinkorm.migrate(config);
@@ -70,7 +70,7 @@ return model
 // .where({'operator': {id: {'<>': 1, '>=': 0}}}).find()//operator做key
 // .select({field: 'id', limit: 1, order: {id: 'desc'}, where: {name: {'<>': '', not: 'aa', notin: ['aa', 'rrr'], like: '%a'}}}) //options高级用法
 
-// .where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).alias('test').select()
+.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).alias('test').select()
 // .countSelect()
 // .join([{from: 'Profile', alias: 'pfile', on: {or: [{profile: 'id'}], profile: 'id'}, field: ['id as aid', 'test'], type: 'left'}]).find({field: ['id']})
 // .field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).countSelect({field: ['name', 'num']})

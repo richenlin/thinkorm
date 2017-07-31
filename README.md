@@ -90,11 +90,11 @@ const config = {
     db_prefix: 'think_',
     db_charset: 'utf8'
 };
-//加载模型类
+
+//thinkorm.require 入参为文件绝对路径
 const User = thinkorm.require(require.resolve('../exmple/model/User'));
-
-thinkorm.define(User, config);
-
+//加载模型类
+thinkorm.setCollection(User, config);
 //实例化模型
 const model = new User(config);
 

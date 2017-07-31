@@ -51,7 +51,7 @@ module.exports = class {
      * @param args
      * @returns {*}
      */
-    static define(...args) {
+    static setCollection(...args) {
         return schema.setCollection(...args);
     }
 
