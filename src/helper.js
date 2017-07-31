@@ -66,17 +66,19 @@ module.exports = {
      * @param {any} [extraOptions={}] 
      * @returns 
      */
-    parseOptions: function (model, oriOpts, extraOptions = {}) {
-        let options = {};
+    parseOptions: async function (model, oriOpts, extraOptions = {}) {
+        let options = {}, parsed = {};
         //解析扩展写法参数
         if (lib.isObject(oriOpts)) {
             let parseCase = { alias: 1, field: 1, where: 1, limit: 1, order: 1, group: 1, join: 1, rel: 1 };
             for (let n in oriOpts) {
                 if (parseCase[n]) {
-                    options = lib.extend(options, model[n](oriOpts[n]));
+                    parsed = await model[n](oriOpts[n]);
+                    options = lib.extend(options, parsed);
                 }
             }
         }
+        options = lib.extend(model.options, options);
         if (!lib.isEmpty(extraOptions)) {
             options = lib.extend(options, extraOptions);
         }

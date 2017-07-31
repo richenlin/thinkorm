@@ -5,9 +5,9 @@
  * @license    MIT
  * @version    16/8/18
  */
-import thinkorm from '../../../index';
+const thinkorm = require('../../index.js');
 
-export default class extends thinkorm{
+module.exports = class extends thinkorm {
     init(config){
         super.init(config);
         // 是否开启迁移(migrate方法可用)
@@ -56,8 +56,8 @@ export default class extends thinkorm{
         };
         // 关联关系
         this.relation = {
-            Profile : {
-                type: 'hasone',//关联方式
+            Profile: {
+                type: 'hasone', //关联方式
                 //field: ['test', 'id'],//关联表字段
                 fkey: 'profile', //主表外键 (子表主键)
                 rkey: 'id' //子表主键
@@ -65,16 +65,16 @@ export default class extends thinkorm{
             Pet: {
                 type: 'hasmany',
                 //field: ['types','user', 'id'],
-                fkey: '',//hasmany关联此值没用
+                fkey: '', //hasmany关联此值没用
                 rkey: 'user'//子表外键 (主表主键)
             },
             Group: {
                 type: 'manytomany',
                 //field: ['name', 'type', 'id'],
-                fkey: 'userid',//map外键(主表主键)
-                rkey: 'groupid',//map外键(子表主键)
+                fkey: 'userid', //map外键(主表主键)
+                rkey: 'groupid', //map外键(子表主键)
                 map: 'UserGroup'//map模型名称
             }
         };
     }
-}
+};

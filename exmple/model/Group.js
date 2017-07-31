@@ -5,9 +5,9 @@
  * @license    MIT
  * @version    16/8/18
  */
-import thinkorm from '../../../index';
+const thinkorm = require('../../index.js');
 
-export default class extends thinkorm{
+module.exports = class extends thinkorm {
     init(config){
         super.init(config);
         // 是否自动迁移(默认安全模式)
@@ -18,11 +18,11 @@ export default class extends thinkorm{
                 type: 'integer',
                 primaryKey: true
             },
-            types: {
+            name: {
                 type: 'string',
                 defaultsTo: ''
             },
-            user: {
+            type: {
                 type: 'string',
                 defaultsTo: ''
             }
@@ -32,4 +32,4 @@ export default class extends thinkorm{
         // 关联关系
         this.relation = {};
     }
-}
+};

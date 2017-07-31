@@ -5,21 +5,24 @@
  * @license    MIT
  * @version    16/8/18
  */
-import thinkorm from '../../../index';
+const thinkorm = require('../../index.js');
 
-export default class extends thinkorm{
+module.exports = class extends thinkorm {
     init(config){
         super.init(config);
         // 是否自动迁移(默认安全模式)
         this.safe = false;
         // 数据表字段信息
         this.fields = {
-            id: {
-                type: 'integer',
-                primaryKey: true
+            userid: {
+                type: 'string',
+                index: true,
+                defaultsTo: ''
             },
-            test: {
-                type: 'json'
+            groupid: {
+                type: 'string',
+                index: true,
+                defaultsTo: ''
             }
         };
         // 数据验证
@@ -27,4 +30,4 @@ export default class extends thinkorm{
         // 关联关系
         this.relation = {};
     }
-}
+};

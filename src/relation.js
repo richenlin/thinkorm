@@ -39,16 +39,16 @@ module.exports = class relation {
         if (!__thinkorm.collections[name]) {
             throw Error(`Collections ${name} is undefined.`);
         }
-        let relations = __thinkorm.collections[name].relation;
         __thinkorm.collections[name].relationShip = {};
+        let cls = new (__thinkorm.collections[name])(config);
+        let relations = cls.relation;
         if (!lib.isEmpty(relations)) {
-            let cls = new (__thinkorm.collections[name])(config);
             for (let n in relations) {
                 if (!__thinkorm.collections[n]) {
                     throw Error(`Collection ${n} is undefined.`);
                 }
                 let type = parseType(relations[n].type);
-                __thinkorm.collections[name].relationShip = {
+                __thinkorm.collections[name].relationShip[n] = {
                     type: type, //关联方式
                     name: n, //关联模型名称
                     model: __thinkorm.collections[n], //关联模型

@@ -27,18 +27,22 @@ const config = {
 };
 
 //thinkorm.require需要使用绝对路径
-const User = require('../exmple/model/lib/User').default;
+const User = thinkorm.require(require.resolve('../exmple/model/User'));
+const Profile = thinkorm.require(require.resolve('../exmple/model/Profile'));
+const Pet = thinkorm.require(require.resolve('../exmple/model/Pet'));
+const Group = thinkorm.require(require.resolve('../exmple/model/Group'));
+const UserGroup = thinkorm.require(require.resolve('../exmple/model/UserGroup'));
 // const Profile = require('../exmple/model/lib/Profile').default;
 // const Pet = require('../exmple/model/lib/Pet').default;
 // const Group = require('../exmple/model/lib/Group');
 // const UserGroup = require('../exmple/model/lib/UserGroup').default;
 
 //加载模型类
-thinkorm.setCollection(User, config);
-// thinkorm.setCollection(Profile, config);
-// thinkorm.setCollection(Pet, config);
-// thinkorm.setCollection(Group, config);
-// thinkorm.setCollection(UserGroup, config);
+thinkorm.define(User, config);
+thinkorm.define(Profile, config);
+thinkorm.define(Pet, config);
+thinkorm.define(Group, config);
+thinkorm.define(UserGroup, config);
 
 //数据结构迁移
 // thinkorm.migrate(config);
@@ -48,7 +52,7 @@ var model = new User(config);
 
 //查询语言测试
 return model
-.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
+// .where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
 // .where({or: [{name: {'like': '%aa%'}}, {memo: {'like': '%aa%'}}]}).find()
 // .where({id: {'>=': 0}}).count()
 // .where({id: {'>=': 0}}).sum('id')
@@ -72,7 +76,7 @@ return model
 // .field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).countSelect({field: ['name', 'num']})
 //     .select({field: ['id','name'], join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['Profile.id as pid', 'test'], type: 'left'}]})
 // .field(['id', 'name']).where({id: {'>=': 0}}).group('name').countSelect()
-// .rel(true).find()
+.rel(true).find()
 // .rel(true).add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
 // .where({id: 3}).rel(true).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})
 // .add({name: 'rrrrrrrrrrrrr',Pet: [{types: 'ssfsssss'}]})
