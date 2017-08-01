@@ -168,7 +168,7 @@ module.exports = class {
             if (!this.pk) {
                 if (!lib.isEmpty(this.fields)) {
                     for (let v in this.fields) {
-                        if (this.fields[v].hasOwnProperty('primaryKey') && this.fields[v].primaryKey) {
+                        if (this.fields[v].primaryKey !== undefined && this.fields[v].primaryKey) {
                             this.pk = v;
                         }
                     }
