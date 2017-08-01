@@ -78,21 +78,21 @@ const logger = function (msg, type, showTime, debug) {
             type = 'ERROR';
             message = msg.stack;
             //判断console.xxx是否被重写
-            ('prototype' in console.error) && console.error(message);
+            // ('prototype' in console.error) && console.error(message);
         } else if (type === 'ERROR') {
             type = 'ERROR';
             if (!lib.isString(msg)) {
                 message = JSON.stringify(msg);
             }
             //判断console.xxx是否被重写
-            ('prototype' in console.error) && console.error(message);
+            // ('prototype' in console.error) && console.error(message);
         } else if (type === 'WARNING') {
             type = 'WARNING';
             if (!lib.isString(msg)) {
                 message = JSON.stringify(msg);
             }
             //判断console.xxx是否被重写
-            ('prototype' in console.warn) && console.warn(message);
+            // ('prototype' in console.warn) && console.warn(message);
         } else {
             if (!lib.isString(msg)) {
                 message = JSON.stringify(msg);
@@ -103,7 +103,7 @@ const logger = function (msg, type, showTime, debug) {
             }
             type = type || 'INFO';
             //判断console.xxx是否被重写
-            ('prototype' in console.info) && console.info(message);
+            // ('prototype' in console.info) && console.info(message);
         }
         return show(type, [message]);
     }
