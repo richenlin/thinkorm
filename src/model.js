@@ -195,6 +195,8 @@ module.exports = class {
                 let relationShip = relation.getRelations(this.modelName, this.config);
                 if (rels === true) {
                     rels = Object.keys(relationShip);
+                } else if (lib.isString(rels)) {
+                    rels = rels.replace(/ +/g, '').split(',');
                 } else if (!lib.isArray(rels)) {
                     rels = [];
                 }
@@ -220,9 +222,9 @@ module.exports = class {
             if (!field) {
                 return this;
             }
-            // if (lib.isString(field)) {
-            //     field = field.replace(/ +/g, '').split(',');
-            // }
+            if (lib.isString(field)) {
+                field = field.replace(/ +/g, '').split(',');
+            }
             if (lib.isArray(field)) {
                 this.options.field = this.options.field ? lib.extend(this.options.field, field) : field;
             }
