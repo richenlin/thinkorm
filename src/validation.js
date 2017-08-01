@@ -366,7 +366,7 @@ const validData = function (adapter, fields, data, vaildRules, options, method =
             }
         }
         //处理数据源特殊字段
-        if (adapter.__checkData && data[field]) {
+        if (adapter.validData && data[field]) {
             data[field] = adapter.validData(data[field], (fields[field].type || 'string'));
         }
         //新赋值剔除多余字段

@@ -514,7 +514,7 @@ module.exports = class {
             let db = await this.initDB();
             // copy data
             let _data = lib.clone(data, true);
-            _data = await this._beforeAdd(data, parsedOptions);
+            _data = await this._beforeUpdate(data, parsedOptions);
             _data = valid.validData(db, this.fields, _data, this.validations, parsedOptions, 'UPDATE');
             if (lib.isEmpty(_data)) {
                 throw Error('_DATA_TYPE_INVALID_');
