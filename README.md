@@ -54,7 +54,7 @@ PostgreSQL adapter for thinkorm 2.x.
 
 MongoDB adapter for thinkorm 2.x.
 
-* [thinkorm_adapter_sqllite3](https://github.com/thinkkoa/thinkorm_adapter_sqllite3) (×未完成)
+* [thinkorm_adapter_sqlite3](https://github.com/thinkkoa/thinkorm_adapter_sqlite3) (×未完成)
 
 SQLite3 adapter for thinkorm 2.x.
 
