@@ -285,6 +285,7 @@ module.exports = class {
      * 
      * limit(1)
      * limit(10, 20)
+     * limit([10, 10])
      * @param {any} skip 
      * @param {any} limit 
      * @returns 
@@ -295,8 +296,13 @@ module.exports = class {
                 skip = 0;
             }
             if (skip && limit === undefined) {
-                skip = 0;
-                limit = skip;
+                if (lib.isArray(skip)) {
+                    limit = skip[1];
+                    skip = skip[0];
+                } else {
+                    skip = 0;
+                    limit = skip;
+                }
             }
             if (limit === undefined) {
                 limit = 1;
@@ -724,19 +730,17 @@ module.exports = class {
      */
     async countSelect(options) {
         try {
-            let parsedOptions = await helper.parseOptions(this, options);
-            let countNum = await this.count(null, parsedOptions);
+            let countNum = await this.count(null, options);
             let pageOptions = helper.parsePage(options.page, options.num) || { page: 1, num: 10 };
             let totalPage = Math.ceil(countNum / pageOptions.num);
             if (pageOptions.page > totalPage) {
                 pageOptions.page = totalPage;
             }
-            parsedOptions.page = [pageOptions.page, pageOptions.num];
             //传入分页参数
             let offset = (pageOptions.page - 1) < 0 ? 0 : (pageOptions.page - 1) * pageOptions.num;
-            parsedOptions.limit = [offset, pageOptions.num];
+            options.limit = [offset, pageOptions.num];
             let result = lib.extend({ count: countNum, total: totalPage }, pageOptions);
-            result.data = await this.select(parsedOptions);
+            result.data = await this.select(options);
             return result;
         } catch (e) {
             return this.error(e);
