@@ -671,7 +671,7 @@ module.exports = class {
             if (!lib.isEmpty(parsedOptions.rels)) {
                 result = await relation.getRelationData(db, this.config, parsedOptions, result);
             }
-            await this._afterFind(result, parsedOptions);
+            result = await this._afterFind(result, parsedOptions);
             return result;
         } catch (e) {
             return this.error(e);
@@ -705,7 +705,7 @@ module.exports = class {
             if (!lib.isEmpty(parsedOptions.rels)) {
                 result = await relation.getRelationData(db, this.config, parsedOptions, result);
             }
-            await this._afterSelect(result, parsedOptions);
+            result = await this._afterSelect(result, parsedOptions);
             return result;
         } catch (e) {
             return this.error(e);
@@ -730,7 +730,10 @@ module.exports = class {
      */
     async countSelect(options) {
         try {
-            let countNum = await this.count(null, options);
+            let parsedOptions = await helper.parseOptions(this, options);
+            // init db
+            let db = await this.initDB();
+            let countNum = await db.count(null, parsedOptions);
             let pageOptions = helper.parsePage(options.page, options.num) || { page: 1, num: 10 };
             let totalPage = Math.ceil(countNum / pageOptions.num);
             if (pageOptions.page > totalPage) {
@@ -738,9 +741,15 @@ module.exports = class {
             }
             //传入分页参数
             let offset = (pageOptions.page - 1) < 0 ? 0 : (pageOptions.page - 1) * pageOptions.num;
-            options.limit = [offset, pageOptions.num];
+            parsedOptions.limit = [offset, pageOptions.num];
             let result = lib.extend({ count: countNum, total: totalPage }, pageOptions);
-            result.data = await this.select(options);
+
+            result.data = await db.select(parsedOptions);
+            result.data = await valid.parseData(db, result.data || [], this.fields, parsedOptions);
+            if (!lib.isEmpty(parsedOptions.rels)) {
+                result.data = await relation.getRelationData(db, this.config, parsedOptions, result.data);
+            }
+            result.data = await this._afterSelect(result.data, parsedOptions);
             return result;
         } catch (e) {
             return this.error(e);

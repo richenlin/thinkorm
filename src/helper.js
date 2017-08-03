@@ -67,21 +67,16 @@ module.exports = {
      * @returns 
      */
     parseOptions: async function (model, oriOpts, extraOptions = {}) {
-        let options = {}, parsed = {};
         //解析扩展写法参数
         if (lib.isObject(oriOpts)) {
             let parseCase = { alias: 1, field: 1, where: 1, limit: 1, order: 1, group: 1, join: 1, rel: 1 };
             for (let n in oriOpts) {
                 if (parseCase[n]) {
-                    parsed = await model[n](oriOpts[n]);
-                    options = lib.extend(options, parsed);
+                    await model[n](oriOpts[n]);
                 }
             }
         }
-        options = lib.extend(model.options, options);
-        if (!lib.isEmpty(extraOptions)) {
-            options = lib.extend(options, extraOptions);
-        }
+        let options = lib.extend(model.options, extraOptions || {}, true);
         //清空model.options,避免影响下次查询
         model.options = {};
         //获取表名
