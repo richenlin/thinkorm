@@ -61,7 +61,7 @@ module.exports = class {
      * @returns {*|{get}}
      */
     static migrate(...args) {
-        return schema.migrate(...args);
+        return helper.migrate(...args);
     }
 
     /**
@@ -138,10 +138,10 @@ module.exports = class {
         //set db
         if (lib.isObject(forceNew)) {
             this.instances = forceNew;
-            return this;
+            return Promise.resolve(forceNew);
         }
         if (this.instances && !forceNew) {
-            return this.instances;
+            return Promise.resolve(this.instances);
         }
         if (forceNew) {
             this.config.db_ext_config.forceNewNum = forceNewNum++;
@@ -155,7 +155,7 @@ module.exports = class {
         if (!this.instances) {
             return this.error(`Adapter initialize error`);
         }
-        return this.instances;
+        return Promise.resolve(this.instances);
     }
 
     /**

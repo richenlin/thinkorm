@@ -88,5 +88,26 @@ module.exports = {
         //模型主键
         options.pk = model.pk;
         return options;
+    },
+
+    /**
+     * auto migrate all model structure to database
+     * 
+     * @static
+     * @param {any} config 
+     * @returns 
+     */
+    migrate: function (config) {
+        let instance, ps = [];
+        for (let n in __thinkorm.collections) {
+            instance = new (__thinkorm.collections[n])(config);
+            if (instance.safe === false) {
+                /*eslint-disable no-loop-func*/
+                ps.push(instance.initDB().then(db => {
+                    return db.migrate(__thinkorm.collections[n].schema, config);
+                }));
+            }
+        }
+        return Promise.all(ps);
     }
 };
