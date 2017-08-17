@@ -32,10 +32,6 @@ const Profile = thinkorm.require(require.resolve('../exmple/model/Profile'));
 const Pet = thinkorm.require(require.resolve('../exmple/model/Pet'));
 const Group = thinkorm.require(require.resolve('../exmple/model/Group'));
 const UserGroup = thinkorm.require(require.resolve('../exmple/model/UserGroup'));
-// const Profile = require('../exmple/model/lib/Profile').default;
-// const Pet = require('../exmple/model/lib/Pet').default;
-// const Group = require('../exmple/model/lib/Group');
-// const UserGroup = require('../exmple/model/lib/UserGroup').default;
 
 //加载模型类
 thinkorm.setCollection(User, config);
@@ -49,6 +45,7 @@ thinkorm.setCollection(UserGroup, config);
 
 //实例化模型
 const model = new User(config);
+
 
 //查询语言测试
 return model
