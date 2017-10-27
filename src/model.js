@@ -7,10 +7,10 @@
  */
 const path = require('path');
 const lib = require('think_lib');
+const logger = require('think_logger');
 const adapter = require('./adapter.js');
 const schema = require('./schema.js');
 const helper = require('./helper.js');
-const logger = require('./logger.js');
 const relation = require('./relation.js');
 const valid = require('./validation.js');
 
@@ -70,7 +70,14 @@ module.exports = class {
      * @return {}      []
      */
     init(config = {}) {
-
+        // 是否开启迁移(migrate方法可用)
+        this.safe = true;
+        // 数据表字段信息
+        this.fields = {};
+        // 数据验证
+        this.validations = {};
+        // 关联关系
+        this.relation = {};
     }
 
     /**
@@ -91,7 +98,7 @@ module.exports = class {
             if (~stack.indexOf('connect') || ~stack.indexOf('refused')) {
                 this.instances && this.instances.close && this.instances.close();
             }
-            logger(msg, 'ERROR');
+            logger.error(msg);
         }
         return Promise.reject(msg);
     }
