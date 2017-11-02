@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/richenlin/thinkorm.git"
+    "url": "git+https://github.com/thinkkoa/thinkorm.git"
   },
   "author": "richenlin",
   "license": "MIT",
