@@ -8,8 +8,7 @@
 'use strict';
 //rewite promise, bluebird is much faster
 global.Promise = require('bluebird');
-require('babel-runtime/core-js/promise').default = Promise;
 //define orm object
-global.__thinkorm = Object.create({});
+global.__thinkorm = Object.create(null);
 //export
 module.exports = require('./lib/model.js');

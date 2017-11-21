@@ -1,9 +1,11 @@
 // 官方文档 http://eslint.org/docs/rules/
 {
-  "parser": "babel-eslint",
+  "parserOptions": {
+    "ecmaVersion" : 8
+  },
   "env": {
-    "node": true,
-    "es6": true
+    "es6": true,
+    "node": true
   },
   // "extends": "eslint:recommended",
 
@@ -20,7 +22,7 @@
     "brace-style": [2, "1tbs"],
 
     // 变量命名规则
-    "camelcase": [2, { "properties": "never" }],
+    "camelcase": [0, { "properties": "never" }],
 
     // 逗号后使用空格
     "comma-spacing": 2,
@@ -39,7 +41,7 @@
 
     // 属性读取方式
     // `foo['bar'] -> foo.bar`
-    "dot-notation": [2, { "allowKeywords": true }],
+    "dot-notation": [1, { "allowKeywords": true }],
 
     // 要求或禁止文件末尾保留一行空行
     "eol-last": 0,
@@ -177,7 +179,7 @@
     "no-trailing-spaces": 0,
 
     //在构造函数中禁止在调用super()之前使用this或super
-    "no-this-before-super": 2,
+    "no-this-before-super": 2, 
 
     //禁用未声明的变量
     "no-undef": 2,
@@ -186,7 +188,7 @@
     "no-underscore-dangle": 0,
 
     //禁止在 return、throw、continue 和 break 语句后出现不可达代码
-    "no-unreachable": 1,
+    "no-unreachable": 1, 
 
     //禁止未使用过的变量
     "no-unused-vars": 1,
@@ -195,7 +197,7 @@
     "quotes": [2, "single", {"avoidEscape": true, "allowTemplateLiterals": true}],
 
     // 分号
-    "semi": [2, "always"],
+    "semi": [2, "always"],     
 
     //强制 typeof 表达式与有效的字符串进行比较
     "valid-typeof": 2,
@@ -204,6 +206,7 @@
     "yoda": 0
   },
   "globals": {
+    "echo": true,
     "__thinkorm": true
   }
 }

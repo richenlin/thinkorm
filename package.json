@@ -1,16 +1,13 @@
 {
   "name": "thinkorm",
-  "version": "2.0.7",
+  "version": "2.1.0",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "index.js",
   "scripts": {
     "test": "npm run eslint",
     "test-cov": "istanbul cover ./node_modules/mocha/bin/_mocha -- -t 50000 --recursive  -R spec test/",
-    "compile": "babel src -d lib",
-    "compile-test": "babel exmple/model/src -d exmple/model/lib",
-    "watch-compile": "npm run compile -- --watch",
-    "prepublish": "npm run compile && npm test",
-    "eslint": "eslint src/"
+    "prepublish": "npm test",
+    "eslint": "eslint lib/"
   },
   "repository": {
     "type": "git",
@@ -27,26 +24,21 @@
   },
   "homepage": "https://github.com/richenlin/thinkorm#readme",
   "engines": {
-    "node": ">6.0.0"
+    "node": ">8.0.0"
   },
   "devDependencies": {
-    "async": "^2.4.1",
-    "babel-cli": "^6.24.1",
-    "babel-core": "^6.24.1",
-    "babel-eslint": "^7.2.3",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-env": "^1.5.1",
-    "eslint": "^3.19.0",
-    "istanbul": "^0.4.5",
-    "mocha": "^3.4.2",
-    "muk": "^0.5.3"
+    "eslint": "^4.11.0",
+    "istanbul": "^1.1.0-alpha.1",
+    "mocha": "^4.0.1",
+    "muk": "^0.5.3",
+    "supertest": "^3.0.0",
+    "thinkorm_adapter_mysql": "^1.1.0"
   },
   "dependencies": {
-    "babel-runtime": "6.23.0",
-    "bluebird": "3.5.0",
+    "bluebird": "^3.5.1",
     "co": "4.6.0",
-    "think_lib": "^1.x.x",
-    "think_logger": "^1.x.x"
+    "think_lib": "^2.x.x",
+    "think_logger": "^2.x.x"
   },
   "maintainers": [
     {

@@ -10,6 +10,8 @@ const thinkorm = require('../../index.js');
 module.exports = class extends thinkorm {
     init(config){
         super.init(config);
+        // 模型名称
+        this.modelName = 'Pet';
         // 是否自动迁移(默认安全模式)
         this.safe = false;
         // 数据表字段信息
