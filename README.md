@@ -4,8 +4,6 @@
 
 ## 介绍
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/thinkkoa/thinkorm.svg)](https://greenkeeper.io/)
-
 A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 
 ThinkORM是一个可扩展轻量级的功能丰富的对象-关系映射的数据模型封装框架，使用Node.js实现。
