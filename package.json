@@ -32,7 +32,7 @@
     "mocha": "^4.0.1",
     "muk": "^0.5.3",
     "supertest": "^3.0.0",
-    "thinkorm_adapter_mysql": "^1.1.0"
+    "thinkorm_adapter_mysql": "^2.0.0"
   },
   "dependencies": {
     "bluebird": "^3.5.1",
