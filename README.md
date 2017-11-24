@@ -42,29 +42,29 @@ let info = await model.where({id: {'<>': 1, '>=': 0}, name: 'bb', or: [{name: 'a
 
 ## 扩展
 
-* [thinkorm_adapter_mysql](https://github.com/thinkkoa/thinkorm_adapter_mysql) (√已完成)
+* [thinkorm_adapter_mysql](https://github.com/thinkkoa/thinkorm_adapter_mysql)
 
-Mysql adapter for thinkorm 2.x. 
+Mysql adapter for thinkorm 2.x.  (√已完成)
 
-* [thinkorm_adapter_postgresql](https://github.com/thinkkoa/thinkorm_adapter_postgresql) (√已完成)
+* [thinkorm_adapter_postgresql](https://github.com/thinkkoa/thinkorm_adapter_postgresql) 
 
-PostgreSQL adapter for thinkorm 2.x.
+PostgreSQL adapter for thinkorm 2.x. (√已完成)
 
-* [thinkorm_adapter_mongodb](https://github.com/thinkkoa/thinkorm_adapter_mongodb) (×未完成)
+* [thinkorm_adapter_sqlite3](https://github.com/thinkkoa/thinkorm_adapter_sqlite3)
 
-MongoDB adapter for thinkorm 2.x.
+SQLite3 adapter for thinkorm 2.x. (√已完成)
 
-* [thinkorm_adapter_sqlite3](https://github.com/thinkkoa/thinkorm_adapter_sqlite3) (×未完成)
+* [thinkorm_adapter_mongodb](https://github.com/thinkkoa/thinkorm_adapter_mongodb)
 
-SQLite3 adapter for thinkorm 2.x.
+MongoDB adapter for thinkorm 2.x. (×未完成)
 
-* [thinkorm_adapter_oracle](https://github.com/thinkkoa/thinkorm_adapter_oracle) (×未完成)
+* [thinkorm_adapter_oracle](https://github.com/thinkkoa/thinkorm_adapter_oracle)
 
-Oracle adapter for thinkorm 2.x.
+Oracle adapter for thinkorm 2.x. (×未完成)
 
-* [thinkorm_adapter_mssql](https://github.com/thinkkoa/thinkorm_adapter_mssql) (×未完成)
+* [thinkorm_adapter_mssql](https://github.com/thinkkoa/thinkorm_adapter_mssql)
 
-MSSQL adapter for thinkorm 2.x.
+MSSQL adapter for thinkorm 2.x. (×未完成)
 
 
 
