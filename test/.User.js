@@ -5,11 +5,11 @@
  * @license    MIT
  * @version    16/8/18
  */
-const {relModel, helper} = require('../../index.js');
-const Profile = require('./Profile.js');
-const Pet = require('./Pet.js');
-const Group = require('./Group.js');
-const UserGroup = require('./UserGroup.js');
+const {relModel, helper} = require('../index.js');
+const Profile = require('./.Profile.js');
+const Pet = require('./.Pet.js');
+const Group = require('./.Group.js');
+const UserGroup = require('./.UserGroup.js');
 
 module.exports = class extends relModel {
     init(){

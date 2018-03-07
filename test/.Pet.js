@@ -5,13 +5,13 @@
  * @license    MIT
  * @version    16/8/18
  */
-const {relModel, helper} = require('../../index.js');
+const {relModel, helper} = require('../index.js');
 
 module.exports = class extends relModel {
     init(config){
         super.init(config);
         // 模型名称
-        this.modelName = 'Profile';
+        this.modelName = 'Pet';
         // 是否自动迁移(默认安全模式)
         this.safe = false;
         // 数据表字段信息
@@ -20,8 +20,13 @@ module.exports = class extends relModel {
                 type: 'integer',
                 primaryKey: true
             },
-            test: {
-                type: 'json'
+            types: {
+                type: 'string',
+                defaultsTo: ''
+            },
+            user: {
+                type: 'integer',
+                defaultsTo: ''
             }
         };
         // 数据验证

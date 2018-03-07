@@ -8,6 +8,7 @@
 const path = require('path');
 const thinkorm = require('../index.js');
 
+echo(thinkorm)
 const config = {
     db_type: 'mysql',
     //db_type: 'postgresql',
@@ -27,22 +28,17 @@ const config = {
 };
 process.env.NODE_ENV = 'development';
 //thinkorm.require需要使用绝对路径
-const User = (require('../exmple/model/User'));
-const Profile = (require('../exmple/model/Profile'));
-const Pet = (require('../exmple/model/Pet'));
-const Group = (require('../exmple/model/Group'));
-const UserGroup = (require('../exmple/model/UserGroup'));
-
-//加载模型类
-// thinkorm.setCollection(User, config);
-// thinkorm.setCollection(Profile, config);
-// thinkorm.setCollection(Pet, config);
-// thinkorm.setCollection(Group, config);
-// thinkorm.setCollection(UserGroup, config);
+const User = (require('./.User'));
 
 //数据结构迁移
-// thinkorm.migrate(config);
+// ```
+// //全局安装thinkkoa_cli
+// sudo npm i -g thinkkoa_cli
 
+// cd project_path
+
+// think migrate
+// ```
 //实例化模型
 const model = new User(config);
 
@@ -72,7 +68,7 @@ return model
 // .field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).countSelect({field: ['name', 'num']})
 //     .select({field: ['id','name'], join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['Profile.id as pid', 'test'], type: 'left'}]})
 // .field(['id', 'name']).where({id: {'>=': 0}}).group('name').countSelect()
-.rel(true, {Profile: {field: ['test']}, Group: {field: ['name']}}).countSelect()
+.rel(true, {Profile: {field: ['test']}, Group: {field: ['name']}}).find()
 // .rel(true).add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
 // .where({id: 3}).rel(true).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})
 // .add({name: 'rrrrrrrrrrrrr',Pet: [{types: 'ssfsssss'}]})

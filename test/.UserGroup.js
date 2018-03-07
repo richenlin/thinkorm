@@ -5,27 +5,25 @@
  * @license    MIT
  * @version    16/8/18
  */
-const {relModel, helper} = require('../../index.js');
+const {relModel, helper} = require('../index.js');
 
 module.exports = class extends relModel {
     init(config){
         super.init(config);
         // 模型名称
-        this.modelName = 'Group';
+        this.modelName = 'UserGroup';
         // 是否自动迁移(默认安全模式)
         this.safe = false;
         // 数据表字段信息
         this.fields = {
-            id: {
+            userid: {
                 type: 'integer',
-                primaryKey: true
-            },
-            name: {
-                type: 'string',
+                index: true,
                 defaultsTo: ''
             },
-            type: {
-                type: 'string',
+            groupid: {
+                type: 'integer',
+                index: true,
                 defaultsTo: ''
             }
         };
