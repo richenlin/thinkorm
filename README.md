@@ -59,7 +59,7 @@ const config = {
 };
 
 //class
-const User = class extends model{
+const User = class extends model {
     init(){
         //映射实体表 think_user
         this.modelName = 'User';
@@ -100,7 +100,7 @@ const User = class extends model{
 //实例化
 const model = new User(config);
 //查询多条记录
-return model.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).alias('test').select().then(res => {
+return model.where({id: {'>': 0,'<': 100}}).select().then(res => {
     console.log(res);
 });
 ```
