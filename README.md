@@ -45,7 +45,7 @@ npm install thinkorm --save
 ## 使用
 
 ```js
-const thinkorm = require('thinkorm');
+const {model, helper} = require('thinkorm');
 
 const config = {
     db_type: 'mysql', //support  postgresql,mysql...
@@ -58,8 +58,46 @@ const config = {
     db_charset: 'utf8'
 };
 
-const User = require('../exmple/model/User');
-//实例化模型
+//class
+const User = class extends model{
+    init(){
+        //映射实体表 think_user
+        this.modelName = 'User';
+        // 数据表字段信息
+        this.fields = {
+            id: {
+                type: 'integer',
+                primaryKey: true
+            },
+            name: {
+                type: 'string',
+                size: 30,
+                index: true,
+                defaultsTo: ''
+            },
+            profile: {
+                type: 'integer',
+                index: true,
+                defaultsTo: 0
+            },
+            num: {
+                type: 'integer',
+                index: true,
+                defaultsTo: 0
+            },
+            memo: {
+                type: 'text',
+                defaultsTo: ''
+            },
+            create_time: {
+                type: 'integer',
+                defaultsTo: 0
+            }
+        };
+    }
+};
+
+//实例化
 const model = new User(config);
 //查询多条记录
 return model.where({id: {'<>': 1, '>=': 2, '>': 0,'<': 100, '<=': 10}}).alias('test').select().then(res => {
