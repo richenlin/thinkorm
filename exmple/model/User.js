@@ -5,11 +5,14 @@
  * @license    MIT
  * @version    16/8/18
  */
-const thinkorm = require('../../index.js');
+const {relModel, helper} = require('../../index.js');
+const Profile = require('./Profile.js');
+const Pet = require('./Pet.js');
+const Group = require('./Group.js');
+const UserGroup = require('./UserGroup.js');
 
-module.exports = class extends thinkorm {
-    init(config){
-        super.init(config);
+module.exports = class extends relModel {
+    init(){
         // 模型名称
         this.modelName = 'User';
         // 是否开启迁移(migrate方法可用)
@@ -57,25 +60,28 @@ module.exports = class extends thinkorm {
             }
         };
         // 关联关系
-        this.relation = {
+        this.relations = {
             Profile: {
                 type: 'hasone', //关联方式
+                model: Profile, //子表模型
                 //field: ['test', 'id'],//关联表字段
                 fkey: 'profile', //主表外键 (子表主键)
                 rkey: 'id' //子表主键
             },
             Pet: {
                 type: 'hasmany',
+                model: Pet, //子表模型
                 //field: ['types','user', 'id'],
                 fkey: '', //hasmany关联此值没用
                 rkey: 'user'//子表外键 (主表主键)
             },
             Group: {
                 type: 'manytomany',
+                model: Group, //子表模型
                 //field: ['name', 'type', 'id'],
                 fkey: 'userid', //map外键(主表主键)
                 rkey: 'groupid', //map外键(子表主键)
-                map: 'UserGroup'//map模型名称
+                map: UserGroup//map模型
             }
         };
     }

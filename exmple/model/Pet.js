@@ -5,9 +5,9 @@
  * @license    MIT
  * @version    16/8/18
  */
-const thinkorm = require('../../index.js');
+const {relModel, helper} = require('../../index.js');
 
-module.exports = class extends thinkorm {
+module.exports = class extends relModel {
     init(config){
         super.init(config);
         // 模型名称

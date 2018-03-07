@@ -25,20 +25,20 @@ const config = {
     db_charset: 'utf8',
     db_ext_config: {safe: false, db_log_sql: true, db_pool_size: 10, read_write: false}
 };
-
+process.env.NODE_ENV = 'development';
 //thinkorm.require需要使用绝对路径
-const User = thinkorm.require(require.resolve('../exmple/model/User'));
-const Profile = thinkorm.require(require.resolve('../exmple/model/Profile'));
-const Pet = thinkorm.require(require.resolve('../exmple/model/Pet'));
-const Group = thinkorm.require(require.resolve('../exmple/model/Group'));
-const UserGroup = thinkorm.require(require.resolve('../exmple/model/UserGroup'));
+const User = (require('../exmple/model/User'));
+const Profile = (require('../exmple/model/Profile'));
+const Pet = (require('../exmple/model/Pet'));
+const Group = (require('../exmple/model/Group'));
+const UserGroup = (require('../exmple/model/UserGroup'));
 
 //加载模型类
-thinkorm.setCollection(User, config);
-thinkorm.setCollection(Profile, config);
-thinkorm.setCollection(Pet, config);
-thinkorm.setCollection(Group, config);
-thinkorm.setCollection(UserGroup, config);
+// thinkorm.setCollection(User, config);
+// thinkorm.setCollection(Profile, config);
+// thinkorm.setCollection(Pet, config);
+// thinkorm.setCollection(Group, config);
+// thinkorm.setCollection(UserGroup, config);
 
 //数据结构迁移
 // thinkorm.migrate(config);
@@ -48,7 +48,7 @@ const model = new User(config);
 
 //查询语言测试
 return model
-.where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
+// .where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
 // .where({or: [{name: {'like': '%aa%'}}, {memo: {'like': '%aa%'}}]}).find()
 // .where({id: {'>=': 0}}).count()
 // .where({id: {'>=': 0}}).sum('id')
@@ -61,7 +61,7 @@ return model
 
 // .where({id: {'<>': 1, '>=': 0, notin: [1,2,3]}, name: ['aa', 'rrrrrrr'], notin: {'id': [1,2,3], num: [1,2,3]}, not: {name: '', num: [1,2,3]}, memo: {'like': '%a'}, or: [{name: 'aa', id: 1}, {name: 'rrrrrrr', id: {'>': 1}}]}).find()
 // .where({'and': {id: 1, name: 'aa'}}).find()//and做key
-// .where({or: [{id: 1, name: {or: [{name: 'aa'}, {memo: 'aa'}]}}, {memo: 'aa'}]}).find()//or嵌套
+// .where({or: [{id: 1, name: {or: [{name: 'aa'}, {memo: 'aa'}]}}, {profile: 'aa'}]}).find()//or嵌套
 // .where({in: {id: [1,2,3], num: [2,3]}}).find()//in做key
 // .where({'operator': {id: {'<>': 1, '>=': 0}}}).find()//operator做key
 // .select({field: 'id', limit: 1, order: {id: 'desc'}, where: {name: {'<>': '', not: 'aa', notin: ['aa', 'rrr'], like: '%a'}}}) //options高级用法
@@ -72,7 +72,7 @@ return model
 // .field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).countSelect({field: ['name', 'num']})
 //     .select({field: ['id','name'], join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['Profile.id as pid', 'test'], type: 'left'}]})
 // .field(['id', 'name']).where({id: {'>=': 0}}).group('name').countSelect()
-// .rel(true, {Profile: {field: ['test'], where: {test: {"<>": ''}}}}).select()
+.rel(true, {Profile: {field: ['test']}, Group: {field: ['name']}}).countSelect()
 // .rel(true).add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
 // .where({id: 3}).rel(true).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})
 // .add({name: 'rrrrrrrrrrrrr',Pet: [{types: 'ssfsssss'}]})
@@ -90,6 +90,7 @@ return model
 
 .then(res => {
     echo(res);
+    process.exit();
 });
 
 

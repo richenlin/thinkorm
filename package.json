@@ -20,9 +20,9 @@
     "thinkorm"
   ],
   "bugs": {
-    "url": "https://github.com/richenlin/thinkorm/issues"
+    "url": "https://github.com/thinkkoa/thinkorm/issues"
   },
-  "homepage": "https://github.com/richenlin/thinkorm#readme",
+  "homepage": "https://github.com/thinkkoa/thinkorm#readme",
   "engines": {
     "node": ">8.0.0"
   },
@@ -37,6 +37,7 @@
   "dependencies": {
     "bluebird": "^3.5.1",
     "co": "4.6.0",
+    "liteq": "^0.0.7",
     "think_lib": "^2.x.x",
     "think_logger": "^2.x.x"
   },
