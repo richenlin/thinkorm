@@ -1,10 +1,10 @@
 {
   "name": "thinkorm",
-  "version": "2.1.1",
+  "version": "3.0.0",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "index.js",
   "scripts": {
-    "test": "npm run eslint",
+    "test": "npm run eslint && npm run test-cov",
     "test-cov": "istanbul cover ./node_modules/mocha/bin/_mocha -- -t 50000 --recursive  -R spec test/",
     "prepublish": "npm test",
     "eslint": "eslint lib/"
