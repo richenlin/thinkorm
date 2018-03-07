@@ -30,20 +30,14 @@ process.env.NODE_ENV = 'development';
 //thinkorm.require需要使用绝对路径
 const User = (require('./.User'));
 
-//数据结构迁移
-// ```
-// //全局安装thinkkoa_cli
-// sudo npm i -g thinkkoa_cli
-
-// cd project_path
-
-// think migrate
-// ```
 //实例化模型
 const model = new User(config);
 
+//数据结构迁移
+
 //查询语言测试
 return model
+.migrate()
 // .where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
 // .where({or: [{name: {'like': '%aa%'}}, {memo: {'like': '%aa%'}}]}).find()
 // .where({id: {'>=': 0}}).count()
@@ -68,7 +62,7 @@ return model
 // .field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).countSelect({field: ['name', 'num']})
 //     .select({field: ['id','name'], join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['Profile.id as pid', 'test'], type: 'left'}]})
 // .field(['id', 'name']).where({id: {'>=': 0}}).group('name').countSelect()
-.rel(true, {Profile: {field: ['test']}, Group: {field: ['name']}}).find()
+// .rel(true, {Profile: {field: ['test']}, Group: {field: ['name']}}).find()
 // .rel(true).add({name: 'rrrrrrrrrrrrr',Profile: {test: ['rrrtest']},Pet: [{types: 'ssfsssss'}],Group: [{name: 'ssfsssss'}]})
 // .where({id: 3}).rel(true).update({name: 'ttttttrrrrr',Profile: {test: ['ttttttt']}})
 // .add({name: 'rrrrrrrrrrrrr',Pet: [{types: 'ssfsssss'}]})
