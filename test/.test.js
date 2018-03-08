@@ -8,7 +8,6 @@
 const path = require('path');
 const thinkorm = require('../index.js');
 
-echo(thinkorm)
 const config = {
     db_type: 'mysql',
     //db_type: 'postgresql',
@@ -37,9 +36,9 @@ const model = new User(config);
 
 //查询语言测试
 return model
-.migrate()
+// .migrate()
 // .where({id: {'<>': 1, '>=': 0}, name: 'rrrrrrr', or: [{name: 'aa'}, {name: 'aaa'}], not: {name: 1, id: 2}, notin: {name: [1,2,3]}}).find()
-// .where({or: [{name: {'like': '%aa%'}}, {memo: {'like': '%aa%'}}]}).find()
+.where({or: [{name: {'like': '%aa%'}}, {memo: {'like': '%aa%'}}]}).find()
 // .where({id: {'>=': 0}}).count()
 // .where({id: {'>=': 0}}).sum('id')
 // .where({id: {'>=': 0}}).select()

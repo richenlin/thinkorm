@@ -15,8 +15,6 @@ module.exports = class extends relModel {
     init(){
         // 模型名称
         this.modelName = 'User';
-        // 是否开启迁移(migrate方法可用)
-        this.safe = false;
         // 数据表字段信息
         this.fields = {
             id: {

@@ -12,8 +12,6 @@ module.exports = class extends relModel {
         super.init(config);
         // 模型名称
         this.modelName = 'Profile';
-        // 是否自动迁移(默认安全模式)
-        this.safe = false;
         // 数据表字段信息
         this.fields = {
             id: {
