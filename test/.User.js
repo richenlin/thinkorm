@@ -24,25 +24,25 @@ module.exports = class extends relModel {
             name: {
                 type: 'string',
                 index: true,
-                default: ''
+                defaults: ''
             },
             profile: {
                 type: 'integer',
                 index: true,
-                default: 0
+                defaults: 0
             },
             num: {
                 type: 'integer',
                 index: true,
-                default: 0
+                defaults: 0
             },
             memo: {
                 type: 'text',
-                default: ''
+                defaults: ''
             },
             create_time: {
                 type: 'integer',
-                default: 0
+                defaults: 0
             }
         };
         // 数据验证

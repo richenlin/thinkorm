@@ -19,11 +19,11 @@ module.exports = class extends relModel {
             },
             types: {
                 type: 'string',
-                default: ''
+                defaults: ''
             },
             user: {
                 type: 'integer',
-                default: ''
+                defaults: ''
             }
         };
         // 数据验证

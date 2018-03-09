@@ -17,12 +17,12 @@ module.exports = class extends relModel {
             userid: {
                 type: 'integer',
                 index: true,
-                default: ''
+                defaults: ''
             },
             groupid: {
                 type: 'integer',
                 index: true,
-                default: ''
+                defaults: ''
             }
         };
         // 数据验证
