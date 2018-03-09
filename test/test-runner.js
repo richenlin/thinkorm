@@ -16,7 +16,7 @@ class User extends model {
         this.fields = {
             id: {
                 type: 'integer',
-                primaryKey: true
+                pk: true
             }
         };
         this.modelName = 'User';

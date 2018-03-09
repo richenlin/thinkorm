@@ -19,30 +19,30 @@ module.exports = class extends relModel {
         this.fields = {
             id: {
                 type: 'integer',
-                primaryKey: true
+                pk: true
             },
             name: {
                 type: 'string',
                 index: true,
-                defaultsTo: ''
+                default: ''
             },
             profile: {
                 type: 'integer',
                 index: true,
-                defaultsTo: 0
+                default: 0
             },
             num: {
                 type: 'integer',
                 index: true,
-                defaultsTo: 0
+                default: 0
             },
             memo: {
                 type: 'text',
-                defaultsTo: ''
+                default: ''
             },
             create_time: {
                 type: 'integer',
-                defaultsTo: 0
+                default: 0
             }
         };
         // 数据验证

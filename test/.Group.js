@@ -9,27 +9,26 @@ const {relModel, helper} = require('../index.js');
 
 module.exports = class extends relModel {
     init(config){
-        super.init(config);
         // 模型名称
         this.modelName = 'Group';
         // 数据表字段信息
         this.fields = {
             id: {
                 type: 'integer',
-                primaryKey: true
+                pk: true
             },
             name: {
                 type: 'string',
-                defaultsTo: ''
+                default: ''
             },
             type: {
                 type: 'string',
-                defaultsTo: ''
+                default: ''
             }
         };
         // 数据验证
         this.validations = {};
         // 关联关系
-        this.relation = {};
+        this.relations = {};
     }
 };

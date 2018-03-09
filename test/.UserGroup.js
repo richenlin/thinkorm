@@ -17,17 +17,17 @@ module.exports = class extends relModel {
             userid: {
                 type: 'integer',
                 index: true,
-                defaultsTo: ''
+                default: ''
             },
             groupid: {
                 type: 'integer',
                 index: true,
-                defaultsTo: ''
+                default: ''
             }
         };
         // 数据验证
         this.validations = {};
         // 关联关系
-        this.relation = {};
+        this.relations = {};
     }
 };

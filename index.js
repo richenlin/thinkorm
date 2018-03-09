@@ -8,10 +8,11 @@
 //rewite promise, bluebird is much faster
 const liteq = require('liteq');
 global.Promise = require('bluebird');
-const thinkorm = require('./lib/model.js');
+const model = require('./lib/model.js');
 const relModel = require('./lib/relModel.js');
 
-thinkorm.model = thinkorm;
-thinkorm.relModel = relModel;
-thinkorm.helper = liteq.helper;
-module.exports = thinkorm;
+module.exports = {
+    model: model,
+    relModel: relModel,
+    helper: liteq.helper
+};
