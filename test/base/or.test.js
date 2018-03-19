@@ -20,8 +20,12 @@ describe('Query Generation ::', function () {
                             db_charset: 'utf8',
                             db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
                         },
-                        options: {method: 'SELECT'},
-                        client: knex({client: 'mysql'}).select().from('think_user AS User'),
+                        options: {
+                            method: 'SELECT',
+                            table: 'think_user',
+                            alias: 'User',
+                        },
+                        client: knex({client: 'mysql'}),
                         query: {
                             where: {or: [{firstName: 'foo'}, {lastName: 'bar'}]}
                         },
@@ -40,8 +44,12 @@ describe('Query Generation ::', function () {
                             db_charset: 'utf8',
                             db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
                         },
-                        options: {method: 'SELECT'},
-                        client: knex({client: 'postgresql'}).select().from('think_user AS User'),
+                        options: {
+                            method: 'SELECT',
+                            table: 'think_user',
+                            alias: 'User',
+                        },
+                        client: knex({client: 'postgresql'}),
                         query: {
                             where: {or: [{firstName: 'foo'}, {lastName: 'bar'}]}
                         },

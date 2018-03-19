@@ -2,7 +2,6 @@
 const knex = require('knex');
 const Test = require('../test-runner.js');
 
-
 describe('Query Generation ::', function () {
     describe('Grouping statements with AND OR', function () {
         it('should generate a query when an AND OR statement', function (done) {
@@ -21,8 +20,12 @@ describe('Query Generation ::', function () {
                             db_charset: 'utf8',
                             db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
                         },
-                        options: {method: 'SELECT'},
-                        client: knex({client: 'mysql'}).select().from('think_user AS User'),
+                        options: {
+                            method: 'SELECT',
+                            table: 'think_user',
+                            alias: 'User',
+                        },
+                        client: knex({client: 'mysql'}),
                         query: {
                             where: {firstName: 'foo', lastName: 'bar', or: [{name: 'foo'}, {memo: 'bar'}]}
                         },
@@ -41,8 +44,12 @@ describe('Query Generation ::', function () {
                             db_charset: 'utf8',
                             db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
                         },
-                        options: {method: 'SELECT'},
-                        client: knex({client: 'postgresql'}).select().from('think_user AS User'),
+                        options: {
+                            method: 'SELECT',
+                            table: 'think_user',
+                            alias: 'User',
+                        },
+                        client: knex({client: 'postgresql'}),
                         query: {
                             where: {firstName: 'foo', lastName: 'bar', or: [{name: 'foo'}, {memo: 'bar'}]}
                         },

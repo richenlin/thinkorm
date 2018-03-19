@@ -2,7 +2,6 @@
 const knex = require('knex');
 const Test = require('../test-runner.js');
 
-
 describe('Query Generation ::', function () {
     describe('Grouping statements with JOIN', function () {
         it('should generate a query when an JOIN statement', function (done) {
@@ -21,8 +20,12 @@ describe('Query Generation ::', function () {
                             db_charset: 'utf8',
                             db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
                         },
-                        options: {method: 'SELECT'},
-                        client: knex({client: 'mysql'}).select().from('think_user AS User'),
+                        options: {
+                            method: 'SELECT',
+                            table: 'think_user',
+                            alias: 'User'
+                        },
+                        client: knex({client: 'mysql'}),
                         query: {
                             field: ['id'],
                             where: {'pfile.id':{"<>": ""}},
@@ -43,8 +46,12 @@ describe('Query Generation ::', function () {
                             db_charset: 'utf8',
                             db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
                         },
-                        options: {method: 'SELECT'},
-                        client: knex({client: 'postgresql'}).select().from('think_user AS User'),
+                        options: {
+                            method: 'SELECT',
+                            table: 'think_user',
+                            alias: 'User'
+                        },
+                        client: knex({client: 'postgresql'}),
                         query: {
                             field: ['id'],
                             where: {'pfile.id':{"<>": ""}},
@@ -71,8 +78,12 @@ describe('Query Generation ::', function () {
                             db_charset: 'utf8',
                             db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
                         },
-                        options: {method: 'SELECT'},
-                        client: knex({client: 'mysql'}).select().from('think_user AS User'),
+                        options: {
+                            method: 'SELECT',
+                            table: 'think_user',
+                            alias: 'User'
+                        },
+                        client: knex({client: 'mysql'}),
                         query: {
                             field: ['id','name', 'num'],
                             join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]
@@ -92,8 +103,12 @@ describe('Query Generation ::', function () {
                             db_charset: 'utf8',
                             db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
                         },
-                        options: {method: 'SELECT'},
-                        client: knex({client: 'postgresql'}).select().from('think_user AS User'),
+                        options: {
+                            method: 'SELECT',
+                            table: 'think_user',
+                            alias: 'User'
+                        },
+                        client: knex({client: 'postgresql'}),
                         query: {
                             field: ['id','name', 'num'],
                             join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]

@@ -35,7 +35,7 @@ module.exports = function (test, cb) {
             let options = helper.parseOptions(model, outcome.options);
             let instance = yield model.getInstance();
             let parser = instance.parser;
-            let result = yield parser.buildSql(outcome.client, options);
+            let result = yield parser.buildSql(outcome.config, outcome.client, options);
 
             try {
                 // echo([outcome.dialect, result])
