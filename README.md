@@ -18,7 +18,7 @@ let info = await model.where({id: {'<>': 1, '>=': 0}, name: 'bb', or: [{name: 'a
 
 ## 特性
 
-1. 基于Knex.js实现,支持 Mysql, PostgresSql, MariaDB, SQLite3, Oracle. (即将支持MSSQL, MongoDB)
+1. 基于Knex.js实现,支持 Mysql/MariaDB, PostgresSql, SQLite3, Oracle, MSSQL. (即将支持MongoDB)
 
 2. 抽象的面向对象式SQL操作语言,保持各种数据库书写语法一致,方便开发和项目迁移
 
@@ -30,7 +30,7 @@ let info = await model.where({id: {'<>': 1, '>=': 0}, name: 'bb', or: [{name: 'a
 
 6. 支持连接池配置.支持数据链接检测以及自动重联，数据库服务的宕机修复后无需重启应用
 
-7. 支持事务操作,包括同模型、跨模型、并行事务
+7. 支持事务操作,包括同模型、跨模型、并行事务(Mysql/MariaDB, PostgresSql)
 
 8. 支持数据自动验证以及自定义规则验证,且规则可扩展
 
