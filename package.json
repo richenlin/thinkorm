@@ -39,7 +39,7 @@
   "dependencies": {
     "bluebird": "^3.5.1",
     "co": "4.6.0",
-    "liteq": "^1.x.0",
+    "liteq": "^1.3.5",
     "think_lib": "^2.x.x",
     "think_logger": "^2.x.x"
   },
