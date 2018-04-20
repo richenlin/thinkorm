@@ -45,69 +45,50 @@ npm install thinkorm --save
 ## 使用
 
 ```js
+//class User.js
 const {model, helper} = require('thinkorm');
 
-const config = {
-    db_type: 'mysql', //support  postgresql,mysql...
-    db_host: '127.0.0.1',
-    db_port: 3306,
-    db_name: 'test',
-    db_user: 'root',
-    db_pwd: '',
-    db_prefix: 'think_',
-    db_charset: 'utf8'
-};
-
-//class
 const User = class extends model {
+    // 构造方法
     init(){
-        //映射实体表 think_user
-        this.modelName = 'User';
+        // 模型名称,映射实体表 user
+        this.modelName = 'user';
         // 数据表字段信息
         this.fields = {
             id: {
                 type: 'integer',
-                primaryKey: true
+                pk: true
             },
             name: {
                 type: 'string',
                 size: 30,
                 index: true,
-                defaultsTo: ''
-            },
-            profile: {
-                type: 'integer',
-                index: true,
-                defaultsTo: 0
-            },
-            num: {
-                type: 'integer',
-                index: true,
-                defaultsTo: 0
-            },
-            memo: {
-                type: 'text',
-                defaultsTo: ''
-            },
-            create_time: {
-                type: 'integer',
-                defaultsTo: 0
+                defaults: ''
             }
         };
     }
-};
+}
 
-//实例化
-const model = new User(config);
-//查询多条记录
-return model.where({id: {'>': 0,'<': 100}}).select().then(res => {
-    console.log(res);
-});
+//CURD
+const userModel = new User(config);
+// add
+let result = await userModel.add({"name": "张三"});
+
+// delete
+result = await userModel.where({id: 1}).delete();
+
+// update
+result = await userModel.where({id: 2}).update({"name": "李四"});
+
+// select 
+result = await userModel.where({id: 3}).find(); //limit 1
+result = await userModel.where({"name": {"<>": ""}}).select(); //query name is not null
+
 ```
 
 ## 文档
 
-[http://www.thinkkoa.org/orm/](http://www.thinkkoa.org/orm/index.jhtml)
+[https://www.thinkkoa.org/orm/](https://www.thinkkoa.org/orm/index.jhtml)
 
 ## 贡献者
 
