@@ -12,7 +12,7 @@ const config = {
     db_type: 'mysql',
     //db_type: 'postgresql',
     // db_type: 'mongo',
-    db_host: '127.0.0.1',
+    db_host: '192.168.0.155',
     db_port: 3306,
     //db_port: 5432,
     // db_port: 27017,
@@ -21,7 +21,7 @@ const config = {
     //db_user: '',
     db_pwd: 'richenlin',
     // db_pwd: '',
-    db_prefix: 'think_',
+    db_prefix: '',
     db_charset: 'utf8',
     db_ext_config: {safe: false, db_log_sql: true, db_pool_size: 10, read_write: false}
 };
@@ -62,7 +62,8 @@ return model
 //     .select({field: ['id','name'], join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['Profile.id as pid', 'test'], type: 'left'}]})
 // .field(['id', 'name']).where({id: {'>=': 0}}).group('name').countSelect()
 // .rel(true, {Profile: {field: ['test']}, Group: {field: ['name']}}).find()
-.rel('Profile').find()
+// .rel('Profile').find()
+.where({id: 1}, {name: 'aa'}).count()
 // .add([{name: "test11111111"},{name: "test22"}])
 // .query('select * from think_user where id = 1')
 // .where({id:1}).increment('num', 1)
