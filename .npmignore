@@ -6,5 +6,6 @@ npm-debug.log
 coverage/
 .idea
 .vscode
+.test.js
 yarn-error.log
 yarn.lock
