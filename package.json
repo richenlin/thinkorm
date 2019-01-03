@@ -1,6 +1,6 @@
 {
   "name": "thinkorm",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "index.js",
   "scripts": {
@@ -37,7 +37,6 @@
     "supertest": "^3.0.0"
   },
   "dependencies": {
-    "bluebird": "^3.5.1",
     "co": "4.6.0",
     "liteq": "^2.x.x",
     "think_lib": "^2.x.x",
