@@ -7,7 +7,7 @@
  */
 //rewite promise, bluebird is much faster
 const liteq = require('liteq');
-global.Promise = require('bluebird');
+// global.Promise = require('bluebird');
 const model = require('./lib/model.js');
 const relModel = require('./lib/relModel.js');
 
