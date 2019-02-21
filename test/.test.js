@@ -12,7 +12,7 @@ const config = {
     db_type: 'mysql',
     //db_type: 'postgresql',
     // db_type: 'mongo',
-    db_host: '192.168.0.155',
+    db_host: '127.0.0.1',
     db_port: 3306,
     //db_port: 5432,
     // db_port: 27017,
@@ -46,7 +46,7 @@ return model
 // .where({not: {name: 'rrrrrrrrrrrrr', id: 1}}).select()
 // .where({notin: {'id': [1,2,3]}}).select()
 // .where({name: {'like': '%a'}}).select()
-.where({id: [1,2,3]}).select()
+// .where({id: [1,2,3]}).select()
 
 // .where({id: {'<>': 1, '>=': 0, notin: [1,2,3]}, name: ['aa', 'rrrrrrr'], notin: {'id': [1,2,3], num: [1,2,3]}, not: {name: '', num: [1,2,3]}, memo: {'like': '%a'}, or: [{name: 'aa', id: 1}, {name: 'rrrrrrr', id: {'>': 1}}]}).find()
 // .where({'and': {id: 1, name: 'aa'}}).find()//and做key
@@ -61,7 +61,7 @@ return model
 // .field(['id','name']).join([{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]).countSelect({field: ['name', 'num']})
 //     .select({field: ['id','name'], join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['Profile.id as pid', 'test'], type: 'left'}]})
 // .field(['id', 'name']).where({id: {'>=': 0}}).group('name').countSelect()
-// .rel(true, {Profile: {field: ['test']}, Group: {field: ['name']}}).find()
+.rel(true, {Profile: {field: ['test']}, Pet: {field: ['types']}, Group: {field: ['name']}}).find()
 // .rel('Profile').find()
 // .where({id: 1}, {name: 'aa'}).count()
 // .add([{name: "test11111111"},{name: "test22"}])
