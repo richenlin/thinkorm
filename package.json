@@ -28,9 +28,9 @@
   },
   "devDependencies": {
     "async": "^2.6.0",
-    "eslint": "^4.11.0",
+    "eslint": "^5.14.1",
     "istanbul": "^1.1.0-alpha.1",
-    "mocha": "^4.0.1",
+    "mocha": "^6.0.2",
     "muk": "^0.5.3",
     "mysql": "^2.15.0",
     "pg": "^7.4.3",
