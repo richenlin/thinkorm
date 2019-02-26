@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/thinkorm.svg)](https://badge.fury.io/js/thinkorm)
 [![Build Status](https://travis-ci.org/thinkkoa/thinkorm.svg?branch=master)](https://travis-ci.org/thinkkoa/thinkorm)
-[![Dependency Status](https://david-dm.org/thinkkoa/thinkorm.svg)](https://david-dm.org/thinkkoa/thinkorm)
+[![Dependency Status](https://david-dm.org/thinkkoa/thinkorm.svg)](https://david-dm.org/thinkkoa/thinkorm) [![Greenkeeper badge](https://badges.greenkeeper.io/thinkkoa/thinkorm.svg)](https://greenkeeper.io/)
 
 A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 
