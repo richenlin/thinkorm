@@ -18,18 +18,18 @@ describe('Query Generation ::', function () {
                             db_pwd: '',
                             db_prefix: 'think_',
                             db_charset: 'utf8',
-                            db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
+                            db_ext_config: { safe: true, db_log_sql: true, db_pool_size: 10 }
                         },
                         options: {
                             method: 'SELECT',
                             table: 'think_user',
                             alias: 'User',
                         },
-                        client: knex({client: 'mysql'}),
+                        client: knex({ client: 'mysql' }),
                         query: {
-                            where: {or: [{firstName: 'foo'}, {lastName: 'bar'}]}
+                            where: { or: [{ firstName: 'foo' }, { lastName: 'bar' }] }
                         },
-                        sql: "select * from `think_user` as `User` where ((`User`.`firstName` = 'foo') or (`User`.`lastName` = 'bar'))"
+                        sql: "select `id` from `think_user` as `User` where ((`User`.`firstName` = 'foo') or (`User`.`lastName` = 'bar'))"
                     },
                     {
                         dialect: 'postgresql',
@@ -42,18 +42,18 @@ describe('Query Generation ::', function () {
                             db_pwd: '',
                             db_prefix: 'think_',
                             db_charset: 'utf8',
-                            db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
+                            db_ext_config: { safe: true, db_log_sql: true, db_pool_size: 10 }
                         },
                         options: {
                             method: 'SELECT',
                             table: 'think_user',
                             alias: 'User',
                         },
-                        client: knex({client: 'postgresql'}),
+                        client: knex({ client: 'postgresql' }),
                         query: {
-                            where: {or: [{firstName: 'foo'}, {lastName: 'bar'}]}
+                            where: { or: [{ firstName: 'foo' }, { lastName: 'bar' }] }
                         },
-                        sql: "select * from \"think_user\" as \"User\" where ((\"User\".\"firstName\" = 'foo') or (\"User\".\"lastName\" = 'bar'))"
+                        sql: "select \"id\" from \"think_user\" as \"User\" where ((\"User\".\"firstName\" = 'foo') or (\"User\".\"lastName\" = 'bar'))"
                     }
                 ]
             }, done);

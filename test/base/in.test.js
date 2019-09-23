@@ -18,18 +18,18 @@ describe('Query Generation ::', function () {
                             db_pwd: '',
                             db_prefix: 'think_',
                             db_charset: 'utf8',
-                            db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
+                            db_ext_config: { safe: true, db_log_sql: true, db_pool_size: 10 }
                         },
                         options: {
                             method: 'SELECT',
                             table: 'think_user',
                             alias: 'User'
                         },
-                        client: knex({client: 'mysql'}),
+                        client: knex({ client: 'mysql' }),
                         query: {
-                            where: {id: [1, 2, 3]}
+                            where: { id: [1, 2, 3] }
                         },
-                        sql: "select * from `think_user` as `User` where `User`.`id` in (1, 2, 3)"
+                        sql: "select `id` from `think_user` as `User` where `User`.`id` in (1, 2, 3)"
                     },
                     {
                         dialect: 'postgresql',
@@ -42,18 +42,18 @@ describe('Query Generation ::', function () {
                             db_pwd: '',
                             db_prefix: 'think_',
                             db_charset: 'utf8',
-                            db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
+                            db_ext_config: { safe: true, db_log_sql: true, db_pool_size: 10 }
                         },
                         options: {
                             method: 'SELECT',
                             table: 'think_user',
                             alias: 'User'
                         },
-                        client: knex({client: 'postgresql'}),
+                        client: knex({ client: 'postgresql' }),
                         query: {
-                            where: {id: [1, 2, 3]}
+                            where: { id: [1, 2, 3] }
                         },
-                        sql: "select * from \"think_user\" as \"User\" where \"User\".\"id\" in (1, 2, 3)"
+                        sql: "select \"id\" from \"think_user\" as \"User\" where \"User\".\"id\" in (1, 2, 3)"
                     }
                 ]
             }, done);
