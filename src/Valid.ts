@@ -1,22 +1,23 @@
 /**
- *
- * @author     richen
- * @copyright  Copyright (c) 2016 - <richenlin(at)gmail.com>
- * @license    MIT
- * @version    17/7/27
+ * @ author: richen
+ * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
+ * @ license: MIT
+ * @ version: 2019-10-16 11:25:25
  */
-const net = require('net');
-const lib = require('think_lib');
-const rules = {
+
+import * as net from "net";
+import * as helper from "think_lib";
+
+const rules: any = {
     /**
      * 长度区域
      * @param  {[type]} min [description]
      * @param  {[type]} max [description]
      * @return {[type]}     [description]
      */
-    length: function (value, min, max) {
+    length(value: any, min?: number, max?: number) {
         min = min | 0;
-        let length = ((value || '') + '').length;
+        const length = ((value || '') + '').length;
         if (length < min) {
             return false;
         }
@@ -29,7 +30,7 @@ const rules = {
      * 必填
      * @return {[type]} [description]
      */
-    required: function (value) {
+    required(value: any) {
         return ((value || '') + '').length > 0;
     },
     /**
@@ -37,50 +38,54 @@ const rules = {
      * @param  {[type]} reg [description]
      * @return {[type]}     [description]
      */
-    regexp: function (value, reg) {
+    regexp(value: any, reg: RegExp) {
         return reg.test(value);
     },
     /**
      * 邮箱
      * @return {[type]} [description]
      */
-    email: function (value) {
-        let reg = /^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/;
-        return this.regexp(value, reg);
+    email(value: any) {
+        const reg = /^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/;
+        // tslint:disable-next-line: no-invalid-this
+        return rules.regexp(value, reg);
     },
     /**
      * 时间戳
      * @return {[type]} [description]
      */
-    time: function (value) {
-        let reg = /^[1-5]\d{12}$/;
-        return this.regexp(value, reg);
+    time(value: any) {
+        const reg = /^[1-5]\d{12}$/;
+        return rules.regexp(value, reg);
     },
     /**
      * 中文名
      * @return {[type]} [description]
      */
-    cnname: function (value) {
-        let reg = /^[\u4e00-\u9fa5\u3002\u2022]{2,32}$/;
-        return this.regexp(value, reg);
+    cnname(value: any) {
+        const reg = /^[\u4e00-\u9fa5\u3002\u2022]{2,32}$/;
+        return rules.regexp(value, reg);
     },
     /**
      * 身份证号码
      * @return {[type]} [description]
      */
-    idnumber: function (value) {
+    idnumber(value: any) {
         if (/^\d{15}$/.test(value)) {
             return true;
         }
         if ((/^\d{17}[0-9xX]$/).test(value)) {
-            let vs = '1,0,x,9,8,7,6,5,4,3,2'.split(','),
-                ps = '7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2'.split(','),
-                ss = value.toLowerCase().split(''),
-                r = 0;
+            // tslint:disable-next-line: one-variable-per-declaration
+            const vs = '1,0,x,9,8,7,6,5,4,3,2'.split(','),
+                ps: any = '7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2'.split(','),
+                ss = value.toLowerCase().split('');
+            let r = 0;
+            // tslint:disable-next-line: no-magic-numbers
             for (let i = 0; i < 17; i++) {
                 r += ps[i] * ss[i];
             }
-            let isOk = (vs[r % 11] === ss[17]);
+            // tslint:disable-next-line: no-magic-numbers
+            const isOk = (vs[r % 11] === ss[17]);
             return isOk;
         }
         return false;
@@ -89,41 +94,41 @@ const rules = {
      * 手机号
      * @return {[type]} [description]
      */
-    mobile: function (value) {
-        let reg = /^(13|15|18|14|17)\d{9}$/;
-        return this.regexp(value, reg);
+    mobile(value: any) {
+        const reg = /^(13|15|18|14|17)\d{9}$/;
+        return rules.regexp(value, reg);
     },
     /**
      * 邮编
      * @return {[type]} [description]
      */
-    zipcode: function (value) {
-        let reg = /^\d{6}$/;
-        return this.regexp(value, reg);
+    zipcode(value: any) {
+        const reg = /^\d{6}$/;
+        return rules.regexp(value, reg);
     },
     /**
      * 2次值是否一致
      * @param  {[type]} field [description]
      * @return {[type]}       [description]
      */
-    confirm: function (value, cvalue) {
+    confirm(value: any, cvalue: any) {
         return value === cvalue;
     },
     /**
      * url
      * @return {[type]} [description]
      */
-    url: function (value) {
-        let reg = /^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,4}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/;
-        return this.regexp(value, reg);
+    url(value: any) {
+        const reg = /^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,4}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/;
+        return rules.regexp(value, reg);
     },
     /**
      * 整数
      * @param  {[type]} o [description]
      * @return {[type]}   [description]
      */
-    int: function (value) {
-        let val = parseInt(value, 10);
+    int(value: any) {
+        const val = parseInt(value, 10);
         if (isNaN(val)) {
             return false;
         }
@@ -133,8 +138,8 @@ const rules = {
      * 浮点数
      * @return {[type]} [description]
      */
-    float: function (value) {
-        let numberReg = /^((\-?\d*\.?\d*(?:e[+-]?\d*(?:\d?\.?|\.?\d?)\d*)?)|(0[0-7]+)|(0x[0-9a-f]+))$/i;
+    float(value: any) {
+        const numberReg = /^((\-?\d*\.?\d*(?:e[+-]?\d*(?:\d?\.?|\.?\d?)\d*)?)|(0[0-7]+)|(0x[0-9a-f]+))$/i;
         return numberReg.test(value);
     },
     /**
@@ -143,7 +148,7 @@ const rules = {
      * @param  {[type]} max [description]
      * @return {[type]}     [description]
      */
-    range: function (value, min, max) {
+    range(value: any, min?: number, max?: number) {
         value = parseInt(value, 10);
         min = min | 0;
         if (isNaN(value) || value < min) {
@@ -158,30 +163,30 @@ const rules = {
      * ip4校验
      * @return {[type]} [description]
      */
-    ip4: function (value) {
+    ip4(value: any) {
         return net.isIPv4(value);
     },
     /**
      * ip6校验
      * @return {[type]} [description]
      */
-    ip6: function (value) {
+    ip6(value: any) {
         return net.isIPv6(value);
     },
     /**
      * ip校验
      * @return {[type]} [description]
      */
-    ip: function (value) {
+    ip(value: any) {
         return net.isIP(value);
     },
     /**
      * 日期校验
      * @return {[type]} [description]
      */
-    date: function (value) {
-        let reg = /^\d{4}-\d{1,2}-\d{1,2}$/;
-        return this.regexp(value, reg);
+    date(value: any) {
+        const reg = /^\d{4}-\d{1,2}-\d{1,2}$/;
+        return rules.regexp(value, reg);
     },
     /**
      * 在一个范围内
@@ -189,10 +194,11 @@ const rules = {
      * @param  {[type]} arr   [description]
      * @return {[type]}       [description]
      */
-    in: function (value, arr) {
+    in(value: any, arr: any[]) {
         return arr.indexOf(value) > -1;
     }
 };
+
 /**
  * 数据类型检查
  * @param name
@@ -200,35 +206,35 @@ const rules = {
  * @param type
  * @returns {*}
  */
-const dataCheck = function (name, value, type) {
+const dataCheck = function (name: string, value: any, type: string) {
     //数据类型存在则检查
     if (type) {
         //字段类型严格验证
         switch (type) {
             case 'integer':
             case 'float':
-                if (!lib.isNumber(value)) {
+                if (!helper.isNumber(value)) {
                     return { status: 0, msg: `${name}值类型错误!` };
                 }
                 break;
             case 'json':
-                if (!lib.isJSONObj(value)) {
+                if (!helper.isJSONObj(value)) {
                     return { status: 0, msg: `${name}值类型错误!` };
                 }
                 break;
             case 'array':
-                if (!lib.isArray(value)) {
+                if (!helper.isArray(value)) {
                     return { status: 0, msg: `${name}值类型错误!` };
                 }
                 break;
             case 'string':
             case 'text':
-                if (!lib.isString(value)) {
+                if (!helper.isString(value)) {
                     return { status: 0, msg: `${name}值类型错误!` };
                 }
                 break;
             default:
-                if (!lib.isString(value)) {
+                if (!helper.isString(value)) {
                     return { status: 0, msg: `${name}值类型错误!` };
                 }
                 break;
@@ -256,7 +262,7 @@ const dataCheck = function (name, value, type) {
  * @param method
  * @returns {{status: number, msg: string}}
  */
-const ruleCheck = function (name, value, extra, method) {
+const ruleCheck = function (name: string, value: any, extra?: any, method?: string) {
     let result = { status: 1, msg: '' };
     if (!name) {
         return result;
@@ -277,7 +283,7 @@ const ruleCheck = function (name, value, extra, method) {
             if (!Array.isArray(valid)) {
                 valid = [valid];
             }
-            valid.some(function (validItem) {
+            valid.some(function (validItem: any) {
                 //自定义检测方法
                 if (typeof validItem === 'function') {
                     result = validItem(value);
@@ -298,14 +304,14 @@ const ruleCheck = function (name, value, extra, method) {
 };
 
 /**
- *
+ * 设置默认值
  *
  * @param {*} defaults
  * @param {*} type
  * @param {*} val
  * @returns
  */
-const setDefault = function (defaults, type, val) {
+const setDefault = function (defaults: any, type: string, val?: any) {
     if (defaults !== undefined && defaults !== null) {
         return defaults;
     } else {
@@ -328,26 +334,33 @@ const setDefault = function (defaults, type, val) {
     }
 };
 
+
 /**
  * 数据验证及处理
- * 
- * @param {any} fields 
- * @param {any} data 
- * @param {any} vaildRules 
- * @param {string} [method=''] 
- * @returns 
+ *
+ * @param {*} fields
+ * @param {*} data
+ * @param {*} vaildRules
+ * @param {string} [method='']
+ * @returns
  */
-const validData = function (fields, data, vaildRules, method = '') {
-    let result = { status: 1, msg: '' }, rdata = {}, rflag = false;
+// tslint:disable-next-line: cyclomatic-complexity
+const validData = function (fields: any, data: any, vaildRules: any, method = '') {
+    // tslint:disable-next-line: one-variable-per-declaration
+    let result = { status: 1, msg: '' };
+    let rdata: any = {};
+    const rflag = false;
     if (method === 'ADD') { //新增数据add
-        for (let f in fields) {
+        // tslint:disable-next-line: forin
+        for (const f in fields) {
             // 如果可为空值并且值不存在，直接设置为Null
-            if (fields[f].isnull === true && lib.isEmpty(data[f])) {
+            if (fields[f].isnull === true && helper.isEmpty(data[f])) {
+                // tslint:disable-next-line: no-null-keyword
                 rdata[f] = null;
                 continue;
             }
             //默认值
-            if (lib.isEmpty(data[f])) {
+            if (helper.isEmpty(data[f])) {
                 rdata[f] = setDefault(fields[f].defaults, fields[f].type, data[f]);
             } else {
                 rdata[f] = data[f];
@@ -370,16 +383,17 @@ const validData = function (fields, data, vaildRules, method = '') {
             }
         }
     } else if (method === 'UPDATE') { //编辑数据update
-        for (let d in data) {
+        for (const d in data) {
             //剔除多余字段
             if (fields[d] && data[d] !== undefined) {
                 // 如果可为空值并且值不存在，直接设置为Null
-                if (fields[d].isnull === true && lib.isEmpty(data[d])) {
+                if (fields[d].isnull === true && helper.isEmpty(data[d])) {
+                    // tslint:disable-next-line: no-null-keyword
                     rdata[d] = null;
                     continue;
                 }
                 //默认值
-                if (lib.isEmpty(data[d])) {
+                if (helper.isEmpty(data[d])) {
                     rdata[d] = (fields[d].defaults !== undefined && fields[d].defaults !== null) ? fields[d].defaults : data[d];
                 } else {
                     rdata[d] = data[d];
@@ -408,20 +422,12 @@ const validData = function (fields, data, vaildRules, method = '') {
     return Promise.resolve(rdata);
 };
 
-/**
- * 数据类型及自定义规则检查
- *
- * @param {*} fields 模型字段
- * @param {*} data  数据
- * @param {*} vaildRules 自定义规则
- * @param {string} [method=''] SQL操作类型
- * @returns
- */
-module.exports = function (fields, data, vaildRules, method = '') {
-    if (lib.isEmpty(data)) {
+export function Valid(fields: any, data: any, vaildRules: any, method = ''): any {
+    if (helper.isEmpty(data)) {
         return {};
-    } else if (lib.isArray(data)) {
-        let result = [];
+    } else if (helper.isArray(data)) {
+        const result = [];
+        // tslint:disable-next-line: prefer-for-of
         for (let i = 0; i < data.length; i++) {
             result.push(validData(fields, data[i], vaildRules, method));
         }
@@ -429,4 +435,4 @@ module.exports = function (fields, data, vaildRules, method = '') {
     } else {
         return validData(fields, data, vaildRules, method);
     }
-};
+}

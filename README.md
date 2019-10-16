@@ -46,9 +46,9 @@ npm install thinkorm --save
 
 ```js
 //class User.js
-const {model, helper} = require('thinkorm');
+const {BaseModel, helper} = require('thinkorm');
 
-const User = class extends model {
+const User = class extends BaseModel {
     // 构造方法
     init(){
         // 模型名称,映射实体表 user

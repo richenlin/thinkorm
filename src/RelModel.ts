@@ -1,25 +1,24 @@
 /**
- *
- * @author     richen
- * @copyright  Copyright (c) 2018 - <richenlin(at)gmail.com>
- * @license    MIT
- * @version    18/2/27
+ * @ author: richen
+ * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
+ * @ license: MIT
+ * @ version: 2019-10-16 10:40:07
  */
+
 const liteq = require('liteq');
 const helper = liteq.helper;
-const model = require('./model.js');
-const relation = require('./relation.js');
 
-module.exports = class relModel extends model {
-    /**
-     * constructor
-     * @param  {Mixed} args []
-     * @return {}      []
-     */
-    constructor(...args) {
+import { BaseModel } from "./BaseModel";
+import { Relation } from "./Relation";
+
+export class RelModel extends BaseModel {
+    relations: any;
+    relationShip: any;
+    constructor(...args: any[]) {
         super(...args);
         // 关联关系
         this.relations = this.relations || {};
+        // tslint:disable-next-line: no-null-keyword
         this.relationShip = null;
     }
 
@@ -31,15 +30,15 @@ module.exports = class relModel extends model {
      * @param {boolean} [rels=true] 
      * @param {any} options 
      */
-    rel(rels = true, options = {}) {
+    rel(rels: boolean | any = true, options: any = {}) {
         try {
             if (rels) {
                 this.options.rels = {};
                 //init relationShip class
-                if (!this.relationShip){
-                    this.relationShip = new relation(this.config);
+                if (!this.relationShip) {
+                    this.relationShip = new Relation(this.config);
                 }
-                let relationShip = this.relationShip.getRelations(this);
+                const relationShip = this.relationShip.getRelations(this);
                 if (rels === true) {
                     rels = Object.keys(relationShip);
                 } else if (helper.isString(rels)) {
@@ -63,14 +62,14 @@ module.exports = class relModel extends model {
      * @param {any} options 
      * @returns 
      */
-    async find(options) {
+    async find(options: any) {
         try {
-            let parsedOptions = helper.parseOptions(this, options);
-            let instance = await this.getInstance();
+            const parsedOptions = helper.parseOptions(this, options);
+            const instance = await this.getInstance();
             let result = await instance.find(parsedOptions);
             //relationShip
             if (parsedOptions.rels) {
-                if (!this.relationShip){
+                if (!this.relationShip) {
                     throw Error('Before using the associated query, call the `rel` method!');
                 }
                 result = await this.relationShip.getRelationData(parsedOptions, result || {});
@@ -87,14 +86,14 @@ module.exports = class relModel extends model {
      * @param {any} options 
      * @returns 
      */
-    async select(options) {
+    async select(options: any) {
         try {
-            let parsedOptions = helper.parseOptions(this, options);
-            let instance = await this.getInstance();
+            const parsedOptions = helper.parseOptions(this, options);
+            const instance = await this.getInstance();
             let result = await instance.select(parsedOptions);
             //relationShip
             if (parsedOptions.rels) {
-                if (!this.relationShip){
+                if (!this.relationShip) {
                     throw Error('Before using the associated query, call the `rel` method!');
                 }
                 result = await this.relationShip.getRelationData(parsedOptions, result || []);
@@ -111,24 +110,25 @@ module.exports = class relModel extends model {
      * @param {any} options 
      * @returns 
      */
-    async countSelect(options) {
+    async countSelect(options: any) {
         try {
-            let parsedOptions = helper.parseOptions(this, options);
-            let instance = await this.getInstance();
-            let countNum = await instance.count(null, parsedOptions);
-            let pageOptions = helper.parsePage(parsedOptions.page || 1, parsedOptions.num || 10);
-            let totalPage = Math.ceil(countNum / pageOptions.num);
+            const parsedOptions = helper.parseOptions(this, options);
+            const instance = await this.getInstance();
+            // tslint:disable-next-line: no-null-keyword
+            const countNum = await instance.count(null, parsedOptions);
+            const pageOptions = helper.parsePage(parsedOptions.page || 1, parsedOptions.num || 10);
+            const totalPage = Math.ceil(countNum / pageOptions.num);
             if (pageOptions.page > totalPage) {
                 pageOptions.page = totalPage;
             }
             //传入分页参数
-            let offset = (pageOptions.page - 1) < 0 ? 0 : (pageOptions.page - 1) * pageOptions.num;
+            const offset = (pageOptions.page - 1) < 0 ? 0 : (pageOptions.page - 1) * pageOptions.num;
             parsedOptions.limit = [offset, pageOptions.num];
-            let result = helper.extend({ count: countNum, total: totalPage }, pageOptions);
+            const result = helper.extend({ count: countNum, total: totalPage }, pageOptions);
             result.data = await this.select(parsedOptions);
             return result;
         } catch (e) {
             return this.error(e);
         }
     }
-};
+}

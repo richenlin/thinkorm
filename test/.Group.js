@@ -5,10 +5,10 @@
  * @license    MIT
  * @version    16/8/18
  */
-const {relModel, helper} = require('../index.js');
+const { RelModel, helper } = require('../dist/index');
 
-module.exports = class extends relModel {
-    init(config){
+module.exports = class extends RelModel {
+    init(config) {
         // 模型名称
         this.modelName = 'Group';
         // 数据表字段信息

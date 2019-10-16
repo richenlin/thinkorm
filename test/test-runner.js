@@ -7,10 +7,11 @@ const assert = require('assert');
 const async = require('async');
 const path = require('path');
 const genPromise = require('./genPromise.js');
-const { model, helper } = require('../index.js');
+const { helper } = require('liteq');
+const { BaseModel } = require('../dist/index');
 
 
-class User extends model {
+class User extends BaseModel {
     init(config) {
         // 数据表字段信息
         this.fields = {
