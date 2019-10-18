@@ -6,7 +6,7 @@
 
 A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 
-ThinkORM是一个可扩展轻量级的功能丰富的对象-关系映射的数据模型封装框架，使用JavaScript实现，已经支持Typescript。
+ThinkORM是一个可扩展轻量级的功能丰富的ORM，运行在Node.js环境，已经支持Typescript。
 
 ThinkORM试图用一种抽象的DSL语言，尽量保持各种数据库书写语法一致，用户专注于数据操作逻辑而非具体的数据存储类型，达到快速开发和移植的目的。
 
