@@ -12,7 +12,7 @@ ThinkORM试图用一种抽象的DSL语言，尽量保持各种数据库书写语
 
 ## 特性
 
-1. 基于Knex.js实现,支持 Mysql/MariaDB, PostgresSql, SQLite3, Oracle, MSSQL. (即将支持MongoDB)
+1. 基于Knex.js实现,支持 Mysql/MariaDB, PostgresSql, SQLite3, Oracle, MSSQL. 
 
 <table>
     <tr>
@@ -22,7 +22,7 @@ ThinkORM试图用一种抽象的DSL语言，尽量保持各种数据库书写语
       <td><img width="100" src="https://thinkkoa.org/img/sqlite.png"/></td>
       <td><img width="100" src="https://thinkkoa.org/img/sqlserver.png"/></td>
       <td><img width="100" src="https://thinkkoa.org/img/oracle.png"/></td>
-      <td><img width="100" src="https://thinkkoa.org/img/mongodb.png"/></td>
+<!--       <td><img width="100" src="https://thinkkoa.org/img/mongodb.png"/></td> -->
     </tr>
 </table>
 
