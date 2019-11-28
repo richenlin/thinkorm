@@ -64,9 +64,9 @@ return model
     // .rel(true, {Profile: {field: ['test']}, Pet: {field: ['types']}, Group: {field: ['name']}}).find()
     // .rel('Profile').find()
     // .where({id: 1}, {name: 'aa'}).count()
-    // .add([{name: "test11111111"},{name: "test22"}])
+    .add([{ name: "test11111111" }, { name: "test22" }])
     // .query('select * from think_user where id = 1')
-    .where({ id: 1 }).increment('num', 1)
+    // .where({ id: 1 }).increment('num', 1)
     // .where({id:1}).decrement('num', 1)
 
     // .add({name: 'qqqesddfsdqqq'})

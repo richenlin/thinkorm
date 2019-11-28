@@ -1,12 +1,13 @@
 {
   "name": "thinkorm",
-  "version": "3.3.2",
+  "version": "3.4.2",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "./dist/index.js",
   "scripts": {
+    "build": "trash ./dist && tsc",
+    "prepublishOnly": "npm run build && npm test",
     "test": "npm run tslint && npm run test-cov",
     "test-cov": "istanbul cover ./node_modules/mocha/bin/_mocha -- -t 50000 --recursive  -R spec test/",
-    "prepublish": "npm test",
     "tslint": "tslint 'src/**/*.ts'"
   },
   "repository": {
@@ -27,26 +28,27 @@
     "node": ">8.0.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.141",
+    "@types/lodash": "^4.14.149",
     "@types/node": "^12.7.12",
-    "@typescript-eslint/parser": "^2.3.2",
+    "@typescript-eslint/parser": "^2.90",
     "async": "^3.1.0",
-    "eslint": "^6.5.1",
-    "eslint-config-alloy": "^3.0.0",
+    "eslint": "^6.7.1",
+    "eslint-config-alloy": "^3.4.0",
     "eslint-plugin-typescript": "^0.14.0",
     "istanbul": "^1.1.0-alpha.1",
-    "mocha": "^6.2.0",
+    "mocha": "^6.2.2",
     "mysql": "^2.17.1",
-    "pg": "^7.12.1",
+    "pg": "^7.14.0",
     "reflect-metadata": "^0.1.13",
-    "ts-node": "^8.4.1",
-    "tslint": "^5.20.0",
+    "trash-cli": "^3.0.0",
+    "ts-node": "^8.5.2",
+    "tslint": "^5.20.1",
     "tslint-config-alloy": "^0.2.1",
-    "typescript": "^3.6.3"
+    "typescript": "^3.7.2"
   },
   "dependencies": {
     "co": "4.6.0",
-    "liteq": "^2.x.x",
+    "liteq": "^2.2.x",
     "think_lib": "^2.x.x",
     "think_logger": "^2.x.x"
   },
