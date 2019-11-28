@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2019-10-16 10:13:40
+ * @ version: 2019-11-28 12:05:12
  */
 const liteq = require('liteq');
 const helper = liteq.helper;
@@ -87,6 +87,9 @@ export class BaseModel extends liteq {
      */
     async thenAdd(data: any, options: any) {
         try {
+            if (helper.isEmpty(options) || helper.isEmpty(options.where)) {
+                options.where = data;
+            }
             const record = await this.find(options);
             if (helper.isEmpty(record)) {
                 return this.add(data, options);
