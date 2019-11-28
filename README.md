@@ -6,19 +6,25 @@
 
 A flexible, lightweight and powerful Object-Relational Mapper for Node.js.
 
-ThinkORM是一个可扩展轻量级的功能丰富的对象-关系映射的数据模型封装框架，使用Node.js实现。
+ThinkORM是一个可扩展轻量级的功能丰富的ORM，运行在Node.js环境，已经支持Typescript。
 
-如同SQL语言发明一样，ThinkORM试图用一种抽象的统一操作语言，尽量保持各种数据库书写语法一致，用户专注于数据操作逻辑而非具体的数据存储类型，达到快速开发和移植的目的。
-
-```js
-let info = await model.where({id: {'<>': 1, '>=': 0}, name: 'bb', or: [{name: 'aa'}, {name: 'cc'}]}).find();
-```
-
-项目地址： [Git Repo](https://github.com/thinkkoa/thinkorm)
+ThinkORM试图用一种抽象的DSL语言，尽量保持各种数据库书写语法一致，用户专注于数据操作逻辑而非具体的数据存储类型，达到快速开发和移植的目的。
 
 ## 特性
 
-1. 基于Knex.js实现,支持 Mysql/MariaDB, PostgresSql, SQLite3, Oracle, MSSQL. (即将支持MongoDB)
+1. 基于Knex.js实现,支持 Mysql/MariaDB, PostgresSql, SQLite3, Oracle, MSSQL. 
+
+<table>
+    <tr>
+      <td><img width="100" src="https://thinkkoa.org/img/mariadb.png"/></td>
+      <td><img width="100" src="https://thinkkoa.org/img/mysql.png"/></td>
+      <td><img width="100" src="https://thinkkoa.org/img/postgresql.png"/></td>
+      <td><img width="100" src="https://thinkkoa.org/img/sqlite.png"/></td>
+      <td><img width="100" src="https://thinkkoa.org/img/sqlserver.png"/></td>
+      <td><img width="100" src="https://thinkkoa.org/img/oracle.png"/></td>
+<!--       <td><img width="100" src="https://thinkkoa.org/img/mongodb.png"/></td> -->
+    </tr>
+</table>
 
 2. 抽象的面向对象式SQL操作语言,保持各种数据库书写语法一致,方便开发和项目迁移
 
