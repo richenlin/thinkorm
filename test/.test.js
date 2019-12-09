@@ -12,14 +12,14 @@ const config = {
     db_type: 'mysql',
     //db_type: 'postgresql',
     // db_type: 'mongo',
-    db_host: '127.0.0.1',
+    db_host: '192.168.0.150',
     db_port: 3306,
     //db_port: 5432,
     // db_port: 27017,
     db_name: 'test',
-    db_user: 'root',
+    db_user: 'test',
     //db_user: '',
-    db_pwd: 'richenlin',
+    db_pwd: 'test',
     // db_pwd: '',
     db_prefix: '',
     db_charset: 'utf8',
@@ -45,8 +45,8 @@ return model
     // .where({name: {'like': 'r%'}}).find()
     // .where({not: {name: 'rrrrrrrrrrrrr', id: 1}}).select()
     // .where({notin: {'id': [1,2,3]}}).select()
-    // .where({name: {'like': '%a'}}).select()
-    // .where({id: [1,2,3]}).select()
+    // .where({ name: { 'like': '%a' } }).select()
+    .where({ id: [1, 2, 3] }).count()
 
     // .where({id: {'<>': 1, '>=': 0, notin: [1,2,3]}, name: ['aa', 'rrrrrrr'], notin: {'id': [1,2,3], num: [1,2,3]}, not: {name: '', num: [1,2,3]}, memo: {'like': '%a'}, or: [{name: 'aa', id: 1}, {name: 'rrrrrrr', id: {'>': 1}}]}).find()
     // .where({'and': {id: 1, name: 'aa'}}).find()//and做key
@@ -64,7 +64,7 @@ return model
     // .rel(true, {Profile: {field: ['test']}, Pet: {field: ['types']}, Group: {field: ['name']}}).find()
     // .rel('Profile').find()
     // .where({id: 1}, {name: 'aa'}).count()
-    .add([{ name: "test11111111" }, { name: "test22" }])
+    // .add([{ name: "test11111111" }, { name: "test22" }])
     // .query('select * from think_user where id = 1')
     // .where({ id: 1 }).increment('num', 1)
     // .where({id:1}).decrement('num', 1)

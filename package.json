@@ -1,6 +1,6 @@
 {
   "name": "thinkorm",
-  "version": "3.4.2",
+  "version": "3.5.1",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "./dist/index.js",
   "scripts": {
@@ -30,14 +30,14 @@
   "devDependencies": {
     "@types/lodash": "^4.14.149",
     "@types/node": "^12.7.12",
-    "@typescript-eslint/parser": "^2.90",
+    "@typescript-eslint/parser": "^2.10.0",
     "async": "^3.1.0",
     "eslint": "^6.7.1",
     "eslint-config-alloy": "^3.4.0",
     "eslint-plugin-typescript": "^0.14.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^6.2.2",
-    "mysql": "^2.17.1",
+    "mysql2": "^2.0.1",
     "pg": "^7.14.0",
     "reflect-metadata": "^0.1.13",
     "trash-cli": "^3.0.0",
@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "co": "4.6.0",
-    "liteq": "^2.2.x",
+    "liteq": "^2.x.x",
     "think_lib": "^2.x.x",
     "think_logger": "^2.x.x"
   },

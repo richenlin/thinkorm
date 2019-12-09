@@ -19,7 +19,7 @@ describe('Query Generation ::', function () {
                             db_pwd: '',
                             db_prefix: 'think_',
                             db_charset: 'utf8',
-                            db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
+                            db_ext_config: { safe: true, db_log_sql: true, db_pool_size: 10 }
                         },
                         options: {
                             table: 'think_user',
@@ -27,9 +27,9 @@ describe('Query Generation ::', function () {
                             method: 'SUM',
                             targetField: 'id'
                         },
-                        client: knex({client: 'mysql'}),
+                        client: knex({ client: 'mysql' }),
                         query: {
-                            where: {id: {'>=': 0}}
+                            where: { id: { '>=': 0 } }
                         },
                         sql: "select sum(`id`) as `sum` from `think_user` as `User` where `User`.`id` >= 0"
                     },
@@ -44,7 +44,7 @@ describe('Query Generation ::', function () {
                             db_pwd: '',
                             db_prefix: 'think_',
                             db_charset: 'utf8',
-                            db_ext_config: {safe: true, db_log_sql: true, db_pool_size: 10}
+                            db_ext_config: { safe: true, db_log_sql: true, db_pool_size: 10 }
                         },
                         options: {
                             table: 'think_user',
@@ -52,9 +52,9 @@ describe('Query Generation ::', function () {
                             method: 'SUM',
                             targetField: 'id'
                         },
-                        client: knex({client: 'postgresql'}),
+                        client: knex({ client: 'postgresql' }),
                         query: {
-                            where: {id: {'>=': 0}}
+                            where: { id: { '>=': 0 } }
                         },
                         sql: 'select sum("id") as "sum" from "think_user" as "User" where "User"."id" >= 0'
                     },

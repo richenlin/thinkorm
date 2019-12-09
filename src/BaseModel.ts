@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2019-11-28 12:05:12
+ * @ version: 2019-12-04 15:29:12
  */
 const liteq = require('liteq');
 const helper = liteq.helper;
@@ -12,37 +12,198 @@ export class BaseModel extends liteq {
     validations: object;
 
     /**
-     *Creates an instance of BaseModel.
+     * Creates an instance of BaseModel.
      * @param {...any[]} args
      * @memberof BaseModel
      */
     constructor(...args: any[]) {
         super(...args);
-        // 数据检查规则
+        // Automatic validation rules
         this.validations = this.validations || {};
     }
 
     /**
-     * 新增数据前置方法
+     * Get table name
      *
-     * @param {*} data
-     * @param {*} [options]
      * @returns
      * @memberof BaseModel
      */
-    _beforeAdd(data: any, options?: any) {
+    getTableName(): string {
+        return super.getTableName();
+    }
+
+    /**
+     * Get the primary key
+     *
+     * @returns {string}
+     * @memberof BaseModel
+     */
+    getPk(): string {
+        return super.getPk();
+    }
+
+    /**
+     * Querying column names
+     * 
+     * field(['aaa', 'bbb', 'ccc'])
+     * @param {(string | string[])} values
+     * @returns {BaseModel}
+     * @memberof BaseModel
+     */
+    field(values: string | string[]): BaseModel {
+        return super.field(values);
+    }
+
+    /**
+     * Querying table name alias
+     *
+     * @param {string} values
+     * @returns {BaseModel}
+     * @memberof BaseModel
+     */
+    alias(values: string): BaseModel {
+        return super.alias(values);
+    }
+
+    /**
+     * Query conditions
+     *
+     * or:  where({or: [{...}, {...}]})
+     * 
+     * not: where({not: {name: '', id: 1}})
+     * 
+     * notin: where({notin: {'id': [1,2,3]}})
+     * 
+     * null: where({id: null})
+     * 
+     * notnull: where({id: {"<>": null}})
+     * 
+     * in: where({id: [1,2,3]})
+     * 
+     * and: where({id: 1, name: 'a'},)
+     * 
+     * operator: where({id: {'<>': 1}})
+     * 
+     * operator: where({id: {'<>': 1, '>=': 0, '<': 100, '<=': 10}})
+     * 
+     * like: where({name: {'like': '%a'}})
+     * 
+     * @param {Object} values
+     * @returns {BaseModel}
+     * @memberof BaseModel
+     */
+    where(values: Object): BaseModel {
+        return super.where(values);
+    }
+
+    /**
+     * Querying limit
+     * 
+     * limit(1)
+     * 
+     * limit(10, 20)
+     *
+     * @param {number} skip
+     * @param {number} [limit]
+     * @returns {BaseModel}
+     * @memberof BaseModel
+     */
+    limit(skip: number, limit?: number): BaseModel {
+        return super.limit(skip, limit);
+    }
+
+    /**
+     * Querying order column
+     * 
+     * order({xxx: 'desc'})
+     *
+     * @param {Object} values
+     * @returns {BaseModel}
+     * @memberof BaseModel
+     */
+    order(values: Object): BaseModel {
+        return super.order(values);
+    }
+
+    /**
+     * Querying distinct columns
+     * 
+     * distinct(['first_name'])
+     *
+     * @param {string[]} values
+     * @returns {BaseModel}
+     * @memberof BaseModel
+     */
+    distinct(values: string[]): BaseModel {
+        return super.distinct(values);
+    }
+
+    /**
+     * Querying group columns
+     *
+     * group('xxx')
+     * 
+     * group(['xxx', 'xxx'])
+     * 
+     * @param {(string | string[])} values
+     * @returns {BaseModel}
+     * @memberof BaseModel
+     */
+    group(values: string | string[]): BaseModel {
+        return super.group(values);
+    }
+
+    /**
+     * HAVING clause
+     * 
+     * having({"name":{">": 100}})
+     *
+     * @param {Object} values
+     * @returns {BaseModel}
+     * @memberof BaseModel
+     */
+    having(values: Object): BaseModel {
+        return super.having(values);
+    }
+
+    /**
+     * Join Querying
+     * 
+     * join([{from: 'Test', alias: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'inner'}])
+     * 
+     * join([{from: 'Test', alias: 'test', on: {or: [{aaa: bbb}, {ccc: ddd}]}, field: ['id', 'name'], type: 'left'}])
+     * 
+     * join([{from: 'Test', alias: 'test', on: {aaa: bbb, ccc: ddd}, field: ['id', 'name'], type: 'right'}])
+     *
+     * @param {any[]} values
+     * @returns {BaseModel}
+     * @memberof BaseModel
+     */
+    join(values: any[]): BaseModel {
+        return super.join(values);
+    }
+
+    /**
+     * Pre-Add method
+     *
+     * @param {Object} data
+     * @param {Object} [options]
+     * @returns
+     * @memberof BaseModel
+     */
+    _beforeAdd(data: Object, options?: Object) {
         return data;
     }
 
     /**
-     * 新增数据
+     * Add method
      *
-     * @param {*} data
-     * @param {*} [options]
+     * @param {Object} data
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    async add(data: any, options?: any) {
+    async add(data: Object, options?: Object) {
         try {
             if (helper.isEmpty(data)) {
                 throw Error('Data can not be empty');
@@ -66,26 +227,26 @@ export class BaseModel extends liteq {
     }
 
     /**
-     * 新增数据后置方法
+     * Added after method
      *
-     * @param {*} data
-     * @param {*} [options]
+     * @param {Object} data
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    _afterAdd(data: any, options?: any) {
+    _afterAdd(data: Object, options?: Object) {
         return data;
     }
 
     /**
-     * 查询结果为空即新增数据
+     * Added when query result is empty
      *
-     * @param {*} data
-     * @param {*} options
+     * @param {Object} data
+     * @param {Object} options
      * @returns
      * @memberof BaseModel
      */
-    async thenAdd(data: any, options: any) {
+    async thenAdd(data: Object, options = { where: {} }) {
         try {
             if (helper.isEmpty(options) || helper.isEmpty(options.where)) {
                 options.where = data;
@@ -102,24 +263,24 @@ export class BaseModel extends liteq {
     }
 
     /**
-     * 删除数据前置方法
+     * Pre-Delete method
      *
-     * @param {*} options
+     * @param {Object} options
      * @returns
      * @memberof BaseModel
      */
-    _beforeDelete(options: any) {
+    _beforeDelete(options: Object) {
         return options;
     }
 
     /**
-     * 删除数据
+     * Delete method
      *
-     * @param {*} options
+     * @param {Object} options
      * @returns
      * @memberof BaseModel
      */
-    async delete(options: any) {
+    async delete(options = {}) {
         try {
             options = helper.parseOptions(this, options);
             await this._beforeDelete(options);
@@ -132,37 +293,37 @@ export class BaseModel extends liteq {
     }
 
     /**
-     * 删除数据后置方法
+     * Delete after method
      *
-     * @param {*} options
+     * @param {Object} options
      * @returns
      * @memberof BaseModel
      */
-    _afterDelete(options: any) {
+    _afterDelete(options: Object) {
         return options;
     }
 
     /**
-     * 更新数据前置方法
+     * Pre-Update method
      *
-     * @param {*} data
-     * @param {*} [options]
+     * @param {Object} data
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    _beforeUpdate(data: any, options?: any) {
+    _beforeUpdate(data: Object, options?: Object) {
         return data;
     }
 
     /**
-     * 更新数据
+     * Update method
      *
-     * @param {*} data
-     * @param {*} [options]
+     * @param {Object} data
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    async update(data: any, options?: any) {
+    async update(data: Object, options?: Object) {
         try {
             options = helper.parseOptions(this, options);
             let _data = await this._beforeUpdate(data, options) || data;
@@ -179,16 +340,16 @@ export class BaseModel extends liteq {
     }
 
     /**
-     * 字段值自增
+     * Increment method
      *
-     * @param {*} field
+     * @param {string} field
      * @param {number} [step=1]
      * @param {*} [data={}]
-     * @param {*} [options]
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    async increment(field: any, step = 1, data = {}, options?: any) {
+    async increment(field: string, step = 1, data = {}, options?: Object) {
         try {
             options = helper.parseOptions(this, options);
             let _data = await this._beforeUpdate(data, options) || data;
@@ -202,16 +363,16 @@ export class BaseModel extends liteq {
     }
 
     /**
-     * 字段值自减
+     * Decrement method
      *
-     * @param {*} field
+     * @param {string} field
      * @param {number} [step=1]
      * @param {*} [data={}]
-     * @param {*} [options]
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    async decrement(field: any, step = 1, data = {}, options?: any) {
+    async decrement(field: string, step = 1, data = {}, options?: Object) {
         try {
             options = helper.parseOptions(this, options);
             let _data = await this._beforeUpdate(data, options) || data;
@@ -225,25 +386,25 @@ export class BaseModel extends liteq {
     }
 
     /**
-     * 更新数据后置方法
+     * Update after method
      *
-     * @param {*} data
-     * @param {*} [options]
+     * @param {Object} data
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    _afterUpdate(data: any, options?: any) {
+    _afterUpdate(data: Object, options?: Object) {
         return data;
     }
 
     /**
-     * 查询单条数据
+     * Findone
      *
-     * @param {*} [options]
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    async find(options?: any) {
+    async find(options?: Object) {
         try {
             options = helper.parseOptions(this, options);
             let result = await super.find(options);
@@ -255,25 +416,25 @@ export class BaseModel extends liteq {
     }
 
     /**
-     * 查询单条数据后置方法
+     * Find one after method
      *
      * @param {*} result
-     * @param {*} [options]
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    _afterFind(result: any, options?: any) {
+    _afterFind(result: any, options?: Object) {
         return result;
     }
 
     /**
-     * 查询多条数据
+     * Find all
      *
-     * @param {*} [options]
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    async select(options?: any) {
+    async select(options?: Object) {
         try {
             options = helper.parseOptions(this, options);
             let result = await super.select(options);
@@ -285,13 +446,13 @@ export class BaseModel extends liteq {
     }
 
     /**
-     * 分页查询
+     * Paging query
      *
-     * @param {*} [options]
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    async countSelect(options?: any) {
+    async countSelect(options?: Object) {
         try {
             options = helper.parseOptions(this, options);
             const result = await super.countSelect(options);
@@ -303,14 +464,86 @@ export class BaseModel extends liteq {
     }
 
     /**
-     * 查询多条数据后置方法
+     * Find all after method
      *
      * @param {*} result
-     * @param {*} [options]
+     * @param {Object} [options]
      * @returns
      * @memberof BaseModel
      */
-    _afterSelect(result: any, options?: any) {
+    _afterSelect(result: any, options?: Object) {
         return Promise.resolve(result);
+    }
+
+    /**
+     * Count query
+     *
+     * @param {string} [field]
+     * @param {Object} [options]
+     * @memberof BaseModel
+     */
+    async count(field?: string, options?: Object) {
+        return super.count(field, options);
+    }
+
+    /**
+     * Sum query
+     *
+     * @param {string} field
+     * @param {Object} [options]
+     * @returns
+     * @memberof BaseModel
+     */
+    async sum(field: string, options?: Object) {
+        return super.sum(field, options);
+    }
+
+    /**
+     * Native statement query
+     * 
+     * mysql/posgre  TestModel.query('select ?, ? from test where id=?', ['id', 'name', 1]);
+     * 
+     * mongo  TestModel.query('db.test.find()');
+     *
+     * @param {string} sqlStr
+     * @param {any[]} [params=[]]
+     * @memberof BaseModel
+     */
+    async query(sqlStr: string, params: any[] = []) {
+        return super.query(sqlStr, params);
+    }
+
+    /**
+     * Execute transaction
+     *
+     * @param {Function} callbackFunction
+     * @memberof BaseModel
+     */
+    async transaction(callbackFunction: Function) {
+        return super.transaction(callbackFunction);
+    }
+
+    /**
+     * Structure migration
+     *
+     * @param {string} [sqlStr]
+     * @memberof BaseModel
+     */
+    async migrate(sqlStr?: string) {
+        return super.migrate(sqlStr);
+    }
+
+    /**
+     * sqlString build
+     *
+     * {method: find | select | add | update | count | sum | decrement | increment}
+     *
+     * @param {string} [options={ method: "select" }]
+     * @param {*} [data={}]
+     * @returns
+     * @memberof BaseModel
+     */
+    async sql(options = { method: "select" }, data = {}) {
+        return super.sql(options, data);
     }
 }
