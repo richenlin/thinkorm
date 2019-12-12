@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2019-12-04 15:29:12
+ * @ version: 2019-12-10 13:43:38
  */
 const liteq = require('liteq');
 const helper = liteq.helper;
@@ -516,11 +516,11 @@ export class BaseModel extends liteq {
     /**
      * Execute transaction
      *
-     * @param {Function} callbackFunction
+     * @param {Function} func
      * @memberof BaseModel
      */
-    async transaction(callbackFunction: Function) {
-        return super.transaction(callbackFunction);
+    async transaction(func: Function) {
+        return super.transaction(func);
     }
 
     /**
