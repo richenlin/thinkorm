@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2019-10-16 11:24:24
+ * @ version: 2019-12-30 23:55:26
  */
 
 import * as helper from "think_lib";
@@ -31,7 +31,7 @@ export class Relation {
     config: any;
 
     /**
-     *Creates an instance of Relation.
+     * Creates an instance of Relation.
      * @param {*} config
      * @memberof Relation
      */
