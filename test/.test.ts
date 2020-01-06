@@ -2,9 +2,9 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 17:33:58
+ * @ version: 2020-01-06 21:07:20
  */
-import { BaseModel, PrimaryColumn, IsNotEmpty, Column, Entity } from "../src/index";
+import { BaseModel, PrimaryColumn, IsNotEmpty, Column, Entity, TimestampColumn } from "../src/index";
 
 @Entity()
 class User extends BaseModel {
@@ -14,6 +14,9 @@ class User extends BaseModel {
     @IsNotEmpty({ message: "姓名不能为空" })
     @Column(0, '', true)
     name: string;
+
+    @TimestampColumn()
+    update_time: number;
 }
 
 

@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 17:37:24
+ * @ version: 2020-01-06 21:05:11
  */
 
 import * as helper from "think_lib";
@@ -60,10 +60,11 @@ const dataCheck = function (name: string, value: any, type: string) {
  * @param {Function} clazz
  * @param {*} fields
  * @param {*} data
+ * @param {string} method
  * @returns
  */
 // tslint:disable-next-line: cyclomatic-complexity
-export const Valid = async function (clazz: Function, fields: any, data: any) {
+export const Valid = async function (clazz: Function, fields: any, data: any, method = "All") {
     // tslint:disable-next-line: no-invalid-this
     // tslint:disable-next-line: forin
     for (const propertyKey in fields) {
@@ -80,7 +81,12 @@ export const Valid = async function (clazz: Function, fields: any, data: any) {
         if (helper.isEmpty(data[propertyKey])) {
             if ((fields[propertyKey].defaults !== undefined && fields[propertyKey].defaults !== null)) {
                 if (fields[propertyKey].defaults && helper.isFunction(fields[propertyKey].defaults)) {
-                    data[propertyKey] = fields[propertyKey].defaults();
+                    fields[propertyKey].when = fields[propertyKey].when || "All";
+                    if (fields[propertyKey].when === "All") {
+                        data[propertyKey] = fields[propertyKey].defaults();
+                    } else if (method === fields[propertyKey].when) {
+                        data[propertyKey] = fields[propertyKey].defaults();
+                    }
                 } else {
                     data[propertyKey] = fields[propertyKey].defaults;
                 }

@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 20:07:22
+ * @ version: 2020-01-06 21:04:01
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -40,12 +40,12 @@ function defineNewProperty(clazz: Function, protoName: string) {
                 // tslint:disable-next-line: prefer-for-of
                 for (const i of data) {
                     // tslint:disable-next-line: no-invalid-this
-                    result.push(Valid(clazz, this.fields, i));
+                    result.push(Valid(clazz, this.fields, i, protoName));
                 }
                 await Promise.all(result);
             } else {
                 // tslint:disable-next-line: no-invalid-this
-                await Valid(clazz, this.fields, data);
+                await Valid(clazz, this.fields, data, protoName);
             }
             return data;
         }
@@ -98,6 +98,7 @@ export function Entity(identifier?: string): ClassDecorator {
  *
  * @export
  * @param {number} [size=11]
+ * @param {boolean} [auto=true]
  * @returns {PropertyDecorator}
  */
 export function PrimaryColumn(size = 11, auto = true): PropertyDecorator {
@@ -237,15 +238,19 @@ export function Column(size?: number, defaultValue?: any, index = false, unique 
 
 }
 
+/** 
+ * 
+ */
+export type timeWhen = "_beforeAdd" | "_beforeUpdate" | "All";
+
 /**
  * This column will store a creation Unix timestamp of the inserted object.
- * Creation timestamp is generated and inserted only once,
- * at the first time when you create an object, the value is inserted into the table, and is never touched again.
  *
  * @export
+ * @param {timeWhen} [timeWhen="All"] When to execute timestamp
  * @returns {PropertyDecorator}
  */
-export function TimestampColumn(): PropertyDecorator {
+export function TimestampColumn(timeWhen: timeWhen = "All"): PropertyDecorator {
     return (target: any, propertyKey: string) => {
         //Check the colum name
         checkColumn(propertyKey);
@@ -266,7 +271,8 @@ export function TimestampColumn(): PropertyDecorator {
             value: {
                 type: "integer",
                 size: 11,
-                defaults: helper.datetime
+                defaults: helper.datetime,
+                when: timeWhen
             },
             writable: true,
             configurable: true,
