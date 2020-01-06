@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 17:44:00
+ * @ version: 2020-01-06 18:36:39
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -131,6 +131,12 @@ export function PrimaryColumn(size = 11): PropertyDecorator {
                     ctype = "boolean";
                     break;
                 case "String":
+                    if (size > 255) {
+                        ctype = "text";
+                    } else {
+                        ctype = "string";
+                    }
+                    break;
                 default:
                     ctype = "string";
                     break;
