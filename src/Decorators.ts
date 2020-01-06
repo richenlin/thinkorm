@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 21:04:01
+ * @ version: 2020-01-06 21:12:20
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -244,7 +244,7 @@ export function Column(size?: number, defaultValue?: any, index = false, unique 
 export type timeWhen = "_beforeAdd" | "_beforeUpdate" | "All";
 
 /**
- * This column will store a creation Unix timestamp of the inserted object.
+ * This column will store a creation Unix timestamp of the inserted/updated object.
  *
  * @export
  * @param {timeWhen} [timeWhen="All"] When to execute timestamp
