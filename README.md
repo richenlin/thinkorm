@@ -16,18 +16,6 @@ ThinkORM试图用一种抽象的DSL语言，尽量保持各种数据库书写语
 
 1. 基于Knex.js实现,支持 Mysql/MariaDB, PostgresSql, SQLite3, Oracle, MSSQL. 
 
-<table>
-    <tr>
-      <td><img width="100" src="https://thinkkoa.org/img/mariadb.png"/></td>
-      <td><img width="100" src="https://thinkkoa.org/img/mysql.png"/></td>
-      <td><img width="100" src="https://thinkkoa.org/img/postgresql.png"/></td>
-      <td><img width="100" src="https://thinkkoa.org/img/sqlite.png"/></td>
-      <td><img width="100" src="https://thinkkoa.org/img/sqlserver.png"/></td>
-      <td><img width="100" src="https://thinkkoa.org/img/oracle.png"/></td>
-<!--       <td><img width="100" src="https://thinkkoa.org/img/mongodb.png"/></td> -->
-    </tr>
-</table>
-
 2. 抽象的面向对象式SQL操作语言,保持各种数据库书写语法一致,方便开发和项目迁移
 
 3. 支持schema定义数据结构,支持严格的类型检查;支持数据结构迁移到数据库,通过migrate方法调用
