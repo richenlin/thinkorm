@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 17:36:11
+ * @ version: 2020-01-06 19:09:25
  */
 const liteq = require('liteq');
 const helper = liteq.helper;
@@ -23,14 +23,14 @@ interface BaseModelInterface {
     readonly group: (values: string | string[]) => BaseModel;
     readonly having: (values: Object) => BaseModel;
     readonly join: (values: any[]) => BaseModel;
-    readonly _beforeAdd: (data: Object, options?: Object) => Promise<any>;
+    readonly _beforeAdd: (data: Object, options?: Object) => Promise<Object>;
     readonly add: (data: Object, options?: Object) => Promise<any>;
     readonly _afterAdd: (data: Object, options?: Object) => Promise<any>;
     readonly thenAdd: (data: Object, options?: Object) => Promise<any>;
     readonly _beforeDelete: (options: Object) => Promise<any>;
     readonly delete: (options: Object) => Promise<any>;
     readonly _afterDelete: (options: Object) => Promise<any>;
-    readonly _beforeUpdate: (data: Object, options?: Object) => Promise<any>;
+    readonly _beforeUpdate: (data: Object, options?: Object) => Promise<Object>;
     readonly update: (data: Object, options?: Object) => Promise<any>;
     readonly _afterUpdate: (data: Object, options?: Object) => Promise<any>;
     readonly increment: (field: string, step?: number, data?: Object, options?: Object) => Promise<any>;
@@ -228,10 +228,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {Object} data
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<Object>}
      * @memberof BaseModel
      */
-    async _beforeAdd(data: Object, options?: Object) {
+    async _beforeAdd(data: Object, options?: Object): Promise<Object> {
         return data;
     }
 
@@ -240,10 +240,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {Object} data
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async add(data: Object, options?: Object) {
+    async add(data: Object, options?: Object): Promise<any> {
         try {
             if (helper.isEmpty(data)) {
                 throw Error('Data can not be empty');
@@ -270,10 +270,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {Object} data
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async _afterAdd(data: Object, options?: Object) {
+    async _afterAdd(data: Object, options?: Object): Promise<any> {
         return data;
     }
 
@@ -281,11 +281,11 @@ export class BaseModel extends liteq implements BaseModelInterface {
      * Added when query result is empty
      *
      * @param {Object} data
-     * @param {Object} options
-     * @returns
+     * @param {*} [options={ where: {} }]
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async thenAdd(data: Object, options = { where: {} }) {
+    async thenAdd(data: Object, options = { where: {} }): Promise<any> {
         try {
             if (helper.isEmpty(options) || helper.isEmpty(options.where)) {
                 options.where = data;
@@ -305,21 +305,21 @@ export class BaseModel extends liteq implements BaseModelInterface {
      * Pre-Delete method
      *
      * @param {Object} options
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async _beforeDelete(options: Object) {
+    async _beforeDelete(options: Object): Promise<any> {
         return options;
     }
 
     /**
      * Delete method
      *
-     * @param {Object} options
-     * @returns
+     * @param {*} [options={}]
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async delete(options = {}) {
+    async delete(options = {}): Promise<any> {
         try {
             options = helper.parseOptions(this, options);
             await this._beforeDelete(options);
@@ -335,10 +335,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      * Delete after method
      *
      * @param {Object} options
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async _afterDelete(options: Object) {
+    async _afterDelete(options: Object): Promise<any> {
         return options;
     }
 
@@ -347,10 +347,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {Object} data
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<Object>}
      * @memberof BaseModel
      */
-    async _beforeUpdate(data: Object, options?: Object) {
+    async _beforeUpdate(data: Object, options?: Object): Promise<Object> {
         return data;
     }
 
@@ -359,10 +359,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {Object} data
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async update(data: Object, options?: Object) {
+    async update(data: Object, options?: Object): Promise<any> {
         try {
             options = helper.parseOptions(this, options);
             const _data = await this._beforeUpdate(data, options) || data;
@@ -426,21 +426,21 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {Object} data
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async _afterUpdate(data: Object, options?: Object) {
+    async _afterUpdate(data: Object, options?: Object): Promise<any> {
         return data;
     }
 
     /**
-     * Findone
+     * Find one
      *
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async find(options?: Object) {
+    async find(options?: Object): Promise<any> {
         try {
             options = helper.parseOptions(this, options);
             let result = await super.find(options);
@@ -456,10 +456,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {*} result
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    _afterFind(result: any, options?: Object) {
+    _afterFind(result: any, options?: Object): Promise<any> {
         return result;
     }
 
@@ -467,10 +467,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      * Find all
      *
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<any[]>}
      * @memberof BaseModel
      */
-    async select(options?: Object) {
+    async select(options?: Object): Promise<any[]> {
         try {
             options = helper.parseOptions(this, options);
             let result = await super.select(options);
@@ -485,10 +485,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      * Paging query
      *
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async countSelect(options?: Object) {
+    async countSelect(options?: Object): Promise<any> {
         try {
             options = helper.parseOptions(this, options);
             const result = await super.countSelect(options);
@@ -504,10 +504,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {*} result
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    _afterSelect(result: any, options?: Object) {
+    _afterSelect(result: any, options?: Object): Promise<any> {
         return Promise.resolve(result);
     }
 
@@ -516,9 +516,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {string} [field]
      * @param {Object} [options]
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async count(field?: string, options?: Object) {
+    async count(field?: string, options?: Object): Promise<any> {
         return super.count(field, options);
     }
 
@@ -527,25 +528,26 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {string} field
      * @param {Object} [options]
-     * @returns
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async sum(field: string, options?: Object) {
+    async sum(field: string, options?: Object): Promise<any> {
         return super.sum(field, options);
     }
 
     /**
      * Native statement query
-     * 
+     *
      * mysql/posgre  TestModel.query('select ?, ? from test where id=?', ['id', 'name', 1]);
-     * 
+     *
      * mongo  TestModel.query('db.test.find()');
      *
      * @param {string} sqlStr
      * @param {any[]} [params=[]]
+     * @returns {Promise<any[]>}
      * @memberof BaseModel
      */
-    async query(sqlStr: string, params: any[] = []) {
+    async query(sqlStr: string, params: any[] = []): Promise<any[]> {
         return super.query(sqlStr, params);
     }
 
@@ -553,9 +555,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      * Execute transaction
      *
      * @param {Function} func
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async transaction(func: Function) {
+    async transaction(func: Function): Promise<any> {
         return super.transaction(func);
     }
 
@@ -563,9 +566,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      * Structure migration
      *
      * @param {string} [sqlStr]
+     * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async migrate(sqlStr?: string) {
+    async migrate(sqlStr?: string): Promise<any> {
         return super.migrate(sqlStr);
     }
 
@@ -576,10 +580,10 @@ export class BaseModel extends liteq implements BaseModelInterface {
      *
      * @param {string} [options={ method: "select" }]
      * @param {*} [data={}]
-     * @returns
+     * @returns {Promise<string>}
      * @memberof BaseModel
      */
-    async sql(options = { method: "select" }, data = {}) {
+    async sql(options = { method: "select" }, data = {}): Promise<string> {
         return super.sql(options, data);
     }
 }
