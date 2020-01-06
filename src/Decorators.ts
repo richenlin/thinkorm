@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 18:36:39
+ * @ version: 2020-01-06 20:07:22
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -100,7 +100,7 @@ export function Entity(identifier?: string): ClassDecorator {
  * @param {number} [size=11]
  * @returns {PropertyDecorator}
  */
-export function PrimaryColumn(size = 11): PropertyDecorator {
+export function PrimaryColumn(size = 11, auto = true): PropertyDecorator {
     return (target: any, propertyKey: string) => {
         //Check the colum name
         checkColumn(propertyKey);
@@ -147,7 +147,8 @@ export function PrimaryColumn(size = 11): PropertyDecorator {
             value: {
                 type: ctype,
                 size,
-                pk: true
+                pk: true,
+                auto
             },
             writable: true,
             configurable: true,
@@ -213,6 +214,9 @@ export function Column(size?: number, defaultValue?: any, index = false, unique 
         };
         if (size > 0) {
             values.size = size;
+        }
+        if (defaultValue === null) {
+            values.isnull = true;
         }
         if (defaultValue !== null && defaultValue !== undefined) {
             values.defaults = defaultValue;
