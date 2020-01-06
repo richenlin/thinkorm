@@ -6,7 +6,7 @@
   "scripts": {
     "build": "trash ./dist && tsc",
     "prepublishOnly": "npm run build && npm test",
-    "test": "npm run tslint && npm run test-cov",
+    "test": "npm run build && npm run tslint && npm run test-cov",
     "test-cov": "mocha -- -t 50000 --recursive  -R spec test/",
     "tslint": "tslint 'src/**/*.ts'"
   },
