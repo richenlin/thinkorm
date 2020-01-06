@@ -2,14 +2,56 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2019-12-10 13:43:38
+ * @ version: 2020-01-06 17:36:11
  */
 const liteq = require('liteq');
 const helper = liteq.helper;
-import { Valid } from "./Valid";
 
-export class BaseModel extends liteq {
-    validations: object;
+interface BaseModelInterface {
+    pk: string;
+    tableName: string;
+    modelName: string;
+
+    readonly getTableName: () => string;
+    readonly getPk: () => string;
+    readonly field: (values: string | string[]) => BaseModel;
+    readonly alias: (values: string) => BaseModel;
+    readonly where: (values: Object) => BaseModel;
+    readonly limit: (skip: number, limit?: number) => BaseModel;
+    readonly order: (values: Object) => BaseModel;
+    readonly distinct: (values: string[]) => BaseModel;
+    readonly group: (values: string | string[]) => BaseModel;
+    readonly having: (values: Object) => BaseModel;
+    readonly join: (values: any[]) => BaseModel;
+    readonly _beforeAdd: (data: Object, options?: Object) => Promise<any>;
+    readonly add: (data: Object, options?: Object) => Promise<any>;
+    readonly _afterAdd: (data: Object, options?: Object) => Promise<any>;
+    readonly thenAdd: (data: Object, options?: Object) => Promise<any>;
+    readonly _beforeDelete: (options: Object) => Promise<any>;
+    readonly delete: (options: Object) => Promise<any>;
+    readonly _afterDelete: (options: Object) => Promise<any>;
+    readonly _beforeUpdate: (data: Object, options?: Object) => Promise<any>;
+    readonly update: (data: Object, options?: Object) => Promise<any>;
+    readonly _afterUpdate: (data: Object, options?: Object) => Promise<any>;
+    readonly increment: (field: string, step?: number, data?: Object, options?: Object) => Promise<any>;
+    readonly decrement: (field: string, step?: number, data?: Object, options?: Object) => Promise<any>;
+    readonly find: (options?: Object) => Promise<any>;
+    readonly _afterFind: (result: any, options?: Object) => Promise<any>;
+    readonly select: (options?: Object) => Promise<any[]>;
+    readonly countSelect: (options?: Object) => Promise<any>;
+    readonly _afterSelect: (result: any, options?: Object) => Promise<any>;
+    readonly count: (field?: string, options?: Object) => Promise<any>;
+    readonly sum: (field: string, options?: Object) => Promise<any>;
+    readonly query: (sqlStr: string, params?: any[]) => Promise<any>;
+    readonly transaction: (func: Function) => Promise<any>;
+    readonly migrate: (sqlStr?: string) => Promise<any>;
+    readonly sql: (options?: Object, data?: Object) => Promise<string>;
+}
+
+export class BaseModel extends liteq implements BaseModelInterface {
+    tableName: string;
+    modelName: string;
+    pk: string;
 
     /**
      * Creates an instance of BaseModel.
@@ -18,8 +60,6 @@ export class BaseModel extends liteq {
      */
     constructor(...args: any[]) {
         super(...args);
-        // Automatic validation rules
-        this.validations = this.validations || {};
     }
 
     /**
@@ -191,7 +231,7 @@ export class BaseModel extends liteq {
      * @returns
      * @memberof BaseModel
      */
-    _beforeAdd(data: Object, options?: Object) {
+    async _beforeAdd(data: Object, options?: Object) {
         return data;
     }
 
@@ -209,8 +249,7 @@ export class BaseModel extends liteq {
                 throw Error('Data can not be empty');
             }
             options = helper.parseOptions(this, options);
-            let _data = await this._beforeAdd(data, options) || data;
-            _data = await Valid(this.fields, _data, this.validations, 'ADD');
+            const _data = await this._beforeAdd(data, options) || data;
             if (helper.isEmpty(_data)) {
                 throw Error('Data can not be empty');
             }
@@ -234,7 +273,7 @@ export class BaseModel extends liteq {
      * @returns
      * @memberof BaseModel
      */
-    _afterAdd(data: Object, options?: Object) {
+    async _afterAdd(data: Object, options?: Object) {
         return data;
     }
 
@@ -269,7 +308,7 @@ export class BaseModel extends liteq {
      * @returns
      * @memberof BaseModel
      */
-    _beforeDelete(options: Object) {
+    async _beforeDelete(options: Object) {
         return options;
     }
 
@@ -299,7 +338,7 @@ export class BaseModel extends liteq {
      * @returns
      * @memberof BaseModel
      */
-    _afterDelete(options: Object) {
+    async _afterDelete(options: Object) {
         return options;
     }
 
@@ -311,7 +350,7 @@ export class BaseModel extends liteq {
      * @returns
      * @memberof BaseModel
      */
-    _beforeUpdate(data: Object, options?: Object) {
+    async _beforeUpdate(data: Object, options?: Object) {
         return data;
     }
 
@@ -326,8 +365,7 @@ export class BaseModel extends liteq {
     async update(data: Object, options?: Object) {
         try {
             options = helper.parseOptions(this, options);
-            let _data = await this._beforeUpdate(data, options) || data;
-            _data = await Valid(this.fields, _data, this.validations, 'UPDATE');
+            const _data = await this._beforeUpdate(data, options) || data;
             if (helper.isEmpty(_data)) {
                 throw Error('Data can not be empty');
             }
@@ -352,8 +390,7 @@ export class BaseModel extends liteq {
     async increment(field: string, step = 1, data = {}, options?: Object) {
         try {
             options = helper.parseOptions(this, options);
-            let _data = await this._beforeUpdate(data, options) || data;
-            _data = await Valid(this.fields, _data, this.validations, 'UPDATE');
+            const _data = await this._beforeUpdate(data, options) || data;
             const result = await super.increment(field, step, _data, options);
             await this._afterUpdate(_data, options);
             return result;
@@ -375,8 +412,7 @@ export class BaseModel extends liteq {
     async decrement(field: string, step = 1, data = {}, options?: Object) {
         try {
             options = helper.parseOptions(this, options);
-            let _data = await this._beforeUpdate(data, options) || data;
-            _data = await Valid(this.fields, _data, this.validations, 'UPDATE');
+            const _data = await this._beforeUpdate(data, options) || data;
             const result = await super.decrement(field, step, _data, options);
             await this._afterUpdate(_data, options);
             return result;
@@ -393,7 +429,7 @@ export class BaseModel extends liteq {
      * @returns
      * @memberof BaseModel
      */
-    _afterUpdate(data: Object, options?: Object) {
+    async _afterUpdate(data: Object, options?: Object) {
         return data;
     }
 
