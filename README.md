@@ -42,27 +42,16 @@ npm install thinkorm --save
 
 ```js
 //class User.js
-const {BaseModel, helper} = require('thinkorm');
+const {BaseModel, helper, Entity, PrimaryColumn, Column, IsNotEmpty } = require('thinkorm');
 
-const User = class extends BaseModel {
-    // 构造方法
-    init(){
-        // 模型名称,映射实体表 user
-        this.modelName = 'user';
-        // 数据表字段信息
-        this.fields = {
-            id: {
-                type: 'integer',
-                pk: true
-            },
-            name: {
-                type: 'string',
-                size: 30,
-                index: true,
-                defaults: ''
-            }
-        };
-    }
+@Entity()
+class User extends BaseModel {
+    @PrimaryColumn()
+    id: number;
+
+    @IsNotEmpty({ message: "姓名不能为空" })
+    @Column(0, '', true)
+    name: string;
 }
 
 //CURD
