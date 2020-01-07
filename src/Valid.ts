@@ -2,11 +2,12 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 21:05:11
+ * @ version: 2020-01-07 10:47:04
  */
 
 import * as helper from "think_lib";
-import { validateOrReject, ValidationOptions, registerDecorator, ValidationArguments } from "class-validator";
+import { plainToClass } from "class-transformer";
+import { validateOrReject, ValidationOptions, registerDecorator, ValidationArguments, validate } from "class-validator";
 
 /**
  * 数据类型检查
@@ -53,6 +54,50 @@ const dataCheck = function (name: string, value: any, type: string) {
     return { status: 1, msg: '' };
 };
 
+/**
+ *
+ *
+ * @export
+ * @class ValidateUtil
+ */
+export class ValidateUtil {
+    private static instance: ValidateUtil;
+
+    private constructor() {
+    }
+
+    /**
+     * 
+     *
+     * @static
+     * @returns
+     * @memberof ValidateUtil
+     */
+    static getInstance() {
+        return this.instance || (this.instance = new ValidateUtil());
+    }
+
+    /**
+     *
+     *
+     * @param {*} Clazz
+     * @param {*} data
+     * @returns {Promise<any>}
+     * @memberof ValidateUtil
+     */
+    async valid(Clazz: any, data: any): Promise<any> {
+        const obj = plainToClass(Clazz, data);
+        const errors = await validate(obj, { skipMissingProperties: true });
+        if (errors.length > 0) {
+            throw new Error(Object.values(errors[0].constraints)[0]);
+        }
+        return obj;
+    }
+}
+/**
+ * ClassValidator
+ */
+const ClassValidator = ValidateUtil.getInstance();
 
 /**
  * 数据验证及处理
@@ -80,12 +125,14 @@ export const Valid = async function (clazz: Function, fields: any, data: any, me
         //默认值
         if (helper.isEmpty(data[propertyKey])) {
             if ((fields[propertyKey].defaults !== undefined && fields[propertyKey].defaults !== null)) {
-                if (fields[propertyKey].defaults && helper.isFunction(fields[propertyKey].defaults)) {
+                if (helper.isFunction(fields[propertyKey].defaults)) {
                     fields[propertyKey].when = fields[propertyKey].when || "All";
                     if (fields[propertyKey].when === "All") {
                         data[propertyKey] = fields[propertyKey].defaults();
                     } else if (method === fields[propertyKey].when) {
                         data[propertyKey] = fields[propertyKey].defaults();
+                    } else {
+                        delete data[propertyKey];
                     }
                 } else {
                     data[propertyKey] = fields[propertyKey].defaults;
@@ -93,7 +140,7 @@ export const Valid = async function (clazz: Function, fields: any, data: any, me
             }
         }
         //数据类型检查
-        if (fields[propertyKey].type) {
+        if (data.hasOwnProperty(propertyKey) && fields[propertyKey].type) {
             const result: any = dataCheck(propertyKey, data[propertyKey], fields[propertyKey].type);
             if (!result.status) {
                 return Promise.reject(result.msg);
@@ -102,9 +149,7 @@ export const Valid = async function (clazz: Function, fields: any, data: any, me
     }
 
     //规则验证
-    await validateOrReject(clazz.prototype, data, { skipMissingProperties: true }).catch((errors: any) => {
-        return Promise.reject(Object.values(errors[0].constraints)[0]);
-    });
+    await ClassValidator.valid(clazz, data);
     return Promise.resolve(data);
 };
 

@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 21:12:20
+ * @ version: 2020-01-07 10:35:40
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -33,6 +33,8 @@ function defineNewProperty(clazz: Function, protoName: string) {
                 // tslint:disable-next-line: no-invalid-this
                 data = await Promise.resolve(Reflect.apply(oldMethod, this, [data, options]));
             }
+            // tslint:disable-next-line: no-invalid-this
+            clazz.prototype.config = this.config || {};
             if (helper.isEmpty(data)) {
                 return {};
             } else if (helper.isArray(data)) {
