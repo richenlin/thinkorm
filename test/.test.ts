@@ -2,9 +2,8 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-07 10:47:41
+ * @ version: 2020-01-07 18:14:26
  */
-import { validateOrReject } from "class-validator";
 import { BaseModel, PrimaryColumn, IsNotEmpty, Column, Entity, TimestampColumn } from "../src/index";
 
 @Entity()
@@ -19,8 +18,11 @@ class User extends BaseModel {
     @TimestampColumn("_beforeAdd")
     create_time: number;
 
-    @TimestampColumn("_beforeUpdate")
+    @TimestampColumn()
     update_time: number;
+
+    @Column(20, "desc")
+    desc: string;
 }
 
 
@@ -39,12 +41,9 @@ const userModel = new User({
     db_prefix: ''
 });
 
-// validateOrReject(User, { name: "aaa" }, { skipMissingProperties: true }).catch((errors: any) => {
-//     return Promise.reject(Object.values(errors[0].constraints)[0]);
-// });
 // console.log(JSON.stringify(userModel.fields));
-userModel.add({ name: 'aaa' }).then((res: any) => {
-    // userModel.where({ id: 1 }).update({ name: 'aaa' }).then((res: any) => {
+// userModel.add({ name: 'aaa' }).then((res: any) => {
+userModel.where({ id: 1 }).update({ name: 'aaa', desc: null }).then((res: any) => {
     console.log(res);
 }).catch((err: any) => {
     console.log(err);

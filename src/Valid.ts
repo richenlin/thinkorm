@@ -2,12 +2,12 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-07 10:47:04
+ * @ version: 2020-01-07 18:13:28
  */
 
 import * as helper from "think_lib";
 import { plainToClass } from "class-transformer";
-import { validateOrReject, ValidationOptions, registerDecorator, ValidationArguments, validate } from "class-validator";
+import { ValidationOptions, registerDecorator, ValidationArguments, validate } from "class-validator";
 
 /**
  * 数据类型检查
@@ -16,7 +16,7 @@ import { validateOrReject, ValidationOptions, registerDecorator, ValidationArgum
  * @param type
  * @returns {*}
  */
-const dataCheck = function (name: string, value: any, type: string) {
+const typeCheck = function (name: string, value: any, type: string) {
     //数据类型存在则检查
     if (type) {
         //字段类型严格验证
@@ -52,6 +52,42 @@ const dataCheck = function (name: string, value: any, type: string) {
     }
 
     return { status: 1, msg: '' };
+};
+
+/**
+ * 字段默认值设置
+ *
+ * @param {*} data
+ * @param {string} propertyKey
+ * @param {*} defaultValue
+ * @param {string} when
+ * @param {string} method
+ * @returns
+ */
+const setDefault = function (data: any, propertyKey: string, defaultValue: any, when: string, method: string) {
+    if (helper.isEmpty(data[propertyKey]) && defaultValue !== undefined && defaultValue !== null) {
+        // 特殊类型自动赋值字段,绑定的是函数
+        if (helper.isFunction(defaultValue)) {
+            if (when === "All") {
+                data[propertyKey] = defaultValue();
+            } else if (method === when) {
+                data[propertyKey] = defaultValue();
+            } else {
+                delete data[propertyKey];
+            }
+        } else {
+            if (method === "_beforeAdd") {
+                data[propertyKey] = defaultValue;
+            } else {
+                if (data.hasOwnProperty(propertyKey)) {
+                    data[propertyKey] = defaultValue;
+                } else {
+                    delete data[propertyKey];
+                }
+            }
+        }
+    }
+    return data;
 };
 
 /**
@@ -109,10 +145,10 @@ const ClassValidator = ValidateUtil.getInstance();
  * @returns
  */
 // tslint:disable-next-line: cyclomatic-complexity
-export const Valid = async function (clazz: Function, fields: any, data: any, method = "All") {
-    // tslint:disable-next-line: no-invalid-this
+export const Valid = async function (clazz: Function, fields: any, data: any, method = "_beforeAdd") {
     // tslint:disable-next-line: forin
     for (const propertyKey in fields) {
+
         if (fields[propertyKey].pk) {
             continue;
         }
@@ -123,25 +159,11 @@ export const Valid = async function (clazz: Function, fields: any, data: any, me
             continue;
         }
         //默认值
-        if (helper.isEmpty(data[propertyKey])) {
-            if ((fields[propertyKey].defaults !== undefined && fields[propertyKey].defaults !== null)) {
-                if (helper.isFunction(fields[propertyKey].defaults)) {
-                    fields[propertyKey].when = fields[propertyKey].when || "All";
-                    if (fields[propertyKey].when === "All") {
-                        data[propertyKey] = fields[propertyKey].defaults();
-                    } else if (method === fields[propertyKey].when) {
-                        data[propertyKey] = fields[propertyKey].defaults();
-                    } else {
-                        delete data[propertyKey];
-                    }
-                } else {
-                    data[propertyKey] = fields[propertyKey].defaults;
-                }
-            }
-        }
+        setDefault(data, propertyKey, fields[propertyKey].defaults, fields[propertyKey].when, method);
+
         //数据类型检查
         if (data.hasOwnProperty(propertyKey) && fields[propertyKey].type) {
-            const result: any = dataCheck(propertyKey, data[propertyKey], fields[propertyKey].type);
+            const result: any = typeCheck(propertyKey, data[propertyKey], fields[propertyKey].type);
             if (!result.status) {
                 return Promise.reject(result.msg);
             }
