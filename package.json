@@ -1,6 +1,6 @@
 {
   "name": "thinkorm",
-  "version": "4.0.4",
+  "version": "4.1.0",
   "description": "A flexible, lightweight and powerful Object-Relational Mapper for Node.js.",
   "main": "./dist/index.js",
   "scripts": {
@@ -45,6 +45,7 @@
     "typescript": "^3.7.4"
   },
   "dependencies": {
+    "class-transformer": "^0.2.3",
     "class-validator": "^0.11.0",
     "co": "4.6.0",
     "liteq": "^2.2.8",
