@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-07 18:14:26
+ * @ version: 2020-01-09 19:05:15
  */
 import { BaseModel, PrimaryColumn, IsNotEmpty, Column, Entity, TimestampColumn } from "../src/index";
 
@@ -42,8 +42,8 @@ const userModel = new User({
 });
 
 // console.log(JSON.stringify(userModel.fields));
-// userModel.add({ name: 'aaa' }).then((res: any) => {
-userModel.where({ id: 1 }).update({ name: 'aaa', desc: null }).then((res: any) => {
+userModel.add({ name: '', tttt: 2 }).then((res: any) => {
+    // userModel.where({ id: 1 }).update({ name: 'aaa' }).then((res: any) => {
     console.log(res);
 }).catch((err: any) => {
     console.log(err);

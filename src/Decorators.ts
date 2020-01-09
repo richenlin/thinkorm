@@ -2,21 +2,18 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-07 10:35:40
+ * @ version: 2020-01-09 18:41:42
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
-import { Valid } from './Valid';
+import { Validator } from './Validator';
+import { setExpose } from 'think_validtion';
 const liteq = require('liteq');
 const helper = liteq.helper;
-
-/** 
- * Validator Rules
- */
 export {
-    IsDefined, IsCnName, IsIdNumber, IsZipCode, IsMobile, IsPlateNumber, IsEmail, IsIP, IsPhoneNumber, IsUrl, IsHash, IsNotEmpty, Equals, NotEquals, Contains, IsIn, IsNotIn, IsDate,
+    ClassValidator, FunctionValidator, IsDefined, IsCnName, IsIdNumber, IsZipCode, IsMobile, IsPlateNumber, IsEmail, IsIP, IsPhoneNumber, IsUrl, IsHash, IsNotEmpty, Equals, NotEquals, Contains, IsIn, IsNotIn, IsDate,
     Min, Max, Length
-} from "./Valid";
+} from "think_validtion";
 
 /**
  * Dynamically add methods for target class types
@@ -42,12 +39,12 @@ function defineNewProperty(clazz: Function, protoName: string) {
                 // tslint:disable-next-line: prefer-for-of
                 for (const i of data) {
                     // tslint:disable-next-line: no-invalid-this
-                    result.push(Valid(clazz, this.fields, i, protoName));
+                    result.push(Validator(clazz, this.fields, i, protoName));
                 }
-                await Promise.all(result);
+                data = await Promise.all(result);
             } else {
                 // tslint:disable-next-line: no-invalid-this
-                await Valid(clazz, this.fields, data, protoName);
+                data = await Validator(clazz, this.fields, data, protoName);
             }
             return data;
         }
@@ -66,6 +63,42 @@ function checkColumn(name: string) {
         throw Error(`The column name '${name}' cannot be a reserved keyword.`);
     }
     return;
+}
+
+/**
+ * Cover designType to knex type
+ *
+ * @param {string} designType
+ * @param {number} size
+ * @returns
+ */
+function switchType(designType: string, size: number) {
+    let ctype = "";
+    switch (designType) {
+        case "Number":
+            ctype = "integer";
+            break;
+        case "Array":
+            ctype = "array";
+            break;
+        case "Object":
+            ctype = "json";
+            break;
+        case "Boolean":
+            ctype = "boolean";
+            break;
+        case "String":
+            if (size > 255) {
+                ctype = "text";
+            } else {
+                ctype = "string";
+            }
+            break;
+        default:
+            ctype = "string";
+            break;
+    }
+    return ctype;
 }
 
 /**
@@ -118,33 +151,7 @@ export function PrimaryColumn(size = 11, auto = true): PropertyDecorator {
         }
 
         const designType = Reflect.getMetadata("design:type", target, propertyKey);
-        let ctype = "string";
-        if (designType) {
-            switch (designType.name) {
-                case "Number":
-                    ctype = "integer";
-                    break;
-                case "Array":
-                    ctype = "array";
-                    break;
-                case "Object":
-                    ctype = "json";
-                    break;
-                case "Boolean":
-                    ctype = "boolean";
-                    break;
-                case "String":
-                    if (size > 255) {
-                        ctype = "text";
-                    } else {
-                        ctype = "string";
-                    }
-                    break;
-                default:
-                    ctype = "string";
-                    break;
-            }
-        }
+        const ctype = switchType(designType.name, size);
 
         Reflect.defineProperty(target.fields, propertyKey, {
             value: {
@@ -163,6 +170,8 @@ export function PrimaryColumn(size = 11, auto = true): PropertyDecorator {
             configurable: true,
             enumerable: true
         });
+        // Set property as included in the process of transformation.
+        setExpose(target, propertyKey);
     };
 
 }
@@ -191,27 +200,8 @@ export function Column(size?: number, defaultValue?: any, index = false, unique 
             });
         }
         const designType = Reflect.getMetadata("design:type", target, propertyKey);
-        let ctype = "string";
-        if (designType) {
-            switch (designType.name) {
-                case "Number":
-                    ctype = "integer";
-                    break;
-                case "Array":
-                    ctype = "array";
-                    break;
-                case "Object":
-                    ctype = "json";
-                    break;
-                case "Boolean":
-                    ctype = "boolean";
-                    break;
-                case "String":
-                default:
-                    ctype = "string";
-                    break;
-            }
-        }
+        const ctype = switchType(designType.name, size);
+
         const values: any = {
             type: ctype
         };
@@ -236,6 +226,8 @@ export function Column(size?: number, defaultValue?: any, index = false, unique 
             configurable: true,
             enumerable: true
         });
+        // Set property as included in the process of transformation.
+        setExpose(target, propertyKey);
     };
 
 }
@@ -280,6 +272,8 @@ export function TimestampColumn(timeWhen: timeWhen = "All"): PropertyDecorator {
             configurable: true,
             enumerable: true
         });
+        // Set property as included in the process of transformation.
+        setExpose(target, propertyKey);
     };
 
 }
