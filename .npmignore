@@ -8,3 +8,5 @@ coverage/
 .test.js
 yarn-error.log
 yarn.lock
+src
+test

@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-09 19:03:34
+ * @ version: 2020-01-10 16:52:43
  */
 
 import * as helper from "think_lib";
@@ -64,7 +64,7 @@ const typeCheck = function (name: string, value: any, type: string) {
  * @returns
  */
 const setDefault = function (value: any, propertyKey: string, defaultValue: any, when: string, method: string) {
-    if (helper.isEmpty(value) && defaultValue !== undefined && defaultValue !== null) {
+    if (helper.isTrueEmpty(value) && defaultValue !== undefined && defaultValue !== null) {
         // 特殊类型自动赋值字段,绑定的是函数
         if (helper.isFunction(defaultValue)) {
             if (when === "All") {
@@ -72,20 +72,8 @@ const setDefault = function (value: any, propertyKey: string, defaultValue: any,
             } else if (method === when) {
                 value = defaultValue();
             }
-            //  else {
-            //     delete data[propertyKey];
-            // }
         } else {
-            if (method === "_beforeAdd") {
-                value = defaultValue;
-            } else {
-                if (value === undefined) {
-                    value = defaultValue;
-                }
-                // else {
-                //     delete data[propertyKey];
-                // }
-            }
+            value = defaultValue;
         }
     }
     return value;
@@ -117,7 +105,14 @@ export const Validator = async function (clazz: Function, fields: any, data: any
             continue;
         }
         //默认值
-        rdata[propertyKey] = setDefault(data[propertyKey], propertyKey, fields[propertyKey].defaults, fields[propertyKey].when, method);
+        if (method === "_beforeAdd" || (method === "_beforeUpdate" && fields[propertyKey].when)) {
+            const values = setDefault(data[propertyKey], propertyKey, fields[propertyKey].defaults, fields[propertyKey].when, method);
+            if (values !== undefined) {
+                rdata[propertyKey] = values;
+            }
+        } else if (data.hasOwnProperty(propertyKey)) {
+            rdata[propertyKey] = data[propertyKey];
+        }
 
         //数据类型检查
         if (data.hasOwnProperty(propertyKey) && fields[propertyKey].type) {
@@ -129,6 +124,8 @@ export const Validator = async function (clazz: Function, fields: any, data: any
     }
 
     //规则验证
-    await ClassValidator.valid(clazz, rdata);
+    await ClassValidator.valid(clazz, rdata).catch((err: any) => {
+        return Promise.reject(err);
+    });
     return Promise.resolve(rdata);
 };

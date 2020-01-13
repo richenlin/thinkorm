@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-09 19:05:15
+ * @ version: 2020-01-10 13:39:21
  */
 import { BaseModel, PrimaryColumn, IsNotEmpty, Column, Entity, TimestampColumn } from "../src/index";
 
@@ -21,8 +21,8 @@ class User extends BaseModel {
     @TimestampColumn()
     update_time: number;
 
-    @Column(20, "desc")
-    desc: string;
+    @Column(20)
+    desc = 'ddd';
 }
 
 
@@ -42,7 +42,7 @@ const userModel = new User({
 });
 
 // console.log(JSON.stringify(userModel.fields));
-userModel.add({ name: '', tttt: 2 }).then((res: any) => {
+userModel.add({ name: 'aaa', tttt: 2 }).then((res: any) => {
     // userModel.where({ id: 1 }).update({ name: 'aaa' }).then((res: any) => {
     console.log(res);
 }).catch((err: any) => {
