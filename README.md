@@ -40,6 +40,8 @@ npm install thinkorm --save
 
 ## 使用
 
+used thinkorm@4.x
+
 ```js
 //class User.js
 const {BaseModel, helper, Entity, PrimaryColumn, Column, IsNotEmpty } = require('thinkorm');
@@ -73,7 +75,7 @@ result = await userModel.where({"name": {"<>": ""}}).select(); //query name is n
 
 ## 文档
 
-[https://thinkkoa.org/orm](https://thinkkoa.org/orm)
+[https://thinkkoa.org/orm](3.x)
 
 ## 贡献者
 
