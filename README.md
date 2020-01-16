@@ -75,7 +75,8 @@ result = await userModel.where({"name": {"<>": ""}}).select(); //query name is n
 
 ## 文档
 
-[https://thinkkoa.org/orm](3.x)
+[3.x](https://thinkkoa.org/orm)
+[4.x](https://github.com/thinkkoa/thinkorm_doc)
 
 ## 贡献者
 
