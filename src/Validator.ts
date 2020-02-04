@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-10 16:52:43
+ * @ version: 2020-02-04 10:38:19
  */
 
 import * as helper from "think_lib";
@@ -94,14 +94,15 @@ export const Validator = async function (clazz: Function, fields: any, data: any
     // tslint:disable-next-line: forin
     for (const propertyKey in fields) {
         if (fields[propertyKey].pk) {
-            // tslint:disable-next-line: no-unused-expression
-            data[propertyKey] !== undefined && (rdata[propertyKey] = data[propertyKey]);
+            if (data[propertyKey] !== undefined && data[propertyKey] !== null) {
+                rdata[propertyKey] = data[propertyKey];
+            }
             continue;
         }
-        // 如果可为空值并且值不存在，直接设置为Null
+        // 如果可为空值并且值不存在
         if (fields[propertyKey].isnull === true && helper.isEmpty(data[propertyKey])) {
             // tslint:disable-next-line: no-null-keyword
-            rdata[propertyKey] = null;
+            // rdata[propertyKey] = null;
             continue;
         }
         //默认值

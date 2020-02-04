@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-10 13:39:21
+ * @ version: 2020-01-17 11:44:44
  */
 import { BaseModel, PrimaryColumn, IsNotEmpty, Column, Entity, TimestampColumn } from "../src/index";
 
@@ -13,16 +13,13 @@ class User extends BaseModel {
 
     @IsNotEmpty({ message: "姓名不能为空" })
     @Column(0, '', true)
-    name: string;
+    realname: string;
 
     @TimestampColumn("_beforeAdd")
     create_time: number;
 
     @TimestampColumn()
     update_time: number;
-
-    @Column(20)
-    desc = 'ddd';
 }
 
 
@@ -42,8 +39,9 @@ const userModel = new User({
 });
 
 // console.log(JSON.stringify(userModel.fields));
-userModel.add({ name: 'aaa', tttt: 2 }).then((res: any) => {
-    // userModel.where({ id: 1 }).update({ name: 'aaa' }).then((res: any) => {
+// userModel.add({ realname: 'aaa', tttt: 2 }).then((res: any) => {
+// userModel.where({ id: 1 }).update({ realname: 'aaa' }).then((res: any) => {
+userModel.where({ id: 1 }).limit(100).select().then((res: any) => {
     console.log(res);
 }).catch((err: any) => {
     console.log(err);

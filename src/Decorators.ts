@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-09 18:41:42
+ * @ version: 2020-01-17 11:40:16
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -276,5 +276,45 @@ export function TimestampColumn(timeWhen: timeWhen = "All"): PropertyDecorator {
         setExpose(target, propertyKey);
     };
 
+}
+
+interface ModelClsInterface {
+    config: Object;
+    instance: Object;
+    pk: string;
+    tableName: string;
+    modelName: string;
+    transaction: ((t: any) => Promise<any>);
+}
+
+/**
+ * Mark this method to start transaction execution. In Thinkkoa and Koatty, do not use it in the controller.
+ * * modelCls.add(data);
+ * * otherModel.setInstance(this.tsx).add(data);
+ * 
+ * @export
+ * @returns {MethodDecorator}
+ */
+export function Transactional(modelCls: ModelClsInterface): MethodDecorator {
+    return (target: any, methodName: string, descriptor: PropertyDescriptor) => {
+        const { value, configurable, enumerable } = descriptor;
+        descriptor = {
+            configurable,
+            enumerable,
+            writable: true,
+            value: async function trans(...props: any[]) {
+                if (helper.isEmpty(modelCls) || helper.isEmpty(modelCls.config) || helper.isEmpty(modelCls.instance)) {
+                    return Promise.reject("Wrong model class instance. This decorator is only for ThinkORM.");
+                }
+                return modelCls.transaction((tsx: any) => {
+                    // tslint:disable-next-line: no-invalid-this
+                    this.tsx = tsx;
+                    // tslint:disable-next-line: no-invalid-this
+                    return value.apply(this, props);
+                });
+            }
+        };
+        return descriptor;
+    };
 }
 
