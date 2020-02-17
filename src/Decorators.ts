@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-17 11:40:16
+ * @ version: 2020-02-17 10:22:13
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -266,6 +266,7 @@ export function TimestampColumn(timeWhen: timeWhen = "All"): PropertyDecorator {
                 type: "integer",
                 size: 11,
                 defaults: helper.datetime,
+                isnull: true, //TimestampColumn allowed null
                 when: timeWhen
             },
             writable: true,
