@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-04 10:38:19
+ * @ version: 2020-02-17 11:14:12
  */
 
 import * as helper from "think_lib";
@@ -22,6 +22,7 @@ const typeCheck = function (name: string, value: any, type: string) {
         switch (type) {
             case 'integer':
             case 'float':
+            case 'bigInteger':
                 if (!helper.isNumber(value)) {
                     return { status: 0, msg: `The parameter '${name}' is invalid!` };
                 }
@@ -106,7 +107,7 @@ export const Validator = async function (clazz: Function, fields: any, data: any
             continue;
         }
         //默认值
-        if (method === "_beforeAdd" || (method === "_beforeUpdate" && fields[propertyKey].when)) {
+        if ((method === "_beforeAdd" || method === "_beforeUpdate") && fields[propertyKey].when) {
             const values = setDefault(data[propertyKey], propertyKey, fields[propertyKey].defaults, fields[propertyKey].when, method);
             if (values !== undefined) {
                 rdata[propertyKey] = values;

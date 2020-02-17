@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-17 10:23:54
+ * @ version: 2020-02-17 11:20:24
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -77,6 +77,9 @@ function switchType(designType: string, size: number) {
     switch (designType) {
         case "Number":
             ctype = "integer";
+            if (size > 11) {
+                ctype = 'bigInteger';
+            }
             break;
         case "Array":
             ctype = "array";
@@ -134,9 +137,10 @@ export function Entity(identifier?: string): ClassDecorator {
  * @export
  * @param {number} [size=11]
  * @param {boolean} [auto=true]
+ * @param {string} [comment]
  * @returns {PropertyDecorator}
  */
-export function PrimaryColumn(size = 11, auto = true): PropertyDecorator {
+export function PrimaryColumn(size = 11, auto = true, comment?: string): PropertyDecorator {
     return (target: any, propertyKey: string) => {
         //Check the colum name
         checkColumn(propertyKey);
@@ -158,7 +162,8 @@ export function PrimaryColumn(size = 11, auto = true): PropertyDecorator {
                 type: ctype,
                 size,
                 pk: true,
-                auto
+                auto,
+                comment
             },
             writable: true,
             configurable: true,
@@ -184,9 +189,10 @@ export function PrimaryColumn(size = 11, auto = true): PropertyDecorator {
  * @param {*} [defaultValue]
  * @param {boolean} [index=false]
  * @param {boolean} [unique=false]
+ * @param {string} [comment]
  * @returns {PropertyDecorator}
  */
-export function Column(size?: number, defaultValue?: any, index = false, unique = false): PropertyDecorator {
+export function Column(size?: number, defaultValue?: any, index = false, unique = false, comment?: string): PropertyDecorator {
     return (target: any, propertyKey: string) => {
         //Check the colum name
         checkColumn(propertyKey);
@@ -203,7 +209,8 @@ export function Column(size?: number, defaultValue?: any, index = false, unique 
         const ctype = switchType(designType.name, size);
 
         const values: any = {
-            type: ctype
+            type: ctype,
+            comment
         };
         if (size > 0) {
             values.size = size;
@@ -242,9 +249,10 @@ export type timeWhen = "_beforeAdd" | "_beforeUpdate" | "All";
  *
  * @export
  * @param {timeWhen} [timeWhen="All"] When to execute timestamp
+ * @param {string} [comment]
  * @returns {PropertyDecorator}
  */
-export function TimestampColumn(timeWhen: timeWhen = "All"): PropertyDecorator {
+export function TimestampColumn(timeWhen: timeWhen = "All", comment?: string): PropertyDecorator {
     return (target: any, propertyKey: string) => {
         //Check the colum name
         checkColumn(propertyKey);
@@ -267,6 +275,7 @@ export function TimestampColumn(timeWhen: timeWhen = "All"): PropertyDecorator {
                 size: 11,
                 defaults: helper.datetime,
                 isnull: true, //TimestampColumn allowed null
+                comment,
                 when: timeWhen
             },
             writable: true,
