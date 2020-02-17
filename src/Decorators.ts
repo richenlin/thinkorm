@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-17 10:22:13
+ * @ version: 2020-02-17 10:23:54
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -259,7 +259,7 @@ export function TimestampColumn(timeWhen: timeWhen = "All"): PropertyDecorator {
         }
         const designType = Reflect.getMetadata("design:type", target, propertyKey);
         if (designType && designType.name !== "Number") {
-            throw Error("TimestampColumn's type must be `Number`");
+            throw Error("TimestampColumn's type must be `number`");
         }
         Reflect.defineProperty(target.fields, propertyKey, {
             value: {
@@ -305,7 +305,7 @@ export function Transactional(modelCls: ModelClsInterface): MethodDecorator {
             writable: true,
             value: async function trans(...props: any[]) {
                 if (helper.isEmpty(modelCls) || helper.isEmpty(modelCls.config) || helper.isEmpty(modelCls.instance)) {
-                    return Promise.reject("Wrong model class instance. This decorator is only for ThinkORM.");
+                    return Promise.reject("Wrong model class instance. This decorator is only used for ThinkORM.");
                 }
                 return modelCls.transaction((tsx: any) => {
                     // tslint:disable-next-line: no-invalid-this
