@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-17 11:20:24
+ * @ version: 2020-02-18 16:23:34
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -298,14 +298,19 @@ interface ModelClsInterface {
 }
 
 /**
- * Mark this method to start transaction execution. In Thinkkoa and Koatty, do not use it in the controller.
- * * modelCls.add(data);
- * * otherModel.setInstance(this.tsx).add(data);
- * 
+ * Mark this method to start transaction execution. In Thinkkoa and Koatty.
+ *
  * @export
+ * @param {string} modelInstanceName Instantiated ORM model attribute members of the current class.
+ * @param {string} [transInstanceName="_tsx"]  default name is "_tsx".
+ * * exp:
+ * * @Transactional("userModel")
+ * * await this.userModel.add({name: "test"});
+ * * await this.userModel.where({id: 1}).update({status: 1});
+ * * await this.roleModel.setInstance(this._tsx).where({id: 1}).update(name: "test");
  * @returns {MethodDecorator}
  */
-export function Transactional(modelCls: ModelClsInterface): MethodDecorator {
+export function Transactional(modelInstanceName: string, transInstanceName = "_tsx"): MethodDecorator {
     return (target: any, methodName: string, descriptor: PropertyDescriptor) => {
         const { value, configurable, enumerable } = descriptor;
         descriptor = {
@@ -313,12 +318,14 @@ export function Transactional(modelCls: ModelClsInterface): MethodDecorator {
             enumerable,
             writable: true,
             value: async function trans(...props: any[]) {
-                if (helper.isEmpty(modelCls) || helper.isEmpty(modelCls.config) || helper.isEmpty(modelCls.instance)) {
-                    return Promise.reject("Wrong model class instance. This decorator is only used for ThinkORM.");
+                // tslint:disable-next-line: no-invalid-this
+                const modelCls: ModelClsInterface = this[modelInstanceName];
+                if (helper.isEmpty(modelCls) || helper.isEmpty(modelCls.config)) {
+                    return Promise.reject("Model instance is invalid.");
                 }
                 return modelCls.transaction((tsx: any) => {
                     // tslint:disable-next-line: no-invalid-this
-                    this.tsx = tsx;
+                    this[transInstanceName] = tsx;
                     // tslint:disable-next-line: no-invalid-this
                     return value.apply(this, props);
                 });

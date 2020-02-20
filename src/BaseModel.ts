@@ -2,10 +2,16 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 19:09:25
+ * @ version: 2020-02-20 10:21:43
  */
+import * as logger from "think_logger";
 const liteq = require('liteq');
 const helper = liteq.helper;
+
+interface AdapterInstance {
+    knexClient: any;
+    parser: any;
+}
 
 interface BaseModelInterface {
     pk: string;
@@ -14,6 +20,7 @@ interface BaseModelInterface {
 
     readonly getTableName: () => string;
     readonly getPk: () => string;
+    readonly setInstance: (ins: AdapterInstance) => BaseModel;
     readonly field: (values: string | string[]) => BaseModel;
     readonly alias: (values: string) => BaseModel;
     readonly where: (values: Object) => BaseModel;
@@ -63,6 +70,27 @@ export class BaseModel extends liteq implements BaseModelInterface {
     }
 
     /**
+     * 
+     * 
+     * @param {any} err 
+     * @returns 
+     * @memberof BaseModel
+     */
+    error(err: any) {
+        let msg = err;
+        if (msg) {
+            if (!helper.isError(msg)) {
+                if (!helper.isString(msg)) {
+                    msg = JSON.stringify(msg);
+                }
+                msg = new Error(msg);
+            }
+            // logger.error(msg);
+        }
+        return Promise.reject(msg);
+    }
+
+    /**
      * Get table name
      *
      * @returns
@@ -80,6 +108,17 @@ export class BaseModel extends liteq implements BaseModelInterface {
      */
     getPk(): string {
         return super.getPk();
+    }
+
+    /**
+     * Set repository handle to model
+     *
+     * @param {AdapterInstance} ins
+     * @returns
+     * @memberof BaseModel
+     */
+    setInstance(ins: AdapterInstance): BaseModel {
+        return super.setInstance(ins);
     }
 
     /**
