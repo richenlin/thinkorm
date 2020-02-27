@@ -14,23 +14,25 @@ ThinkORM试图用一种抽象的DSL语言，尽量保持各种数据库书写语
 
 ## 特性
 
-1. 基于Knex.js实现,支持 Mysql/MariaDB, PostgresSql, SQLite3, Oracle, MSSQL. 
+1. 支持Typescript (4.x版本)
 
-2. 抽象的面向对象式SQL操作语言,保持各种数据库书写语法一致,方便开发和项目迁移
+2. 基于Knex.js实现,支持 MySQL, PostgreSQL, MariaDB, SQLite, MS SQL Server, Oracle等常见数据库. 
 
-3. 支持schema定义数据结构,支持严格的类型检查;支持数据结构迁移到数据库,通过migrate方法调用
+3. 抽象的面向对象式SQL操作语言,保持各种数据库书写语法一致,方便开发和项目迁移
 
-4. 支持hasone,hasmany,manytomany关联查询
+4. 支持schema定义数据结构,支持严格的类型检查;支持数据结构迁移到数据库,通过migrate方法调用
 
-5. 支持left,right,inner join查询,支持count,sum,group查询
+5. 支持hasone,hasmany,manytomany关联查询
 
-6. 支持连接池配置.支持数据链接检测以及自动重联，数据库服务的宕机修复后无需重启应用
+6. 支持left,right,inner join查询,支持count,sum,group查询
 
-7. 支持事务操作,包括同模型、跨模型、并行事务(Mysql/MariaDB, PostgresSql)
+7. 支持连接池配置.支持数据链接检测以及自动重联，数据库服务的宕机修复后无需重启应用
 
-8. 支持数据自动验证以及自定义规则验证,且规则可扩展
+8. 支持事务操作,包括同模型、跨模型、并行事务
 
-9. 支持前置、后置逻辑处理
+9. 支持数据自动验证以及自定义规则验证,且规则可扩展
+
+10. 支持前置、后置逻辑处理
 
 ## 安装
 
@@ -75,9 +77,7 @@ result = await userModel.where({"name": {"<>": ""}}).select(); //query name is n
 
 ## 文档
 
-[3.x](https://thinkkoa.org/orm)
-
-[4.x](https://github.com/thinkkoa/thinkorm_doc)
+[4.x cn](https://github.com/thinkkoa/thinkorm_doc)
 
 ## 贡献者
 
