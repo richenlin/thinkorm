@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-18 16:23:34
+ * @ version: 2020-02-21 15:09:34
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -32,9 +32,10 @@ function defineNewProperty(clazz: Function, protoName: string) {
             }
             // tslint:disable-next-line: no-invalid-this
             clazz.prototype.config = this.config || {};
-            if (helper.isEmpty(data)) {
-                return {};
-            } else if (helper.isArray(data)) {
+            // if (helper.isEmpty(data)) {
+            //     return {};
+            // } else 
+            if (helper.isArray(data)) {
                 const result = [];
                 // tslint:disable-next-line: prefer-for-of
                 for (const i of data) {
@@ -302,15 +303,15 @@ interface ModelClsInterface {
  *
  * @export
  * @param {string} modelInstanceName Instantiated ORM model attribute members of the current class.
- * @param {string} [transInstanceName="_tsx"]  default name is "_tsx".
  * * exp:
  * * @Transactional("userModel")
  * * await this.userModel.add({name: "test"});
  * * await this.userModel.where({id: 1}).update({status: 1});
- * * await this.roleModel.setInstance(this._tsx).where({id: 1}).update(name: "test");
+ * * const tsx = await this.userModel.getInstance();
+ * * await this.roleModel.setInstance(tsx).where({id: 1}).update(name: "test");
  * @returns {MethodDecorator}
  */
-export function Transactional(modelInstanceName: string, transInstanceName = "_tsx"): MethodDecorator {
+export function Transactional(modelInstanceName: string): MethodDecorator {
     return (target: any, methodName: string, descriptor: PropertyDescriptor) => {
         const { value, configurable, enumerable } = descriptor;
         descriptor = {
@@ -324,8 +325,6 @@ export function Transactional(modelInstanceName: string, transInstanceName = "_t
                     return Promise.reject("Model instance is invalid.");
                 }
                 return modelCls.transaction((tsx: any) => {
-                    // tslint:disable-next-line: no-invalid-this
-                    this[transInstanceName] = tsx;
                     // tslint:disable-next-line: no-invalid-this
                     return value.apply(this, props);
                 });

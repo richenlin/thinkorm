@@ -2,9 +2,8 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-20 10:21:43
+ * @ version: 2020-02-27 10:36:16
  */
-import * as logger from "think_logger";
 const liteq = require('liteq');
 const helper = liteq.helper;
 
@@ -20,6 +19,7 @@ interface BaseModelInterface {
 
     readonly getTableName: () => string;
     readonly getPk: () => string;
+    readonly getInstance: (forceNew?: boolean) => Promise<Object>;
     readonly setInstance: (ins: AdapterInstance) => BaseModel;
     readonly field: (values: string | string[]) => BaseModel;
     readonly alias: (values: string) => BaseModel;
@@ -31,7 +31,7 @@ interface BaseModelInterface {
     readonly having: (values: Object) => BaseModel;
     readonly join: (values: any[]) => BaseModel;
     readonly _beforeAdd: (data: Object, options?: Object) => Promise<Object>;
-    readonly add: (data: Object, options?: Object) => Promise<any>;
+    readonly add: (data: Object | any[], options?: Object) => Promise<any>;
     readonly _afterAdd: (data: Object, options?: Object) => Promise<any>;
     readonly thenAdd: (data: Object, options?: Object) => Promise<any>;
     readonly _beforeDelete: (options: Object) => Promise<any>;
@@ -70,27 +70,6 @@ export class BaseModel extends liteq implements BaseModelInterface {
     }
 
     /**
-     * 
-     * 
-     * @param {any} err 
-     * @returns 
-     * @memberof BaseModel
-     */
-    error(err: any) {
-        let msg = err;
-        if (msg) {
-            if (!helper.isError(msg)) {
-                if (!helper.isString(msg)) {
-                    msg = JSON.stringify(msg);
-                }
-                msg = new Error(msg);
-            }
-            // logger.error(msg);
-        }
-        return Promise.reject(msg);
-    }
-
-    /**
      * Get table name
      *
      * @returns
@@ -108,6 +87,17 @@ export class BaseModel extends liteq implements BaseModelInterface {
      */
     getPk(): string {
         return super.getPk();
+    }
+
+    /**
+     * Get repository handle
+     *
+     * @param {boolean} [forceNew=false]
+     * @returns
+     * @memberof BaseModel
+     */
+    async getInstance(forceNew = false) {
+        return super.getInstance(forceNew);
     }
 
     /**
@@ -277,12 +267,12 @@ export class BaseModel extends liteq implements BaseModelInterface {
     /**
      * Add method
      *
-     * @param {Object} data
+     * @param {Object | any[]} data
      * @param {Object} [options]
      * @returns {Promise<any>}
      * @memberof BaseModel
      */
-    async add(data: Object, options?: Object): Promise<any> {
+    async add(data: Object | any[], options?: Object): Promise<any> {
         try {
             if (helper.isEmpty(data)) {
                 throw Error('Data can not be empty');
