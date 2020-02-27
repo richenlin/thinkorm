@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-21 15:09:34
+ * @ version: 2020-02-27 12:53:07
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
@@ -287,6 +287,54 @@ export function TimestampColumn(timeWhen: timeWhen = "All", comment?: string): P
         setExpose(target, propertyKey);
     };
 
+}
+
+export type relationType = "HASONE" | "HASMANY" | "MANYTOMANY";
+
+/**
+ * Relations mapping
+ *
+ * @export
+ * @param {Function} clazz
+ * @param {relationType} type
+ * @param {string} foreignKey
+ * @param {string} relationKey
+ * @returns {PropertyDecorator}
+ */
+export function Relations(clazz: Function, type: relationType, foreignKey: string, relationKey: string, map?: Function, field?: string[]): PropertyDecorator {
+    return (target: any, propertyKey: string) => {
+
+        if (!target.relations) {
+            Reflect.defineProperty(target, "relations", {
+                value: {},
+                writable: true,
+                configurable: true,
+                enumerable: true
+            });
+        }
+        const values: any = {
+            type,
+            model: clazz,
+            fkey: foreignKey,
+            rkey: relationKey
+        };
+        if (type === "MANYTOMANY") {
+            if (helper.isEmpty(map)) {
+                throw Error(`Missing map table parameter`);
+            }
+            values.map = map;
+        }
+
+        if (field) {
+            values.field = field;
+        }
+        Reflect.defineProperty(target.relations, propertyKey, {
+            value: values,
+            writable: true,
+            configurable: true,
+            enumerable: true
+        });
+    };
 }
 
 interface ModelClsInterface {

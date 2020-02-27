@@ -2,12 +2,30 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-17 11:44:44
+ * @ version: 2020-02-27 12:37:53
  */
-import { BaseModel, PrimaryColumn, IsNotEmpty, Column, Entity, TimestampColumn } from "../src/index";
+import { BaseModel, PrimaryColumn, IsNotEmpty, Column, Entity, TimestampColumn, Relations, RelModel } from "../src/index";
 
 @Entity()
-class User extends BaseModel {
+class Profile extends BaseModel {
+    @PrimaryColumn()
+    id: number;
+
+    @Column(0, '', true)
+    name: string;
+
+    @Column(11, undefined, true, true)
+    user_id: number;
+
+    @TimestampColumn("_beforeAdd")
+    create_time: number;
+
+    @TimestampColumn()
+    update_time: number;
+}
+
+@Entity()
+class User extends RelModel {
     @PrimaryColumn()
     id: number;
 
@@ -20,7 +38,11 @@ class User extends BaseModel {
 
     @TimestampColumn()
     update_time: number;
+
+    @Relations(Profile, "HASONE", "id", "user_id")
+    profile: any;
 }
+
 
 
 const data: any = {
@@ -41,7 +63,7 @@ const userModel = new User({
 // console.log(JSON.stringify(userModel.fields));
 // userModel.add({ realname: 'aaa', tttt: 2 }).then((res: any) => {
 // userModel.where({ id: 1 }).update({ realname: 'aaa' }).then((res: any) => {
-userModel.where({ id: 1 }).limit(100).select().then((res: any) => {
+userModel.where({ id: 1 }).rel(true).limit(100).select().then((res: any) => {
     console.log(res);
 }).catch((err: any) => {
     console.log(err);
