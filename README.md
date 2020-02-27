@@ -2,7 +2,6 @@
 
 [![npm version](https://badge.fury.io/js/thinkorm.svg)](https://badge.fury.io/js/thinkorm)
 [![Build Status](https://travis-ci.org/thinkkoa/thinkorm.svg?branch=master)](https://travis-ci.org/thinkkoa/thinkorm)
-[![Dependency Status](https://david-dm.org/thinkkoa/thinkorm.svg)](https://david-dm.org/thinkkoa/thinkorm)
 
 * thinkorm@4.0 Use Typescript's decorator!!
 
@@ -77,7 +76,7 @@ result = await userModel.where({"name": {"<>": ""}}).select(); //query name is n
 
 ## 文档
 
-[4.x cn](https://github.com/thinkkoa/thinkorm_doc)
+[4.x cn thinkorm_doc](https://thinkkoa.github.io/thinkorm_doc/)
 
 ## 贡献者
 
