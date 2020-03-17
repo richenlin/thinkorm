@@ -30,7 +30,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: { id: { '<>': 1, '>=': 2, '>': 0, '<': 100, '<=': 10 } }
                         },
-                        sql: "select `id` from `think_user` as `User` where `User`.`id` <> 1 and `User`.`id` >= 2 and `User`.`id` > 0 and `User`.`id` < 100 and `User`.`id` <= 10"
+                        sql: "select `User`.`id` from `think_user` as `User` where `User`.`id` <> 1 and `User`.`id` >= 2 and `User`.`id` > 0 and `User`.`id` < 100 and `User`.`id` <= 10"
                     },
                     {
                         dialect: 'postgresql',
@@ -55,7 +55,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: { id: { '<>': 1, '>=': 2, '>': 0, '<': 100, '<=': 10 } }
                         },
-                        sql: 'select "id" from "think_user" as "User" where "User"."id" <> 1 and "User"."id" >= 2 and "User"."id" > 0 and "User"."id" < 100 and "User"."id" <= 10'
+                        sql: 'select "User"."id" from "think_user" as "User" where "User"."id" <> 1 and "User"."id" >= 2 and "User"."id" > 0 and "User"."id" < 100 and "User"."id" <= 10'
                     },
                 ]
             }, done);

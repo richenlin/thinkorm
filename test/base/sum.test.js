@@ -31,7 +31,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: { id: { '>=': 0 } }
                         },
-                        sql: "select sum(`id`) as `sum` from `think_user` as `User` where `User`.`id` >= 0"
+                        sql: "select sum(`User`.`id`) as `sum` from `think_user` as `User` where `User`.`id` >= 0"
                     },
                     {
                         dialect: 'postgresql',
@@ -56,7 +56,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: { id: { '>=': 0 } }
                         },
-                        sql: 'select sum("id") as "sum" from "think_user" as "User" where "User"."id" >= 0'
+                        sql: 'select sum("User"."id") as "sum" from "think_user" as "User" where "User"."id" >= 0'
                     },
                 ]
             }, done);

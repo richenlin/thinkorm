@@ -28,8 +28,8 @@ describe('Query Generation ::', function () {
                         client: knex({ client: 'mysql' }),
                         query: {
                             field: ['id'],
-                            where: { 'pfile.id': { "<>": "" } },
-                            join: [{ from: 'Profile', alias: 'pfile', on: { or: [{ profile: 'id' }] }, field: ['id as aid', 'test'], type: 'left' }]
+                            where: {'pfile.id':{"<>": ""}},
+                            join: [{from: 'Profile', alias: 'pfile', on: {or: [{profile: 'id'}]}, field: ['id as aid', 'test'], type: 'left'}]
                         },
                         sql: "select `User`.`id`, `pfile`.`id` as `aid`, `pfile`.`test` from `think_user` as `User` left join `think_profile` as `pfile` on `User`.`profile` = `pfile`.`id` where `pfile`.`id` <> ''"
                     },
@@ -54,8 +54,8 @@ describe('Query Generation ::', function () {
                         client: knex({ client: 'postgresql' }),
                         query: {
                             field: ['id'],
-                            where: { 'pfile.id': { "<>": "" } },
-                            join: [{ from: 'Profile', alias: 'pfile', on: { or: [{ profile: 'id' }] }, field: ['id as aid', 'test'], type: 'left' }]
+                            where: {'pfile.id':{"<>": ""}},
+                            join: [{from: 'Profile', alias: 'pfile', on: {or: [{profile: 'id'}]}, field: ['id as aid', 'test'], type: 'left'}]
                         },
                         sql: 'select "User"."id", "pfile"."id" as "aid", "pfile"."test" from "think_user" as "User" left join "think_profile" as "pfile" on "User"."profile" = "pfile"."id" where "pfile"."id" <> \'\''
                     },
@@ -85,8 +85,8 @@ describe('Query Generation ::', function () {
                         },
                         client: knex({ client: 'mysql' }),
                         query: {
-                            field: ['id', 'name', 'num'],
-                            join: [{ from: 'Profile', on: { or: [{ profile: 'id' }, { name: 'test' }], profile: 'id' }, field: ['id', 'test'], type: 'left' }]
+                            field: ['id','name', 'num'],
+                            join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]
                         },
                         sql: "select `User`.`id`, `User`.`name`, `User`.`num`, `Profile`.`id`, `Profile`.`test` from `think_user` as `User` left join `think_profile` as `Profile` on `User`.`profile` = `Profile`.`id` or `User`.`name` = `Profile`.`test` and `User`.`profile` = `Profile`.`id`"
                     },
@@ -110,8 +110,8 @@ describe('Query Generation ::', function () {
                         },
                         client: knex({ client: 'postgresql' }),
                         query: {
-                            field: ['id', 'name', 'num'],
-                            join: [{ from: 'Profile', on: { or: [{ profile: 'id' }, { name: 'test' }], profile: 'id' }, field: ['id', 'test'], type: 'left' }]
+                            field: ['id','name', 'num'],
+                            join: [{from: 'Profile', on: {or: [{profile: 'id'}, {name: 'test'}], profile: 'id'}, field: ['id', 'test'], type: 'left'}]
                         },
                         sql: 'select "User"."id", "User"."name", "User"."num", "Profile"."id", "Profile"."test" from "think_user" as "User" left join "think_profile" as "Profile" on "User"."profile" = "Profile"."id" or "User"."name" = "Profile"."test" and "User"."profile" = "Profile"."id"'
                     },

@@ -29,7 +29,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: { name: { 'like': '%rr%' } }
                         },
-                        sql: "select `id` from `think_user` as `User` where `User`.`name` like '%rr%'"
+                        sql: "select `User`.`id` from `think_user` as `User` where `User`.`name` like '%rr%'"
                     },
                     {
                         dialect: 'postgresql',
@@ -53,7 +53,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: { name: { 'like': '%rr%' } }
                         },
-                        sql: "select \"id\" from \"think_user\" as \"User\" where \"User\".\"name\" like '%rr%'"
+                        sql: "select \"User\".\"id\" from \"think_user\" as \"User\" where \"User\".\"name\" like '%rr%'"
                     }
                 ]
             }, done);
@@ -83,7 +83,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: { name: { 'like': '%rr' } }
                         },
-                        sql: "select `id` from `think_user` as `User` where `User`.`name` like '%rr'"
+                        sql: "select `User`.`id` from `think_user` as `User` where `User`.`name` like '%rr'"
                     },
                     {
                         dialect: 'postgresql',
@@ -107,7 +107,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: { name: { 'like': '%rr' } }
                         },
-                        sql: "select \"id\" from \"think_user\" as \"User\" where \"User\".\"name\" like '%rr'"
+                        sql: "select \"User\".\"id\" from \"think_user\" as \"User\" where \"User\".\"name\" like '%rr'"
                     }
                 ]
             }, done);
@@ -137,7 +137,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: { name: { 'like': 'rr%' } }
                         },
-                        sql: "select `id` from `think_user` as `User` where `User`.`name` like 'rr%'"
+                        sql: "select `User`.`id` from `think_user` as `User` where `User`.`name` like 'rr%'"
                     },
                     {
                         dialect: 'postgresql',
@@ -161,7 +161,7 @@ describe('Query Generation ::', function () {
                         query: {
                             where: { name: { 'like': 'rr%' } }
                         },
-                        sql: "select \"id\" from \"think_user\" as \"User\" where \"User\".\"name\" like 'rr%'"
+                        sql: "select \"User\".\"id\" from \"think_user\" as \"User\" where \"User\".\"name\" like 'rr%'"
                     }
                 ]
             }, done);
