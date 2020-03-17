@@ -2,7 +2,7 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-20 16:27:06
+ * @ version: 2020-03-15 15:38:26
  */
 
 import * as helper from "think_lib";
@@ -117,12 +117,12 @@ export const Validator = async function (clazz: Function, fields: any, data: any
         }
 
         //数据类型检查
-        if (data.hasOwnProperty(propertyKey) && fields[propertyKey].type) {
-            const result: any = typeCheck(propertyKey, data[propertyKey], fields[propertyKey].type);
-            if (!result.status) {
-                return Promise.reject(result.msg);
-            }
-        }
+        // if (data.hasOwnProperty(propertyKey) && fields[propertyKey].type) {
+        //     const result: any = typeCheck(propertyKey, data[propertyKey], fields[propertyKey].type);
+        //     if (!result.status) {
+        //         return Promise.reject(result.msg);
+        //     }
+        // }
     }
 
     //规则验证
