@@ -2,9 +2,9 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-27 12:37:53
+ * @ version: 2020-03-23 16:34:58
  */
-import { BaseModel, PrimaryColumn, IsNotEmpty, Column, Entity, TimestampColumn, Relations, RelModel } from "../src/index";
+import { BaseModel, PrimaryColumn, IsNotEmpty, Column, Entity, TimestampColumn, RelModel } from "../src/index";
 
 @Entity()
 class Profile extends BaseModel {
@@ -12,7 +12,7 @@ class Profile extends BaseModel {
     id: number;
 
     @Column(0, '', true)
-    name: string;
+    name = '';
 
     @Column(11, undefined, true, true)
     user_id: number;
@@ -39,8 +39,8 @@ class User extends RelModel {
     @TimestampColumn()
     update_time: number;
 
-    @Relations(Profile, "HASONE", "id", "user_id")
-    profile: any;
+    // @Relations(Profile, "HASONE", "id", "user_id")
+    // profile: any;
 }
 
 
@@ -62,8 +62,8 @@ const userModel = new User({
 
 // console.log(JSON.stringify(userModel.fields));
 // userModel.add({ realname: 'aaa', tttt: 2 }).then((res: any) => {
-// userModel.where({ id: 1 }).update({ realname: 'aaa' }).then((res: any) => {
-userModel.where({ id: 1 }).rel(true).limit(100).select().then((res: any) => {
+userModel.where({ id: 1 }).update({ realname: '' }).then((res: any) => {
+    // userModel.where({ id: 1 }).rel(true).limit(100).select().then((res: any) => {
     console.log(res);
 }).catch((err: any) => {
     console.log(err);
