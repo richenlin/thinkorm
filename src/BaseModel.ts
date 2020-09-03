@@ -2,8 +2,9 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-27 10:36:16
+ * @ version: 2020-03-23 01:54:46
  */
+import { Validator } from './Validator';
 const liteq = require('liteq');
 const helper = liteq.helper;
 
@@ -278,7 +279,8 @@ export class BaseModel extends liteq implements BaseModelInterface {
                 throw Error('Data can not be empty');
             }
             options = helper.parseOptions(this, options);
-            const _data = await this._beforeAdd(data, options) || data;
+            let _data = await this._beforeAdd(data, options) || data;
+            _data = await Validator(this, _data, '_beforeAdd');
             if (helper.isEmpty(_data)) {
                 throw Error('Data can not be empty');
             }
@@ -394,7 +396,8 @@ export class BaseModel extends liteq implements BaseModelInterface {
     async update(data: Object, options?: Object): Promise<any> {
         try {
             options = helper.parseOptions(this, options);
-            const _data = await this._beforeUpdate(data, options) || data;
+            let _data = await this._beforeUpdate(data, options) || data;
+            _data = await Validator(this, _data, '_beforeUpdate');
             if (helper.isEmpty(_data)) {
                 throw Error('Data can not be empty');
             }
@@ -419,7 +422,8 @@ export class BaseModel extends liteq implements BaseModelInterface {
     async increment(field: string, step = 1, data = {}, options?: Object) {
         try {
             options = helper.parseOptions(this, options);
-            const _data = await this._beforeUpdate(data, options) || data;
+            let _data = await this._beforeUpdate(data, options) || data;
+            _data = await Validator(this, _data, '_beforeUpdate');
             const result = await super.increment(field, step, _data, options);
             await this._afterUpdate(_data, options);
             return result;
@@ -441,7 +445,8 @@ export class BaseModel extends liteq implements BaseModelInterface {
     async decrement(field: string, step = 1, data = {}, options?: Object) {
         try {
             options = helper.parseOptions(this, options);
-            const _data = await this._beforeUpdate(data, options) || data;
+            let _data = await this._beforeUpdate(data, options) || data;
+            _data = await Validator(this, _data, '_beforeUpdate');
             const result = await super.decrement(field, step, _data, options);
             await this._afterUpdate(_data, options);
             return result;

@@ -2,10 +2,11 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-01-06 17:49:12
+ * @ version: 2020-03-23 01:37:09
  */
-
 import * as helper from "think_lib";
+export const classMap = new Map();
+
 /**
  * 
  * 

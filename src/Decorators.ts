@@ -2,55 +2,18 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-02-27 12:53:07
+ * @ version: 2020-03-24 17:42:42
  */
 // tslint:disable-next-line: no-import-side-effect
 import "reflect-metadata";
-import { Validator } from './Validator';
 import { setExpose } from 'think_validtion';
+import { classMap } from './Relation';
 const liteq = require('liteq');
 const helper = liteq.helper;
 export {
     ClassValidator, FunctionValidator, IsDefined, IsCnName, IsIdNumber, IsZipCode, IsMobile, IsPlateNumber, IsEmail, IsIP, IsPhoneNumber, IsUrl, IsHash, IsNotEmpty, Equals, NotEquals, Contains, IsIn, IsNotIn, IsDate,
     Min, Max, Length
 } from "think_validtion";
-
-/**
- * Dynamically add methods for target class types
- *
- * @param {Function} clazz
- * @param {string} protoName
- */
-function defineNewProperty(clazz: Function, protoName: string) {
-    const oldMethod = Reflect.get(clazz.prototype, protoName);
-    Reflect.defineProperty(clazz.prototype, protoName, {
-        writable: true,
-        value: async function fn(data: any, options?: Object) {
-            if (oldMethod) {
-                // tslint:disable-next-line: no-invalid-this
-                data = await Promise.resolve(Reflect.apply(oldMethod, this, [data, options]));
-            }
-            // tslint:disable-next-line: no-invalid-this
-            clazz.prototype.config = this.config || {};
-            // if (helper.isEmpty(data)) {
-            //     return {};
-            // } else 
-            if (helper.isArray(data)) {
-                const result = [];
-                // tslint:disable-next-line: prefer-for-of
-                for (const i of data) {
-                    // tslint:disable-next-line: no-invalid-this
-                    result.push(Validator(clazz, this.fields, i, protoName));
-                }
-                data = await Promise.all(result);
-            } else {
-                // tslint:disable-next-line: no-invalid-this
-                data = await Validator(clazz, this.fields, data, protoName);
-            }
-            return data;
-        }
-    });
-}
 
 /**
  * Check the colum name 
@@ -124,9 +87,7 @@ export function Entity(identifier?: string): ClassDecorator {
                 enumerable: true
             });
         }
-        //
-        defineNewProperty(target, "_beforeAdd");
-        defineNewProperty(target, "_beforeUpdate");
+        classMap.set(identifier, target);
     };
 }
 
@@ -289,7 +250,80 @@ export function TimestampColumn(timeWhen: timeWhen = "All", comment?: string): P
 
 }
 
-export type relationType = "HASONE" | "HASMANY" | "MANYTOMANY";
+
+// 4.5.0
+// 1、用赋值替代现在的默认值机制。数据验证更高效
+// 2、弄清楚关联查询同join查询的区别，然后重新实现关联查询功能
+// export type relationType = "HASONE" | "HASMANY" | "MANYTOMANY" | "BLONGTO";
+// export function HasOne(modelName: string, relationKey: string, field: any[] = []): PropertyDecorator {
+//     return (target: any, propertyKey: string) => {
+//         if (!target.relationShip) {
+//             Reflect.defineProperty(target, "relationShip", {
+//                 value: {},
+//                 writable: true,
+//                 configurable: true,
+//                 enumerable: true
+//             });
+//         }
+//         const clazz = classMap.get(modelName);
+//         if (!clazz) {
+//             throw Error(`The Entity ${modelName} is not found.`);
+//         }
+//         const values: any = {
+//             "from": modelName,
+//             "on": { [propertyKey]: relationKey },
+//             "field": field,
+//             "type": "left"
+//         };
+//         if (!target.relationShip.HASONE) {
+//             Reflect.defineProperty(target.relationShip, "HASONE", {
+//                 value: [values],
+//                 writable: true,
+//                 configurable: true,
+//                 enumerable: true
+//             });
+//         } else {
+//             target.relationShip.HASONE.push(values);
+//         }
+//     };
+// }
+// export function HasMany(modelName: string, relationKey: string): PropertyDecorator {
+//     return (target: any, propertyKey: string) => {
+//         if (!target.relationShip) {
+//             Reflect.defineProperty(target, "relationShip", {
+//                 value: {},
+//                 writable: true,
+//                 configurable: true,
+//                 enumerable: true
+//             });
+//         }
+//         const clazz = classMap.get(modelName);
+//         if (!clazz) {
+//             throw Error(`The Entity ${modelName} is not found.`);
+//         }
+//         const values: any = {
+//             "from": modelName,
+//             "on": { [propertyKey]: relationKey },
+//             "type": "left"
+//         };
+//         if (!target.relationShip.HASMANY) {
+//             Reflect.defineProperty(target.relationShip, "HASMANY", {
+//                 value: [values],
+//                 writable: true,
+//                 configurable: true,
+//                 enumerable: true
+//             });
+//         } else {
+//             target.relationShip.HASMANY.push(values);
+//         }
+//     };
+// }
+// export function ManyToMany(modelName: string, relationKey: string, mapModelName: string): PropertyDecorator {
+//     return (target: any, propertyKey: string) => { };
+// }
+// export function BlongTo(modelName: string, relationKey: string): PropertyDecorator {
+//     return (target: any, propertyKey: string) => { };
+// }
 
 /**
  * Relations mapping
@@ -301,41 +335,41 @@ export type relationType = "HASONE" | "HASMANY" | "MANYTOMANY";
  * @param {string} relationKey
  * @returns {PropertyDecorator}
  */
-export function Relations(clazz: Function, type: relationType, foreignKey: string, relationKey: string, map?: Function, field?: string[]): PropertyDecorator {
-    return (target: any, propertyKey: string) => {
+// export function Relations(clazz: Function, type: relationType, foreignKey: string, relationKey: string, map?: Function, field?: string[]): PropertyDecorator {
+//     return (target: any, propertyKey: string) => {
 
-        if (!target.relations) {
-            Reflect.defineProperty(target, "relations", {
-                value: {},
-                writable: true,
-                configurable: true,
-                enumerable: true
-            });
-        }
-        const values: any = {
-            type,
-            model: clazz,
-            fkey: foreignKey,
-            rkey: relationKey
-        };
-        if (type === "MANYTOMANY") {
-            if (helper.isEmpty(map)) {
-                throw Error(`Missing map table parameter`);
-            }
-            values.map = map;
-        }
+//         if (!target.relations) {
+//             Reflect.defineProperty(target, "relations", {
+//                 value: {},
+//                 writable: true,
+//                 configurable: true,
+//                 enumerable: true
+//             });
+//         }
+//         const values: any = {
+//             type,
+//             model: clazz,
+//             fkey: foreignKey,
+//             rkey: relationKey
+//         };
+//         if (type === "MANYTOMANY") {
+//             if (helper.isEmpty(map)) {
+//                 throw Error(`Missing map table parameter`);
+//             }
+//             values.map = map;
+//         }
 
-        if (field) {
-            values.field = field;
-        }
-        Reflect.defineProperty(target.relations, propertyKey, {
-            value: values,
-            writable: true,
-            configurable: true,
-            enumerable: true
-        });
-    };
-}
+//         if (field) {
+//             values.field = field;
+//         }
+//         Reflect.defineProperty(target.relations, propertyKey, {
+//             value: values,
+//             writable: true,
+//             configurable: true,
+//             enumerable: true
+//         });
+//     };
+// }
 
 interface ModelClsInterface {
     config: Object;
@@ -373,6 +407,7 @@ export function Transactional(modelInstanceName: string): MethodDecorator {
                     return Promise.reject("Model instance is invalid.");
                 }
                 return modelCls.transaction((tsx: any) => {
+                    props.push(tsx);
                     // tslint:disable-next-line: no-invalid-this
                     return value.apply(this, props);
                 });

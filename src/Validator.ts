@@ -2,11 +2,11 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2020-03-15 15:38:26
+ * @ version: 2020-03-23 01:37:22
  */
-
 import * as helper from "think_lib";
 import { ClassValidator } from 'think_validtion';
+import { classMap } from './Relation';
 
 /**
  * 数据类型检查
@@ -24,28 +24,28 @@ const typeCheck = function (name: string, value: any, type: string) {
             case 'float':
             case 'bigInteger':
                 if (!helper.isNumber(value)) {
-                    return { status: 0, msg: `The parameter '${name}' is invalid!` };
+                    return { status: 0, msg: `TypeError: invalid arguments '${name}'` };
                 }
                 break;
             case 'json':
                 if (!helper.isJSONObj(value)) {
-                    return { status: 0, msg: `The parameter '${name}' is invalid!` };
+                    return { status: 0, msg: `TypeError: invalid arguments '${name}'` };
                 }
                 break;
             case 'array':
                 if (!helper.isArray(value)) {
-                    return { status: 0, msg: `The parameter '${name}' is invalid!` };
+                    return { status: 0, msg: `TypeError: invalid arguments '${name}'` };
                 }
                 break;
             case 'string':
             case 'text':
                 if (!helper.isString(value)) {
-                    return { status: 0, msg: `The parameter '${name}' is invalid!` };
+                    return { status: 0, msg: `TypeError: invalid arguments '${name}'` };
                 }
                 break;
             default:
                 if (!helper.isString(value)) {
-                    return { status: 0, msg: `The parameter '${name}' is invalid!` };
+                    return { status: 0, msg: `TypeError: invalid arguments '${name}'` };
                 }
                 break;
         }
@@ -83,15 +83,38 @@ const setDefault = function (value: any, propertyKey: string, defaultValue: any,
 /**
  * 数据验证及处理
  *
- * @param {Function} clazz
+ * @param {*} ins
  * @param {*} fields
  * @param {*} data
  * @param {string} method
  * @returns
  */
-// tslint:disable-next-line: cyclomatic-complexity
-export const Validator = async function (clazz: Function, fields: any, data: any, method = "_beforeAdd") {
+export const Validator = async function (ins: any, data: any, method = "_beforeAdd") {
+    if (helper.isArray(data)) {
+        const result = [];
+        // tslint:disable-next-line: prefer-for-of
+        for (const i of data) {
+            // tslint:disable-next-line: no-invalid-this
+            result.push(validData(ins, i, method));
+        }
+        return Promise.all(result);
+    } else {
+        // tslint:disable-next-line: no-invalid-this
+        return validData(ins, data, method);
+    }
+};
+
+/**
+ *
+ *
+ * @param {*} ins
+ * @param {*} data
+ * @param {string} [method="_beforeAdd"]
+ * @returns
+ */
+const validData = async function (ins: any, data: any, method = "_beforeAdd") {
     const rdata: any = {};
+    const fields = ins.fields || {};
     // tslint:disable-next-line: forin
     for (const propertyKey in fields) {
         if (fields[propertyKey].pk) {
@@ -117,17 +140,20 @@ export const Validator = async function (clazz: Function, fields: any, data: any
         }
 
         //数据类型检查
-        // if (data.hasOwnProperty(propertyKey) && fields[propertyKey].type) {
-        //     const result: any = typeCheck(propertyKey, data[propertyKey], fields[propertyKey].type);
-        //     if (!result.status) {
-        //         return Promise.reject(result.msg);
-        //     }
-        // }
+        if (data.hasOwnProperty(propertyKey) && fields[propertyKey].type) {
+            const result: any = typeCheck(propertyKey, data[propertyKey], fields[propertyKey].type);
+            if (!result.status) {
+                return Promise.reject(result.msg);
+            }
+        }
     }
 
     //规则验证
-    await ClassValidator.valid(clazz, rdata).catch((err: any) => {
-        return Promise.reject(err);
-    });
-    return Promise.resolve(rdata);
+    const clazz = classMap.get(ins.modelName);
+    if (clazz) {
+        let sdata = Object.assign(Object.create(ins), rdata);
+        await ClassValidator.valid(clazz, sdata);
+        sdata = null;
+    }
+    return rdata;
 };

@@ -2,9 +2,8 @@
  * @ author: richen
  * @ copyright: Copyright (c) - <richenlin(at)gmail.com>
  * @ license: MIT
- * @ version: 2019-10-16 10:40:07
+ * @ version: 2020-03-23 01:59:28
  */
-
 const liteq = require('liteq');
 const helper = liteq.helper;
 
@@ -130,5 +129,13 @@ export class RelModel extends BaseModel {
         } catch (e) {
             return this.error(e);
         }
+    }
+
+    async count() {
+        return Promise.resolve();
+    }
+
+    async sum() {
+        return Promise.resolve();
     }
 }
